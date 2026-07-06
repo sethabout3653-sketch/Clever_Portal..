@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clever Loader</title>
+<title>Clever | Loading</title>
+<link rel="icon" type="image/png" href="poop.png" />
 
 <style>
 :root{
@@ -98,17 +99,19 @@ html, body{
     src="https://classroom.poloniacruz.com/"
     allowfullscreen
     referrerpolicy="no-referrer"
-    title="Embedded Website">
+    title="Clever Portal">
 </iframe>
 
 <script>
 (function () {
     const loader = document.getElementById('loader');
-
     const delay = Math.floor(Math.random() * 4001) + 3000; // 3000 to 7000 ms
+
+    document.title = "Clever | Loading";
 
     setTimeout(() => {
         loader.classList.add('hide');
+        document.title = "Clever | Portal";
     }, delay);
 })();
 </script>
