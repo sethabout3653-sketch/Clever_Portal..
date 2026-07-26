@@ -101,7 +101,6 @@ html, body{
     data-src="https://usevelara.xyz/"
     allowfullscreen
     referrerpolicy="no-referrer"
-    sandbox="allow-scripts allow-forms allow-popups"
     title="Clever Portal">
 </iframe>
 
@@ -114,7 +113,6 @@ html, body{
     document.title = "Clever | Loading";
 
     // Tab close / leave protection
-    // Browsers usually show their own generic warning message.
     let unsavedChanges = true;
 
     function beforeUnloadHandler(e) {
@@ -138,8 +136,6 @@ html, body{
         }, delay);
     });
 
-    // Example helper: call this when your app successfully saves.
-    // setUnsavedChanges(false);
     window.setUnsavedChanges = function (value) {
         unsavedChanges = Boolean(value);
     };
