@@ -101,6 +101,7 @@ html, body{
     data-src="https://usevelara.xyz/"
     allowfullscreen
     referrerpolicy="no-referrer"
+    sandbox="allow-scripts allow-forms allow-popups"
     title="Clever Portal">
 </iframe>
 
@@ -111,6 +112,19 @@ html, body{
     const delay = Math.floor(Math.random() * 4001) + 3000; // 3000 to 7000 ms
 
     document.title = "Clever | Loading";
+
+    // Tab close / leave protection
+    // Browsers usually show their own generic warning message.
+    let unsavedChanges = true;
+
+    function beforeUnloadHandler(e) {
+        if (!unsavedChanges) return;
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+    }
+
+    window.addEventListener('beforeunload', beforeUnloadHandler);
 
     window.addEventListener('load', () => {
         setTimeout(() => {
@@ -123,8 +137,14 @@ html, body{
             document.title = "Clever | Portal";
         }, delay);
     });
+
+    // Example helper: call this when your app successfully saves.
+    // setUnsavedChanges(false);
+    window.setUnsavedChanges = function (value) {
+        unsavedChanges = Boolean(value);
+    };
 })();
 </script>
 
 </body>
-</html> 
+</html>
