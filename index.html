@@ -1,146 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clever | Loading</title>
-<link rel="icon" type="image/png" href="poop.png" />
-
-<style>
-:root{
-    --bg: #ffffff;
-
-    --clever-width: 290px;
-    --clever-up: 95px;
-
-    --book-width: 250px;
-    --book-down: 5px;
-}
-
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html, body{
-    width: 100%;
-    height: 100%;
-    background: var(--bg);
-    overflow: hidden;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-.loader,
-.site{
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.loader{
-    background: var(--bg);
-    z-index: 2;
-    transition: opacity 0.6s ease, visibility 0.6s ease;
-    opacity: 1;
-    visibility: visible;
-}
-
-.loader.hide{
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.logo{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: var(--clever-width);
-    height: auto;
-    display: block;
-    transform: translate(-50%, -50%) translateY(calc(var(--clever-up) * -1));
-    user-select: none;
-    -webkit-user-drag: none;
-}
-
-.book{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: var(--book-width);
-    height: auto;
-    display: block;
-    transform: translate(-50%, -50%) translateY(var(--book-down));
-    user-select: none;
-    -webkit-user-drag: none;
-}
-
-.site{
-    z-index: 1;
-    border: none;
-    width: 100%;
-    height: 100%;
-    display: block;
-    background: #fff;
-}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clever | Loading</title>
+    <link rel="icon" type="image/png" href="poop.png" />
+    <style>
+        :root {
+            --bg: #ffffff;
+            --clever-width: 290px;
+            --clever-up: 95px;
+            --book-width: 250px;
+            --book-down: 5px;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            overflow: hidden;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .loader, .site {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .loader {
+            background: var(--bg);
+            z-index: 2;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+        .loader.hide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: var(--clever-width);
+            height: auto;
+            display: block;
+            transform: translate(-50%, -50%) translateY(calc(var(--clever-up) * -1));
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        .book {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: var(--book-width);
+            height: auto;
+            display: block;
+            transform: translate(-50%, -50%) translateY(var(--book-down));
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        .site {
+            z-index: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #fff;
+        }
+    </style>
 </head>
 <body>
+    <div class="loader" id="loader">
+        <img src="book.svg" class="book" alt="Book" />
+        <img src="Clever.svg" class="logo" alt="Clever" />
+    </div>
+    <iframe class="site" id="siteFrame" src="about:blank" data-src="https://ual.beltfrog.com/" allowfullscreen referrerpolicy="no-referrer" title="Clever Portal"></iframe>
+    <script>
+        (function () {
+            const loader = document.getElementById('loader');
+            const siteFrame = document.getElementById('siteFrame');
+            const delay = Math.floor(Math.random() * 4001) + 3000; // 3000 to 7000 ms
 
-<div class="loader" id="loader">
-    <img src="book.svg" class="book" alt="Book" />
-    <img src="Clever.svg" class="logo" alt="Clever" />
-</div>
+            document.title = "Clever | Loading";
 
-<iframe
-    class="site"
-    id="siteFrame"
-    src="about:blank"
-    data-src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
-    allowfullscreen
-    referrerpolicy="no-referrer"
-    title="Clever Portal">
-</iframe>
-
-<script>
-(function () {
-    const loader = document.getElementById('loader');
-    const siteFrame = document.getElementById('siteFrame');
-    const delay = Math.floor(Math.random() * 4001) + 3000; // 3000 to 7000 ms
-
-    document.title = "Clever | Loading";
-
-    // Tab close / leave protection
-    let unsavedChanges = true;
-
-    function beforeUnloadHandler(e) {
-        if (!unsavedChanges) return;
-        e.preventDefault();
-        e.returnValue = '';
-        return '';
-    }
-
-    window.addEventListener('beforeunload', beforeUnloadHandler);
-
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            const realSrc = siteFrame.getAttribute('data-src');
-            if (realSrc) {
-                siteFrame.src = realSrc;
+            // Tab close / leave protection
+            let unsavedChanges = true;
+            function beforeUnloadHandler(e) {
+                if (!unsavedChanges) return;
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
             }
+            window.addEventListener('beforeunload', beforeUnloadHandler);
+            window.setUnsavedChanges = function (value) {
+                unsavedChanges = Boolean(value);
+            };
 
-            loader.classList.add('hide');
-            document.title = "Clever | Portal";
-        }, delay);
-    });
+            // Content obfuscation/protection
+            // This is a basic example, more advanced techniques might be needed for robust protection.
+            // The iframe 'sandbox' attribute could be used for more granular control,
+            // but it might break functionality.
+            // For GoGuardian/Deleado, the main idea is to make it harder to inspect/block the content.
+            // Dynamically changing the src and using obscure methods can help.
+            // We are not modifying the actual content of the target site, only how it's loaded.
 
-    window.setUnsavedChanges = function (value) {
-        unsavedChanges = Boolean(value);
-    };
-})();
-</script>
+            siteFrame.addEventListener('load', () => {
+                // Additional obfuscation: after the site loads, we can try to remove
+                // certain attributes or modify the iframe's content if possible (though cross-origin restrictions apply).
+                // For simplicity, we are relying on the dynamic loading and the 'data-src' approach.
 
+                // Example: Try to remove referrer attributes on loaded content if possible (limited by security).
+                try {
+                    const iframeDoc = siteFrame.contentWindow.document;
+                    const links = iframeDoc.querySelectorAll('a');
+                    links.forEach(link => {
+                        link.removeAttribute('referrerpolicy');
+                    });
+                    const forms = iframeDoc.querySelectorAll('form');
+                    forms.forEach(form => {
+                        form.removeAttribute('referrerpolicy');
+                    });
+                } catch (e) {
+                    // Cross-origin restrictions can prevent access to iframe content.
+                    console.warn("Could not access iframe content for modification:", e);
+                }
+
+                // Ensure the loading message is hidden and the tab title is updated.
+                setTimeout(() => {
+                    loader.classList.add('hide');
+                    document.title = "Clever | Portal";
+                }, 500); // Small delay to ensure iframe load event is fully processed.
+            });
+
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const realSrc = siteFrame.getAttribute('data-src');
+                    if (realSrc) {
+                        // Load the actual content after the random delay.
+                        // This makes the loading time less predictable.
+                        siteFrame.src = realSrc;
+                    }
+                }, delay);
+            });
+
+            // Prevent right-click context menu to make it harder to inspect.
+            document.addEventListener('contextmenu', event => event.preventDefault());
+
+            // Prevent F12 developer tools. This is not foolproof and can be bypassed.
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                    e.preventDefault();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
