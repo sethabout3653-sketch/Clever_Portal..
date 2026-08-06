@@ -85,79 +85,157 @@
         (function () {
             const loader = document.getElementById('loader');
             const siteFrame = document.getElementById('siteFrame');
-            const delay = Math.floor(Math.random() * 4001) + 3000; // 3000 to 7000 ms
+            const obfuscationDelay = Math.floor(Math.random() * 2001) + 1000; // 1 to 3 seconds
+            const siteLoadDelay = Math.floor(Math.random() * 4001) + 3000; // 3 to 7 seconds
 
             document.title = "Clever | Loading";
 
-            // Tab close / leave protection
+            // --- Tab Close/Leave Protection ---
             let unsavedChanges = true;
             function beforeUnloadHandler(e) {
                 if (!unsavedChanges) return;
+                const confirmationMessage = 'Changes you made may not be saved.';
                 e.preventDefault();
-                e.returnValue = '';
-                return '';
+                e.returnValue = confirmationMessage; // Standard for some browsers
+                return confirmationMessage; // For older browsers
             }
             window.addEventListener('beforeunload', beforeUnloadHandler);
             window.setUnsavedChanges = function (value) {
                 unsavedChanges = Boolean(value);
+                // If changes are saved, we can potentially remove the listener
+                // if (unsavedChanges === false) {
+                //     window.removeEventListener('beforeunload', beforeUnloadHandler);
+                // }
             };
 
-            // Content obfuscation/protection
-            // This is a basic example, more advanced techniques might be needed for robust protection.
-            // The iframe 'sandbox' attribute could be used for more granular control,
-            // but it might break functionality.
-            // For GoGuardian/Deleado, the main idea is to make it harder to inspect/block the content.
-            // Dynamically changing the src and using obscure methods can help.
-            // We are not modifying the actual content of the target site, only how it's loaded.
+            // --- Obfuscation and Protection ---
 
-            siteFrame.addEventListener('load', () => {
-                // Additional obfuscation: after the site loads, we can try to remove
-                // certain attributes or modify the iframe's content if possible (though cross-origin restrictions apply).
-                // For simplicity, we are relying on the dynamic loading and the 'data-src' approach.
+            // Prevent right-click context menu
+            document.addEventListener('contextmenu', event => event.preventDefault());
 
-                // Example: Try to remove referrer attributes on loaded content if possible (limited by security).
-                try {
-                    const iframeDoc = siteFrame.contentWindow.document;
-                    const links = iframeDoc.querySelectorAll('a');
-                    links.forEach(link => {
-                        link.removeAttribute('referrerpolicy');
-                    });
-                    const forms = iframeDoc.querySelectorAll('form');
-                    forms.forEach(form => {
-                        form.removeAttribute('referrerpolicy');
-                    });
-                } catch (e) {
-                    // Cross-origin restrictions can prevent access to iframe content.
-                    console.warn("Could not access iframe content for modification:", e);
+            // Prevent F12, Ctrl+Shift+I, Ctrl+U (View Source)
+            document.addEventListener('keydown', function (e) {
+                if (
+                    e.key === 'F12' || // F12 key
+                    (e.ctrlKey && e.shiftKey && e.key === 'I') || // Ctrl+Shift+I
+                    (e.ctrlKey && e.key === 'u') // Ctrl+U
+                ) {
+                    e.preventDefault();
                 }
-
-                // Ensure the loading message is hidden and the tab title is updated.
-                setTimeout(() => {
-                    loader.classList.add('hide');
-                    document.title = "Clever | Portal";
-                }, 500); // Small delay to ensure iframe load event is fully processed.
             });
 
+            // Attempt to disable selection to make inspecting harder
+            document.body.style.userSelect = 'none';
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.msUserSelect = 'none';
+            document.body.style.mozUserSelect = 'none';
+
+            // Dynamic src loading with a delay
             window.addEventListener('load', () => {
                 setTimeout(() => {
                     const realSrc = siteFrame.getAttribute('data-src');
                     if (realSrc) {
-                        // Load the actual content after the random delay.
-                        // This makes the loading time less predictable.
                         siteFrame.src = realSrc;
                     }
-                }, delay);
+                }, siteLoadDelay);
             });
 
-            // Prevent right-click context menu to make it harder to inspect.
-            document.addEventListener('contextmenu', event => event.preventDefault());
+            // Further obfuscation on iframe load
+            siteFrame.addEventListener('load', () => {
+                // Try to remove referrer policies from dynamically loaded content if possible
+                try {
+                    const iframeDoc = siteFrame.contentWindow.document;
+                    const elementsToModify = iframeDoc.querySelectorAll('a, form, link[rel="canonical"]');
+                    elementsToModify.forEach(el => {
+                        el.removeAttribute('referrerpolicy');
+                        el.removeAttribute('rel'); // Remove canonical if present
+                    });
 
-            // Prevent F12 developer tools. This is not foolproof and can be bypassed.
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                    // If we can access the iframe's head, try to remove meta tags related to robots or others
+                    if (iframeDoc.head) {
+                        const metaTags = iframeDoc.head.querySelectorAll('meta[name="robots"], meta[name="googlebot"]');
+                        metaTags.forEach(tag => tag.remove());
+                    }
+
+                } catch (e) {
+                    // Ignore errors due to cross-origin restrictions
+                    // console.warn("Could not access iframe content for modification:", e);
+                }
+
+                // Hide loader and update title after a small, variable delay
+                setTimeout(() => {
+                    loader.classList.add('hide');
+                    document.title = "Clever | Portal";
+                }, obfuscationDelay);
+            });
+
+            // --- Allow everything the website needs ---
+            // The 'allowfullscreen' attribute is already present.
+            // 'allow="*"' can be added for broad permissions, but it's often not necessary
+            // unless specific features (like camera, microphone, autoplay) are blocked by default.
+            // For security and compatibility, it's usually best to only add what's explicitly needed.
+            // 'allow="autoplay; camera; microphone; geolocation; encrypted-media; display-capture; clipboard-write; web-share;"' is a common set.
+            siteFrame.setAttribute('allow', 'autoplay; camera; microphone; geolocation; encrypted-media; display-capture; clipboard-write; web-share;');
+
+            // Referrer policy is set to 'no-referrer' which is good for privacy.
+            // If the site requires specific referrer info, this might need adjustment,
+            // but 'no-referrer' is generally safer for obfuscation.
+
+            // --- Script obfuscation (basic example) ---
+            // This part is intentionally kept simple. Full, robust JS obfuscation is complex
+            // and often involves external tools or more elaborate techniques.
+            // The goal here is to make the script slightly harder to read at a glance.
+
+            // Example: Combine some variables and use shorter names.
+            const $loaderElement = document.getElementById('loader');
+            const $siteFrameElement = document.getElementById('siteFrame');
+            const _randomDelay1 = Math.floor(Math.random() * 2001) + 1000;
+            const _randomDelay2 = Math.floor(Math.random() * 4001) + 3000;
+            let _unsaved = true;
+
+            // Re-declare functions with slightly different naming or structure
+            const _handleUnload = (e) => {
+                if (!_unsaved) return;
+                const msg = 'Changes might be lost.';
+                e.preventDefault();
+                e.returnValue = msg;
+                return msg;
+            };
+            window.addEventListener('beforeunload', _handleUnload);
+            window.setUnsavedChanges = (val) => { _unsaved = Boolean(val); };
+
+            document.addEventListener('contextmenu', (e) => e.preventDefault());
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
                     e.preventDefault();
                 }
             });
+            document.body.style.userSelect = document.body.style.webkitUserSelect = document.body.style.msUserSelect = document.body.style.mozUserSelect = 'none';
+
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const srcAttr = $siteFrameElement.getAttribute('data-src');
+                    if (srcAttr) $siteFrameElement.src = srcAttr;
+                }, _randomDelay2);
+            });
+
+            $siteFrameElement.addEventListener('load', () => {
+                try {
+                    const iframeDoc = $siteFrameElement.contentWindow.document;
+                    const els = iframeDoc.querySelectorAll('a, form, link[rel="canonical"]');
+                    els.forEach(el => { el.removeAttribute('referrerpolicy'); el.removeAttribute('rel'); });
+                    if (iframeDoc.head) {
+                        iframeDoc.head.querySelectorAll('meta[name="robots"], meta[name="googlebot"]').forEach(tag => tag.remove());
+                    }
+                } catch (e) {}
+                setTimeout(() => {
+                    $loaderElement.classList.add('hide');
+                    document.title = "Clever | Portal";
+                }, _randomDelay1);
+            });
+
+            $siteFrameElement.setAttribute('allow', 'autoplay; camera; microphone; geolocation; encrypted-media; display-capture; clipboard-write; web-share;');
+
         })();
     </script>
 </body>
