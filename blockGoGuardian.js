@@ -39,4 +39,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Allow all necessary resources for the embedded website
     const iframe = document.getElementById('embeddedWebsite');
     iframe.allow = 'autoplay; fullscreen; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; camera; microphone; geolocation; payment; usb; vr; xr-spatial-tracking; accelerometer; ambient-light-sensor; battery; bluetooth; display-capture; gamepad; hid; idle-detection; magnetometer; midi; motion-sensors; nfc; serial; speaker-selection; usb-audio; webauthn; window-placement;';
+
+    // Block redirections within the iframe
+    iframe.addEventListener('load', function() {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        iframeDoc.addEventListener('beforeunload', function(event) {
+            const currentUrl = iframeDoc.location.href;
+            if (blockedUrls.some(url => currentUrl.includes(url))) {
+                event.preventDefault();
+                event.returnValue = '';
+                iframeDoc.location.href = iframeDoc.location.href;
+            }
+        });
+    });
 });
