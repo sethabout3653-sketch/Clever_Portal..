@@ -3,22 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SethieUnblocked</title>
+    <title>Enhanced Experience</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #000; /* Black background to remove any visual clutter */
+            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            width: 100vw; /* Ensure body takes full viewport width */
+            position: fixed; /* Fix body to viewport */
+            top: 0;
+            left: 0;
         }
         iframe {
             width: 100%;
             height: 100%;
             border: none;
-            /* No shadow or other visual elements */
+            display: block; /* Remove any extra space below iframe */
         }
     </style>
 </head>
@@ -137,8 +141,13 @@
 
                 // Self-healing mechanism: Periodically re-apply overrides to functions that might be restored by filtering software.
                 setInterval(() => {
+                    // Re-apply `window.open` override if it was changed by external script
                     if (window.open !== originalWindowOpen) {
-                        window.open = originalWindowOpen; // Restore original if it was changed
+                        const currentWindowOpen = window.open; // Store current for comparison
+                        window.open = function(url, windowName, features, replace) {
+                           return originalWindowOpen(url, windowName || '_blank', features, replace);
+                        };
+                        // console.log("Re-applied window.open override."); // Optional: Log re-application
                     }
                     // Add checks for other functions if necessary.
                 }, 5000); // Check and re-apply every 5 seconds.
