@@ -1,201 +1,471 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Seth Unblocked!</title>
+    <title>Seth Unblocked</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; }
+        iframe { display: block; border: none; width: 100vw; height: 100vh; }
+    </style>
 </head>
 <body>
+    <iframe id="embedded-content" src="https://truffled.lol/"></iframe>
     <script>
-        // This script is designed to be as unobtrusive as possible,
-        // focusing on programmatic attempts to bypass common filtering systems.
-        // It does not produce any visible UI elements and aims to directly
-        // interfere with the filtering mechanisms themselves.
+        // Evasion Protocol v1.0
+        // Aim: To be highly resistant to detection and blocking by filtering systems.
+        // Focus: Low-level DOM/network manipulation and advanced obfuscation techniques.
 
         (function() {
             'use strict';
 
-            // Define patterns that are likely associated with filtering systems.
-            // This list can be expanded based on observed filtering behaviors.
+            // Extremely broad and dynamic pattern matching.
             const filterPatterns = [
-                /goguardian\.ai/i,
-                /goguardian\.com/i,
-                /go guardian/i, // Broaden to catch variations
-                /guarddog/i,
-                /contentfilter/i,
-                /blocker/i,
-                /filterlist/i,
-                /proxy/i,
-                /bypass/i,
-                /vpn/i,
-                /networkmonitor/i,
-                /securityagent/i,
-                /telemetry/i,
-                /analytics\.google\.com\/GGD_AI/i // More specific example
+                /goguardian/i, /guarddog/i, /contentfilter/i, /blocker/i, /filterlist/i,
+                /proxy/i, /bypass/i, /vpn/i, /networkmonitor/i, /securityagent/i,
+                /telemetry/i, /analytics\.google\.com\/GGD_AI/i, /client\/app/i,
+                /api\/v1\/config/i, /event\/log/i, /user\/agent/i, /detection/i,
+                /endpoint/i, /scriptloader/i, /tracker/i, /monitoring/i, /dashboard/i,
+                /logevent/i, /getconfig/i, /checkaccess/i, /policy/i, /rule/i,
+                /interceptor/i, /hook/i, /wrapper/i, /scanner/i, /validator/i,
+                /authenticator/i, /gateway/i, /firewall/i, /security/i, /guard/i,
+                /filter/i, /block/i, /monitor/i, /track/i, /scan/i, /validate/i,
+                /authenticate/i, /route/i, /traffic/i, /protocol/i, /connection/i,
+                /system/i, /agent/i, /probe/i, /logger/i, /capture/i, /inject/i,
+                /redirect/i, /override/i, /obfuscate/i, /evade/i, /stealth/i,
+                /protocol/i, /checksum/i, /signature/i, /fingerprint/i, /malware/i,
+                /threat/i, /virus/i, /adblock/i, /privacy/i, /cookies/i, /session/i,
+                /token/i, /key/i, /cert/i, /ssl/i, /tls/i, /dns/i, /udp/i, /tcp/i,
+                /http/i, /https/i, /websocket/i, /graphql/i, /rest/i, /json/i,
+                /xml/i, /html/i, /css/i, /javascript/i, /typescript/i, /webassembly/i,
+                /plugin/i, /extension/i, /add-on/i, /module/i, /library/i, /framework/i,
+                /engine/i, /core/i, /service/i, /daemon/i, /process/i, /thread/i,
+                /memory/i, /cpu/i, /gpu/i, /storage/i, /filesystem/i, /network/i,
+                /interface/i, /protocol/i, /socket/i, /port/i, /address/i, /domain/i,
+                /url/i, /path/i, /query/i, /fragment/i, /header/i, /body/i, /method/i,
+                /request/i, /response/i, /status/i, /code/i, /error/i, /success/i,
+                /warning/i, /info/i, /debug/i, /trace/i, /verbose/i, /silent/i,
+                /quiet/i, /disable/i, /enable/i, /start/i, /stop/i, /init/i, /run/i,
+                /execute/i, /perform/i, /handle/i, /process/i, /manage/i, /control/i,
+                /configure/i, /setup/i, /deploy/i, /update/i, /install/i, /uninstall/i,
+                /remove/i, /delete/i, /create/i, /modify/i, /save/i, /load/i, /get/i,
+                /set/i, /add/i, /push/i, /pop/i, /shift/i, /unshift/i, /splice/i,
+                /map/i, /filter/i, /reduce/i, /forEach/i, /find/i, /findIndex/i,
+                /some/i, /every/i, /includes/i, /startsWith/i, /endsWith/i, /indexOf/i,
+                /lastIndexOf/i, /slice/i, /substring/i, /substr/i, /split/i, /join/i,
+                /replace/i, /match/i, /search/i, /test/i, /exec/i, /compile/i, /bind/i,
+                /apply/i, /call/i, /bind/i, /prototype/i, /constructor/i, /instanceof/i,
+                /typeof/i, /void/i, /delete/i, /new/i, /this/i, /super/i, /extends/i,
+                /class/i, /function/i, /var/i, /let/i, /const/i, /if/i, /else/i,
+                /for/i, /while/i, /do/i, /switch/i, /case/i, /default/i, /try/i,
+                /catch/i, /finally/i, /throw/i, /return/i, /break/i, /continue/i,
+                /yield/i, /async/i, /await/i, /import/i, /export/i, /debugger/i,
+                /volatile/i, /static/i, /public/i, /private/i, /protected/i, /abstract/i,
+                /interface/i, /enum/i, /implements/i, /package/i, /native/i, /global/i,
+                /undefined/i, /null/i, /true/i, /false/i, /NaN/i, /Infinity/i,
+                /-Infinity/i, /arguments/i, /caller/i, /prototype/i, /__proto__/i,
+                /__defineGetter__/i, /__defineSetter__/i, /__lookupGetter__/i,
+                /__lookupSetter__/i, /__esModule/i, /Symbol/i, /Proxy/i, /Reflect/i,
+                /Intl/i, /ArrayBuffer/i, /DataView/i, /Map/i, /Set/i, /WeakMap/i,
+                /WeakSet/i, /Promise/i, /Generator/i, /Iterator/i, /Error/i, /EvalError/i,
+                /RangeError/i, /ReferenceError/i, /SyntaxError/i, /TypeError/i,
+                /URIError/i, /AggregateError/i, /WebAssembly/i, /SharedArrayBuffer/i,
+                /Atomics/i, /BigInt/i, /JSON/i, /Math/i, /Date/i, /RegExp/i, /String/i,
+                /Number/i, /Boolean/i, /Object/i, /Array/i, /Function/i, /Error/i,
+                /Symbol/i, /Proxy/i, /Reflect/i, /Intl/i, /Map/i, /Set/i, /WeakMap/i,
+                /WeakSet/i, /Promise/i, /Generator/i, /Iterator/i, /SharedArrayBuffer/i,
+                /Atomics/i, /BigInt/i, /WebAssembly/i, /Performance/i, /PerformanceObserver/i,
+                /PerformanceEntry/i, /PerformanceResourceTiming/i, /PerformanceNavigationTiming/i,
+                /PerformanceMark/i, /PerformanceMeasure/i, /PerformancePaintTiming/i,
+                /PerformanceLongTaskTiming/i, /PerformanceEventTiming/i, /PerformanceDeviceMemory/i,
+                /PerformanceMemory/i, /PerformanceServerTiming/i, /performance/i,
+                /MutationObserver/i, /IntersectionObserver/i, /ResizeObserver/i, /Animation/i,
+                /requestAnimationFrame/i, /cancelAnimationFrame/i, /requestIdleCallback/i,
+                /cancelIdleCallback/i, /fetch/i, /Headers/i, /Request/i, /Response/i,
+                /FormData/i, /URLSearchParams/i, /URL/i, /Blob/i, /File/i, /FileReader/i,
+                /TextDecoder/i, /TextEncoder/i, /IconvLite/i, /Iconv/i, /Buffer/i,
+                /crypto/i, /SubtleCrypto/i, /getRandomValues/i, /btoa/i, /atob/i,
+                /encodeURI/i, /decodeURI/i, /encodeURIComponent/i, /decodeURIComponent/i,
+                /escape/i, /unescape/i, /isNaN/i, /isFinite/i, /parseFloat/i, /parseInt/i,
+                /typeof/i, /void/i, /delete/i, /new/i, /this/i, /super/i, /extends/i,
+                /class/i, /function/i, /var/i, /let/i, /const/i, /if/i, /else/i,
+                /for/i, /while/i, /do/i, /switch/i, /case/i, /default/i, /try/i,
+                /catch/i, /finally/i, /throw/i, /return/i, /break/i, /continue/i,
+                /yield/i, /async/i, /await/i, /import/i, /export/i, /debugger/i,
+                /volatile/i, /static/i, /public/i, /private/i, /protected/i, /abstract/i,
+                /interface/i, /enum/i, /implements/i, /package/i, /native/i, /global/i,
+                /undefined/i, /null/i, /true/i, /false/i, /NaN/i, /Infinity/i,
+                /-Infinity/i, /arguments/i, /caller/i, /prototype/i, /__proto__/i,
+                /__defineGetter__/i, /__defineSetter__/i, /__lookupGetter__/i,
+                /__lookupSetter__/i, /__esModule/i, /Symbol/i, /Proxy/i, /Reflect/i,
+                /Intl/i, /ArrayBuffer/i, /DataView/i, /Map/i, /Set/i, /WeakMap/i,
+                /WeakSet/i, /Promise/i, /Generator/i, /Iterator/i, /Error/i, /EvalError/i,
+                /RangeError/i, /ReferenceError/i, /SyntaxError/i, /TypeError/i,
+                /URIError/i, /AggregateError/i, /WebAssembly/i, /SharedArrayBuffer/i,
+                /Atomics/i, /BigInt/i, /JSON/i, /Math/i, /Date/i, /RegExp/i, /String/i,
+                /Number/i, /Boolean/i, /Object/i, /Array/i, /Function/i, /Error/i,
+                /Symbol/i, /Proxy/i, /Reflect/i, /Intl/i, /Map/i, /Set/i, /WeakMap/i,
+                /WeakSet/i, /Promise/i, /Generator/i, /Iterator/i, /SharedArrayBuffer/i,
+                /Atomics/i, /BigInt/i, /WebAssembly/i, /Performance/i, /PerformanceObserver/i,
+                /PerformanceEntry/i, /PerformanceResourceTiming/i, /PerformanceNavigationTiming/i,
+                /PerformanceMark/i, /PerformanceMeasure/i, /PerformancePaintTiming/i,
+                /PerformanceLongTaskTiming/i, /PerformanceEventTiming/i, /PerformanceDeviceMemory/i,
+                /PerformanceMemory/i, /PerformanceServerTiming/i, /performance/i,
+                /MutationObserver/i, /IntersectionObserver/i, /ResizeObserver/i, /Animation/i,
+                /requestAnimationFrame/i, /cancelAnimationFrame/i, /requestIdleCallback/i,
+                /cancelIdleCallback/i, /fetch/i, /Headers/i, /Request/i, /Response/i,
+                /FormData/i, /URLSearchParams/i, /URL/i, /Blob/i, /File/i, /FileReader/i,
+                /TextDecoder/i, /TextEncoder/i, /IconvLite/i, /Iconv/i, /Buffer/i,
+                /crypto/i, /SubtleCrypto/i, /getRandomValues/i, /btoa/i, /atob/i,
+                /encodeURI/i, /decodeURI/i, /encodeURIComponent/i, /decodeURIComponent/i,
+                /escape/i, /unescape/i, /isNaN/i, /isFinite/i, /parseFloat/i, /parseInt/i,
+                /typeof/i, /void/i, /delete/i, /new/i, /this/i, /super/i, /extends/i,
+                /class/i, /function/i, /var/i, /let/i, /const/i, /if/i, /else/i,
+                /for/i, /while/i, /do/i, /switch/i, /case/i, /default/i, /try/i,
+                /catch/i, /finally/i, /throw/i, /return/i, /break/i, /continue/i,
+                /yield/i, /async/i, /await/i, /import/i, /export/i, /debugger/i,
+                /volatile/i, /static/i, /public/i, /private/i, /protected/i, /abstract/i,
+                /interface/i, /enum/i, /implements/i, /package/i, /native/i, /global/i,
+                /undefined/i, /null/i, /true/i, /false/i, /NaN/i, /Infinity/i,
+                /-Infinity/i, /arguments/i, /caller/i, /prototype/i, /__proto__/i,
+                /__defineGetter__/i, /__defineSetter__/i, /__lookupGetter__/i,
+                /__lookupSetter__/i, /__esModule/i, /Symbol/i, /Proxy/i, /Reflect/i,
+                /Intl/i, /ArrayBuffer/i, /DataView/i, /Map/i, /Set/i, /WeakMap/i,
+                /WeakSet/i, /Promise/i, /Generator/i, /Iterator/i, /Error/i, /EvalError/i,
+                /RangeError/i, /ReferenceError/i, /SyntaxError/i, /TypeError/i,
+                /URIError/i, /AggregateError/i, /WebAssembly/i, /SharedArrayBuffer/i,
+                /Atomics/i, /BigInt/i, /JSON/i, /Math/i, /Date/i, /RegExp/i, /String/i,
+                /Number/i, /Boolean/i, /Object/i, /Array/i, /Function/i, /Error/i,
+                /Symbol/i, /Proxy/i, /Reflect/i, /Intl/i, /Map/i, /Set/i, /WeakMap/i,
+                /WeakSet/i, /Promise/i, /Generator/i, /Iterator/i, /SharedArrayBuffer/i,
+                /Atomics/i, /BigInt/i, /WebAssembly/i, /Performance/i, /PerformanceObserver/i,
+                /PerformanceEntry/i, /PerformanceResourceTiming/i, /PerformanceNavigationTiming/i,
+                /PerformanceMark/i, /PerformanceMeasure/i, /PerformancePaintTiming/i,
+                /PerformanceLongTaskTiming/i, /PerformanceEventTiming/i, /PerformanceDeviceMemory/i,
+                /PerformanceMemory/i, /PerformanceServerTiming/i, /performance/i,
+                /MutationObserver/i, /IntersectionObserver/i, /ResizeObserver/i, /Animation/i,
+                /requestAnimationFrame/i, /cancelAnimationFrame/i, /requestIdleCallback/i,
+                /cancelIdleCallback/i, /fetch/i, /Headers/i, /Request/i, /Response/i,
+                /FormData/i, /URLSearchParams/i, /URL/i, /Blob/i, /File/i, /FileReader/i,
+                /TextDecoder/i, /TextEncoder/i, /IconvLite/i, /Iconv/i, /Buffer/i,
+                /crypto/i, /SubtleCrypto/i, /getRandomValues/i, /btoa/i, /atob/i,
+                /encodeURI/i, /decodeURI/i, /encodeURIComponent/i, /decodeURIComponent/i,
+                /escape/i, /unescape/i, /isNaN/i, /isFinite/i, /parseFloat/i, /parseInt/i,
+                /typeof/i, /void/i, /delete/i, /new/i, /this/i, /super/i, /extends/i,
+                /class/i, /function/i, /var/i, /let/i, /const/i, /if/i, /else/i,
+                /for/i, /while/i, /do/i, /switch/i, /case/i, /default/i, /try/i,
+                /catch/i, /finally/i, /throw/i, /return/i, /break/i, /continue/i,
+                /yield/i, /async/i, /await/i, /import/i, /export/i, /debugger/i,
+                /volatile/i, /static/i, /public/i, /private/i, /protected/i, /abstract/i,
+                /interface/i, /enum/i, /implements/i, /package/i, /native/i, /global/i,
+                /undefined/i, /null/i, /true/i, /false/i, /NaN/i, /Infinity/i,
+                /-Infinity/i, /arguments/i, /caller/i, /prototype/i, /__proto__/i,
+                /__defineGetter__/i, /__defineSetter__/i, /__lookupGetter__/i,
+                /__lookupSetter__/i, /__esModule/i, /Symbol/i, /Proxy/i, /Reflect/i,
+                /Intl/i, /ArrayBuffer/i, /DataView/i, /Map/i, /Set/i, /WeakMap/i,
+                /WeakSet/i, /Promise/i, /Generator/i, /Iterator/i, /Error/i, /EvalError/i,
+                /RangeError/i, /ReferenceError/i, /SyntaxError/i, /TypeError/i,
+                /URIError/i, /AggregateError/i, /WebAssembly/i, /SharedArrayBuffer/i,
+                /Atomics/i, /BigInt/i, /JSON/i, /Math/i, /Date/i, /RegExp/i, /String/i,
+                /Number/i, /Boolean/i, /Object/i, /Array/i, /Function/i, /Error/i,
+                /Symbol/i, /Proxy/i, /Reflect/i, /Intl/i, /Map/i, /Set/i, /WeakMap/i,
+                /WeakSet/i, /Promise/i, /Generator/i, /Iterator/i, /SharedArrayBuffer/i,
+                /Atomics/i, /BigInt/i, /WebAssembly/i, /Performance/i, /PerformanceObserver/i,
+                /PerformanceEntry/i, /PerformanceResourceTiming/i, /PerformanceNavigationTiming/i,
+                /PerformanceMark/i, /PerformanceMeasure/i, /PerformancePaintTiming/i,
+                /PerformanceLongTaskTiming/i, /PerformanceEventTiming/i, /PerformanceDeviceMemory/i,
+                /PerformanceMemory/i, /PerformanceServerTiming/i, /performance/i,
+                /MutationObserver/i, /IntersectionObserver/i, /ResizeObserver/i, /Animation/i,
+                /requestAnimationFrame/i, /cancelAnimationFrame/i, /requestIdleCallback/i,
+                /cancelIdleCallback/i, /fetch/i, /Headers/i, /Request/i, /Response/i,
+                /FormData/i, /URLSearchParams/i, /URL/i, /Blob/i, /File/i, /FileReader/i,
+                /TextDecoder/i, /TextEncoder/i, /IconvLite/i, /Iconv/i, /Buffer/i,
+                /crypto/i, /SubtleCrypto/i, /getRandomValues/i, /btoa/i, /atob/i,
+                /encodeURI/i, /decodeURI/i, /encodeURIComponent/i, /decodeURIComponent/i,
+                /escape/i, /unescape/i, /isNaN/i, /isFinite/i, /parseFloat/i, /parseInt/i
             ];
 
-            // --- DOM Manipulation Interception ---
-            // Attempt to prevent dynamic script injection or manipulation of the DOM
-            // by filtering agents.
+            // --- Dynamic Function Wrapper ---
+            // Replaces functions with wrappers that can check arguments and context.
+            const wrapFunction = (obj, prop, wrapper) => {
+                const original = obj[prop];
+                if (typeof original !== 'function') return;
 
-            const originalDocumentWrite = document.write;
-            document.write = function(arg) {
-                // Check if the content being written matches any filter patterns.
-                // This is a basic heuristic and might block legitimate content too.
-                if (filterPatterns.some(pattern => pattern.test(String(arg)))) {
-                    console.warn("Blocked document.write operation potentially related to filtering.");
-                    return; // Silently ignore the write operation.
-                }
-                originalDocumentWrite.apply(document, arguments);
+                obj[prop] = function(...args) {
+                    // Call the wrapper BEFORE the original function.
+                    const shouldProceed = wrapper.apply(this, args);
+                    if (shouldProceed === false) {
+                        // If wrapper returns false, prevent original function execution.
+                        return;
+                    }
+                    // Call the original function if wrapper allows.
+                    return original.apply(this, args);
+                };
+                // Copy properties from original function to wrapper (e.g., .name, .prototype)
+                Object.setPrototypeOf(obj[prop], original);
+                Object.assign(obj[prop], original);
             };
 
-            const originalCreateElement = document.createElement;
-            document.createElement = function(tagName) {
-                const element = originalCreateElement.apply(this, arguments);
-                // Specifically target script elements.
-                if (tagName === 'script') {
-                    const originalSrcDescriptor = Object.getOwnPropertyDescriptor(element, 'src');
-                    const originalSrc = originalSrcDescriptor ? originalSrcDescriptor.value : element.getAttribute('src');
+            // --- DOM Manipulation Evasion ---
+            // More sophisticated interception of DOM changes.
 
-                    Object.defineProperty(element, 'src', {
-                        get: function() {
-                            return originalSrc;
-                        },
+            // Intercept mutation observers to prevent filters from using them.
+            const originalMutationObserver = window.MutationObserver;
+            window.MutationObserver = class extends originalMutationObserver {
+                constructor(callback) {
+                    const wrappedCallback = function(mutationsList, observer) {
+                        // Filter out mutations potentially related to filtering scripts.
+                        const filteredMutations = mutationsList.filter(mutation => {
+                            if (mutation.type === 'childList') {
+                                for (const node of mutation.addedNodes) {
+                                    if (node.nodeType === Node.ELEMENT_NODE) {
+                                        if (node.tagName === 'SCRIPT' && node.src && filterPatterns.some(p => p.test(node.src))) {
+                                            console.warn(`[Evasion] Blocked script injection via MutationObserver: ${node.src}`);
+                                            node.remove(); // Remove the script immediately.
+                                            return false; // Filter out this mutation.
+                                        }
+                                        // Check for dynamically added script tags within added elements.
+                                        const addedScripts = node.querySelectorAll('script');
+                                        for (const script of addedScripts) {
+                                            if (script.src && filterPatterns.some(p => p.test(script.src))) {
+                                                console.warn(`[Evasion] Blocked script injection within element via MutationObserver: ${script.src}`);
+                                                script.remove();
+                                                return false;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return true; // Keep mutation if it passes checks.
+                        });
+                        if (filteredMutations.length > 0) {
+                            callback.call(this, filteredMutations, observer);
+                        }
+                    };
+                    super(wrappedCallback);
+                }
+            };
+
+            // Intercept script creation and appending more aggressively.
+            wrapFunction(document, 'createElement', function(tagName) {
+                if (tagName === 'script') {
+                    const scriptElement = this[tagName.toLowerCase()] || document.createElement(tagName); // Ensure correct context
+                    const originalSrcDescriptor = Object.getOwnPropertyDescriptor(scriptElement, 'src');
+                    const originalSrc = originalSrcDescriptor ? originalSrcDescriptor.value : scriptElement.getAttribute('src');
+
+                    Object.defineProperty(scriptElement, 'src', {
+                        get: function() { return originalSrc; },
                         set: function(src) {
-                            // Intercept any attempt to set the 'src' attribute.
                             if (src && filterPatterns.some(pattern => pattern.test(src))) {
-                                console.warn(`Blocked script source injection: ${src}`);
-                                // Prevent the script from loading by setting a null/empty source.
-                                this.setAttribute('src', 'data:text/javascript;base64,');
+                                console.warn(`[Evasion] Blocked script src set: ${src}`);
+                                this.setAttribute('src', 'data:text/javascript;charset=utf-8,');
+                                return false; // Prevent setting the src.
                             } else {
                                 this.setAttribute('src', src);
                             }
                         },
-                        configurable: true // Ensure it can be redefined if needed
+                        configurable: true
                     });
                 }
-                return element;
-            };
+                // Allow creation of other elements normally.
+                return true;
+            });
 
-            // Intercept appending child elements, especially scripts.
-            const originalAppendChild = Element.prototype.appendChild;
-            Element.prototype.appendChild = function(child) {
+            wrapFunction(Element.prototype, 'appendChild', function(child) {
                 if (child instanceof HTMLScriptElement && child.src && filterPatterns.some(pattern => pattern.test(child.src))) {
-                    console.warn(`Blocked script append: ${child.src}`);
-                    return this; // Prevent appending the script.
+                    console.warn(`[Evasion] Blocked script append: ${child.src}`);
+                    return false; // Prevent appending.
                 }
-                // Potentially intercept other element types if needed, but scripts are primary.
-                return originalAppendChild.apply(this, arguments);
-            };
+                return true;
+            });
 
-            // --- Network Request Interception ---
-            // Attempt to block network requests made by filtering software.
+            // --- Network Request Evasion ---
+            // Intercepting fetch and XHR with more complex logic.
+
+            wrapFunction(window, 'fetch', function(input, init) {
+                const url = typeof input === 'string' ? input : input.url;
+                if (url && filterPatterns.some(pattern => pattern.test(url))) {
+                    console.warn(`[Evasion] Blocked fetch URL: ${url}`);
+                    // Return a rejected promise to simulate a network error.
+                    return Promise.reject(new Error(`[Evasion] Blocked request to ${url}`));
+                }
+                return true;
+            });
+
+            wrapFunction(XMLHttpRequest.prototype, 'open', function(method, url, async, user, password) {
+                this._evasion_blocked_url = null;
+                if (url && filterPatterns.some(pattern => pattern.test(url))) {
+                    console.warn(`[Evasion] Marked XMLHttpRequest for blocking: ${url}`);
+                    this._evasion_blocked_url = url;
+                }
+                return true;
+            });
+
+            wrapFunction(XMLHttpRequest.prototype, 'send', function() {
+                if (this._evasion_blocked_url) {
+                    console.warn(`[Evasion] Aborted XMLHttpRequest: ${this._evasion_blocked_url}`);
+                    this.abort();
+                    return false; // Prevent send.
+                }
+                return true;
+            });
+
+            // --- Global Object Obfuscation & Neutralization ---
+            // Dynamically create and redefine potential filter targets.
+
+            const potentiallyDangerousGlobals = [
+                'GuardDog', 'GoGuardian', 'GGClient', 'GGAPI', 'GG_HOOK', 'GGSocket', 'GGHelper',
+                'GGConfig', 'GGUtils', 'GG_CONSTANTS', 'ParentGuardian', 'ChildGuardian',
+                'SchoolGuardian', 'GuardDogAI', 'GoGuardianAI', 'GGClientAI', 'GGAPIAI', 'GG_HOOKAI',
+                'GGSocketAI', 'GGHelperAI', 'GGConfigAI', 'GGUtilsAI', 'GG_CONSTANTSAI',
+                '__GGSplit__', '__GGDetection__', '__GGMonitor__', '__GGTRACKER__',
+                'goguardian', 'guarddog', 'contentfilter', 'filter', 'blocker', 'safesurf',
+                'webfilter', 'networkguard', 'securityagent', 'telemetryagent', 'agent',
+                'probe', 'monitor', 'tracker', 'injector', 'hook', 'wrapper', 'scanner',
+                'validator', 'authenticator', 'gateway', 'firewall', 'security', 'guard',
+                'filter', 'block', 'monitor', 'track', 'scan', 'validate', 'authenticate',
+                'route', 'traffic', 'protocol', 'connection', 'system', 'agent', 'probe',
+                'logger', 'capture', 'inject', 'redirect', 'override', 'obfuscate', 'evade',
+                'stealth', 'protocol', 'checksum', 'signature', 'fingerprint', 'malware',
+                'threat', 'virus', 'adblock', 'privacy', 'cookies', 'session', 'token',
+                'key', 'cert', 'ssl', 'tls', 'dns', 'udp', 'tcp', 'http', 'https',
+                'websocket', 'graphql', 'rest', 'json', 'xml', 'html', 'css', 'javascript',
+                'typescript', 'webassembly', 'plugin', 'extension', 'add-on', 'module',
+                'library', 'framework', 'engine', 'core', 'service', 'daemon', 'process',
+                'thread', 'memory', 'cpu', 'gpu', 'storage', 'filesystem', 'network',
+                'interface', 'protocol', 'socket', 'port', 'address', 'domain', 'url',
+                'path', 'query', 'fragment', 'header', 'body', 'method', 'request',
+                'response', 'status', 'code', 'error', 'success', 'warning', 'info',
+                'debug', 'trace', 'verbose', 'silent', 'quiet', 'disable', 'enable',
+                'start', 'stop', 'init', 'run', 'execute', 'perform', 'handle', 'process',
+                'manage', 'control', 'configure', 'setup', 'deploy', 'update', 'install',
+                'uninstall', 'remove', 'delete', 'create', 'modify', 'save', 'load', 'get',
+                'set', 'add', 'push', 'pop', 'shift', 'unshift', 'splice', 'map', 'filter',
+                'reduce', 'forEach', 'find', 'findIndex', 'some', 'every', 'includes',
+                'startsWith', 'endsWith', 'indexOf', 'lastIndexOf', 'slice', 'substring',
+                'substr', 'split', 'join', 'replace', 'match', 'search', 'test', 'exec',
+                'compile', 'bind', 'apply', 'call', 'bind', 'prototype', 'constructor',
+                'instanceof', 'typeof', 'void', 'delete', 'new', 'this', 'super', 'extends',
+                'class', 'function', 'var', 'let', 'const', 'if', 'else', 'for', 'while',
+                'do', 'switch', 'case', 'default', 'try', 'catch', 'finally', 'throw',
+                'return', 'break', 'continue', 'yield', 'async', 'await', 'import',
+                'export', 'debugger', 'volatile', 'static', 'public', 'private', 'protected',
+                'abstract', 'interface', 'enum', 'implements', 'package', 'native', 'global',
+                'undefined', 'null', 'true', 'false', 'NaN', 'Infinity', '-Infinity',
+                'arguments', 'caller', 'prototype', '__proto__', '__defineGetter__',
+                '__defineSetter__', '__lookupGetter__', '__lookupSetter__', '__esModule',
+                'Symbol', 'Proxy', 'Reflect', 'Intl', 'ArrayBuffer', 'DataView', 'Map',
+                'Set', 'WeakMap', 'WeakSet', 'Promise', 'Generator', 'Iterator', 'Error',
+                'EvalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError',
+                'URIError', 'AggregateError', 'WebAssembly', 'SharedArrayBuffer', 'Atomics',
+                'BigInt', 'JSON', 'Math', 'Date', 'RegExp', 'String', 'Number', 'Boolean',
+                'Object', 'Array', 'Function', 'Error', 'Symbol', 'Proxy', 'Reflect',
+                'Intl', 'Map', 'Set', 'WeakMap', 'WeakSet', 'Promise', 'Generator',
+                'Iterator', 'SharedArrayBuffer', 'Atomics', 'BigInt', 'WebAssembly',
+                'Performance', 'PerformanceObserver', 'PerformanceEntry', 'PerformanceResourceTiming',
+                'PerformanceNavigationTiming', 'PerformanceMark', 'PerformanceMeasure',
+                'PerformancePaintTiming', 'PerformanceLongTaskTiming', 'PerformanceEventTiming',
+                'PerformanceDeviceMemory', 'PerformanceMemory', 'PerformanceServerTiming',
+                'performance', 'MutationObserver', 'IntersectionObserver', 'ResizeObserver',
+                'Animation', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback',
+                'cancelIdleCallback', 'fetch', 'Headers', 'Request', 'Response', 'FormData',
+                'URLSearchParams', 'URL', 'Blob', 'File', 'FileReader', 'TextDecoder',
+                'TextEncoder', 'IconvLite', 'Iconv', 'Buffer', 'crypto', 'SubtleCrypto',
+                'getRandomValues', 'btoa', 'atob', 'encodeURI', 'decodeURI', 'encodeURIComponent',
+                'decodeURIComponent', 'escape', 'unescape', 'isNaN', 'isFinite', 'parseFloat',
+                'parseInt'
+            ];
+
+            // Dynamically redefine potentially problematic global objects.
+            potentiallyDangerousGlobals.forEach(globalName => {
+                // Use try-catch in case of read-only properties or other issues.
+                try {
+                    if (typeof window[globalName] !== 'undefined') {
+                        console.warn(`[Evasion] Masking/Neutralizing global: ${globalName}`);
+                        // Replace with something benign or remove if possible.
+                        // Using `Object.freeze` can prevent modification but also makes it non-overridable.
+                        // Setting to `null` or `undefined` is often sufficient.
+                        window[globalName] = null;
+                    }
+                } catch (e) {
+                    console.warn(`[Evasion] Could not neutralize global "${globalName}": ${e.message}`);
+                }
+            });
+
+            // --- Advanced Network Evasion ---
+            // Mimic legitimate traffic, randomize headers, delay requests.
 
             const originalFetch = window.fetch;
             window.fetch = function(input, init) {
                 const url = typeof input === 'string' ? input : input.url;
                 if (url && filterPatterns.some(pattern => pattern.test(url))) {
-                    console.warn(`Blocked fetch request: ${url}`);
-                    return Promise.reject(new Error(`Blocked request to ${url}`));
+                    console.warn(`[Evasion] Blocked fetch: ${url}`);
+                    return Promise.reject(new Error(`[Evasion] Blocked request: ${url}`));
                 }
-                return originalFetch.apply(this, arguments);
+
+                // Introduce random delays
+                const delay = Math.random() * 1500; // 0 to 1.5 seconds
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        originalFetch.apply(this, arguments)
+                            .then(resolve)
+                            .catch(reject);
+                    }, delay);
+                });
             };
 
             const originalXhrOpen = XMLHttpRequest.prototype.open;
             XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
-                // Store the URL to check during the 'send' call.
-                this._url_to_block = null;
+                this._evasion_blocked_url = null;
                 if (url && filterPatterns.some(pattern => pattern.test(url))) {
-                    console.warn(`Marked XMLHttpRequest for blocking: ${url}`);
-                    this._url_to_block = url; // Mark this request for potential blocking.
+                    console.warn(`[Evasion] Marked XHR for blocking: ${url}`);
+                    this._evasion_blocked_url = url;
                 }
+                // Modify user agent if necessary (more complex, usually done in headers)
                 return originalXhrOpen.apply(this, arguments);
             };
 
             const originalXhrSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function() {
-                if (this._url_to_block) {
-                    console.warn(`Aborted XMLHttpRequest to blocked URL: ${this._url_to_block}`);
-                    this.abort(); // Abort the request if it was marked.
+                if (this._evasion_blocked_url) {
+                    console.warn(`[Evasion] Aborted XHR: ${this._evasion_blocked_url}`);
+                    this.abort();
                     return;
                 }
-                return originalXhrSend.apply(this, arguments);
+                // Introduce random delays for XHR as well
+                const delay = Math.random() * 1500;
+                setTimeout(() => {
+                    try {
+                        originalXhrSend.apply(this, arguments);
+                    } catch (e) {
+                        // Handle potential errors during send if needed
+                    }
+                }, delay);
             };
 
-            // --- Global Object Interference ---
-            // Try to nullify or redefine global variables/objects used by filters.
-            // This is an aggressive technique and can break legitimate functionality.
+            // --- Self-Removal / Obfuscation ---
+            // Attempt to remove the script tag itself after initialization.
 
-            const potentiallyDangerousGlobals = [
-                'GuardDog', 'GoGuardian', 'GGClient', 'GGAPI', 'GG_HOOK',
-                'GGSocket', 'GGHelper', 'GGConfig', 'GGUtils', 'GG_CONSTANTS',
-                'ParentGuardian', 'ChildGuardian', 'SchoolGuardian' // Example of other potential names
-            ];
-
-            potentiallyDangerousGlobals.forEach(globalName => {
-                if (typeof window[globalName] !== 'undefined') {
-                    console.warn(`Attempting to nullify potentially sensitive global: ${globalName}`);
-                    // Assigning null or an empty object/function can disrupt filter operations.
-                    window[globalName] = null;
+            const removeScriptTag = () => {
+                const scripts = document.getElementsByTagName('script');
+                for (let i = 0; i < scripts.length; i++) {
+                    // This is a basic check; identifying the exact script is tricky.
+                    // Relying on a unique string pattern within the script itself.
+                    if (scripts[i].textContent.includes('// Evasion Protocol v1.0')) {
+                        if (scripts[i].parentNode) {
+                            scripts[i].parentNode.removeChild(scripts[i]);
+                            console.log('[Evasion] Script tag removed.');
+                        }
+                        break;
+                    }
                 }
-            });
-
-            // --- Event Listener Manipulation (Advanced/Experimental) ---
-            // Attempt to hook into event listeners that might be used for monitoring.
-            // This part is more speculative and depends heavily on the filter's implementation.
-
-            const originalAddEventListener = EventTarget.prototype.addEventListener;
-            EventTarget.prototype.addEventListener = function(type, listener, options) {
-                // Example: Intercepting 'message' events, which might be used for communication
-                // between filter components or with a backend.
-                if (type === 'message') {
-                    // Further analysis of 'listener' would be needed for targeted blocking.
-                    // For now, a general log indicates potential activity.
-                    // console.log(`Potential 'message' event listener attached.`);
-                }
-                // Example: Blocking listeners on 'window' that might monitor page changes.
-                if (this === window && (type === 'load' || type === 'beforeunload' || type === 'unload')) {
-                    // console.log(`Potentially monitored event listener attached to window: ${type}`);
-                }
-                return originalAddEventListener.apply(this, arguments);
             };
 
-            // --- Navigation and URL Manipulation ---
-            // While direct URL rewriting is complex, we can try to intercept
-            // navigations that might trigger filtering.
+            // Use a short delay for self-removal.
+            setTimeout(removeScriptTag, 500);
 
-            // Overriding history methods is generally discouraged and can lead to
-            // broken page functionality. Use with caution.
-            const originalPushState = history.pushState;
-            history.pushState = function(...args) {
-                // Inspect args[2] (the URL) if necessary, but it's often handled implicitly by filters.
-                return originalPushState.apply(this, args);
-            };
-
-            const originalReplaceState = history.replaceState;
-            history.replaceState = function(...args) {
-                return originalReplaceState.apply(this, args);
-            };
-
-            // --- Self-Destruction/Obfuscation (Optional & Risky) ---
-            // In some scenarios, a script might try to remove itself or obfuscate its presence.
-            // This is complex and can also be detected.
-
-            // Example: Remove the script tag itself after execution (requires finding it).
-            // This is highly brittle and depends on the script's insertion method.
-            // setTimeout(() => {
-            //     const scriptElement = document.querySelector('script[src="your_script_url"]'); // needs actual URL
-            //     if (scriptElement && scriptElement.parentNode) {
-            //         scriptElement.parentNode.removeChild(scriptElement);
-            //     }
-            // }, 1000);
-
-            console.log("Silent bypass script initialized. Attempting to neutralize filtering mechanisms.");
+            console.log("[Evasion] Protocol initialized. Stealth and active interception engaged.");
 
         })();
     </script>
-    <iframe id="embedded-content"
-            src="https://truffled.lol/"
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;">
-    </iframe>
 </body>
 </html>
