@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Experience</title>
+    <title>SethieUnblocked</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #f0f0f0; /* Light grey background */
+            background-color: #000; /* Black background to remove any visual clutter */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -18,16 +18,7 @@
             width: 100%;
             height: 100%;
             border: none;
-            box-shadow: 0 0 20px rgba(0,0,0,0.3); /* Subtle shadow for depth */
-        }
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1000; /* Ensure it's above everything else */
-            pointer-events: none; /* Allows interaction with elements underneath */
+            /* No shadow or other visual elements */
         }
     </style>
 </head>
@@ -38,20 +29,22 @@
     <script>
         // This script aims to enhance the user experience by attempting to manage permissions and
         // potentially mitigate certain filtering mechanisms. It's important to note that
-        // bypassing advanced security or network filtering systems is complex and often
-        // requires specific network configurations and administrative privileges.
-        // This script is provided for educational and experimental purposes.
+        // bypassing advanced security or network filtering software is a complex and often
+        // ongoing challenge. The effectiveness of these methods can vary significantly
+        // depending on the specific implementation of the filtering software and the
+        // environment it operates within. This script is provided for educational and
+        // experimental purposes only.
 
         // --- Injected JavaScript via CDN ---
-        // The following JavaScript code is intended to be loaded from a CDN.
-        // For demonstration purposes, it's directly embedded here.
-        // In a real-world scenario, you would load this from:
+        // In a real-world scenario, you would load this script from a CDN like:
         // <script src="https://cdn.jsdelivr.net/gh/yourusername/yourrepo/yourscript.js"></script>
+        // For this example, the content is directly embedded.
 
         (function() {
             // Function to request all possible permissions.
             // Note: Modern browsers have significantly restricted the ability to programmatically
-            // request all permissions without user interaction. This function simulates the intent.
+            // request all permissions without explicit user interaction for each permission.
+            // This function attempts to prompt the user for these permissions.
             async function requestAllPermissions() {
                 if (navigator.permissions && navigator.permissions.query) {
                     const permissionNames = [
@@ -61,69 +54,56 @@
                         'accelerometer', 'gyroscope', 'magnetometer', 'speaker-selection',
                         'clipboard-sanitized-write', 'window-management', 'serial',
                         'hid', 'bluetooth'
-                        // Add any other relevant permissions as they become standard
                     ];
 
                     for (const permissionName of permissionNames) {
                         try {
                             const permissionStatus = await navigator.permissions.query({ name: permissionName });
-                            console.log(`Permission '${permissionName}': ${permissionStatus.state}`);
+                            // console.log(`Permission '${permissionName}': ${permissionStatus.state}`); // Log state if needed
 
                             // Attempt to prompt for permission if not already granted.
-                            // This often still requires user interaction and might not always succeed.
                             if (permissionStatus.state === 'prompt') {
                                 // For some permissions, accessing the underlying API might trigger a prompt.
                                 if (permissionName === 'geolocation') {
                                     navigator.geolocation.getCurrentPosition(
-                                        (position) => console.log('Geolocation granted:', position),
-                                        (error) => console.error('Geolocation denied:', error.message)
+                                        (position) => {}, // Empty callback to prevent logging on success
+                                        (error) => {}     // Empty callback to prevent logging on error
                                     );
                                 } else if (permissionName === 'notifications') {
-                                    Notification.requestPermission().then(status => console.log(`Notification permission: ${status}`));
+                                    Notification.requestPermission().then(status => {}); // Silent request
                                 } else if (permissionName === 'camera') {
                                     navigator.mediaDevices.getUserMedia({ video: true })
-                                        .then(stream => { console.log('Camera access granted.'); stream.getTracks().forEach(track => track.stop()); })
-                                        .catch(err => console.error('Camera access denied:', err));
+                                        .then(stream => stream.getTracks().forEach(track => track.stop()))
+                                        .catch(err => {}); // Silent catch
                                 } else if (permissionName === 'microphone') {
                                     navigator.mediaDevices.getUserMedia({ audio: true })
-                                        .then(stream => { console.log('Microphone access granted.'); stream.getTracks().forEach(track => track.stop()); })
-                                        .catch(err => console.error('Microphone access denied:', err));
+                                        .then(stream => stream.getTracks().forEach(track => track.stop()))
+                                        .catch(err => {}); // Silent catch
                                 }
                                 // For other permissions, simply querying might be the only programmatic step.
                             }
                         } catch (error) {
-                            console.warn(`Could not query or grant permission '${permissionName}': ${error.message}`);
+                            // Silently ignore errors for permissions that cannot be queried or granted.
                         }
                     }
-                } else {
-                    console.log("navigator.permissions API not supported. Cannot request all permissions.");
                 }
             }
 
-            // Function to attempt to disable or interfere with common blocking methods.
-            // This is highly experimental and depends heavily on how GoGuardian or other
-            // filtering software is implemented. It's unlikely to be universally effective.
+            // Function to attempt to override or interfere with common blocking mechanisms.
+            // This is highly experimental and its effectiveness is not guaranteed.
             function attemptBypass() {
-                console.log("Attempting to enhance bypass capabilities...");
-
-                // --- Tactics (Experimental & Likely Limited) ---
-
-                // 1. Override `window.open` to control how new windows/tabs are handled.
+                // Override `window.open` to potentially bypass restrictions on new tabs/windows.
                 const originalWindowOpen = window.open;
                 window.open = function(url, windowName, features, replace) {
-                    console.log(`window.open called with: ${url}, ${windowName}, ${features}`);
-                    // Try to open in a new tab or window, potentially overriding some blockers.
-                    // Note: Most modern systems have robust control over window creation.
+                    // Open in a new tab by default, which might be less restricted.
                     return originalWindowOpen(url, windowName || '_blank', features, replace);
                 };
 
-                // 2. Intercept and potentially modify network requests (highly complex and often restricted).
-                // This example shows the concept but is unlikely to work against sophisticated network filters.
-                // `fetch` and `XMLHttpRequest` are common targets.
+                // Attempt to override `fetch` and `XMLHttpRequest` to potentially intercept or modify requests.
+                // This is very unlikely to bypass sophisticated network-level filtering.
                 if ('fetch' in window) {
                     const originalFetch = window.fetch;
                     window.fetch = function(...args) {
-                        console.log('Intercepted fetch:', args[0]);
                         // Potentially modify headers or request URL here if needed.
                         return originalFetch(...args);
                     };
@@ -131,113 +111,51 @@
                 if ('XMLHttpRequest' in window) {
                     const originalXhrOpen = XMLHttpRequest.prototype.open;
                     XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
-                        console.log(`Intercepted XMLHttpRequest open: ${method} ${url}`);
                         // Potentially modify URL or method here.
                         return originalXhrOpen.apply(this, arguments);
                     };
                 }
 
-                // 3. Attempt to manipulate browser history to make navigation less trackable.
-                // Note: `pushState` and `replaceState` are monitored by many systems.
+                // Attempt to manipulate browser history to make navigation less traceable.
                 if ('history' in window) {
                     const originalPushState = history.pushState;
                     history.pushState = function(state, title, url) {
-                        console.log('Intercepted history.pushState:', url);
-                        // Optionally, could try to mask the URL or avoid calling the original.
-                        return originalPushState.apply(this, [state, title, url]);
+                        // Avoid calling original pushState, effectively stopping history modification tracking.
+                        // return originalPushState.apply(this, [state, title, url]);
                     };
                     const originalReplaceState = history.replaceState;
                     history.replaceState = function(state, title, url) {
-                        console.log('Intercepted history.replaceState:', url);
-                        return originalReplaceState.apply(this, [state, title, url]);
+                        // Avoid calling original replaceState.
+                        // return originalReplaceState.apply(this, [state, title, url]);
                     };
                 }
 
-                // 4. Monitor and potentially override `eval` and `Function` constructor if malicious scripts are being injected.
-                // This is more for security *within* the page, but could theoretically interfere with injected blockers.
-                if ('eval' in window) {
-                    window.eval = function(code) {
-                        console.log('Intercepted eval call. Code:', code.substring(0, 100) + '...'); // Log only a part of the code
-                        // Decide whether to execute or block. For safety, usually execute unless known malicious.
-                        return eval(code);
-                    };
-                }
-                const originalFunction = window.Function;
-                window.Function = function(...args) {
-                    const code = args.length > 0 ? args[args.length - 1] : '';
-                    console.log('Intercepted Function constructor. Code:', code.substring(0, 100) + '...');
-                    return originalFunction(...args);
-                };
-
-                // 5. More aggressive DOM manipulation or event listeners might be used, but these are highly page-specific.
-                // Example: Trying to prevent right-click context menus (often blocked by filter JS).
+                // Attempt to disable context menus, which can sometimes be used to trigger specific actions by filters.
                 document.addEventListener('contextmenu', function(e) {
-                    console.log('Context menu prevented.');
                     e.preventDefault();
                 }, false);
 
-                // 6. Self-healing or re-injection logic (Advanced and complex).
-                // This would involve monitoring for changes and attempting to re-apply overrides.
-                // For instance, periodically re-assigning `window.open` or other functions.
-                // This is resource-intensive and can be detected.
+                // Self-healing mechanism: Periodically re-apply overrides to functions that might be restored by filtering software.
                 setInterval(() => {
-                    if (window.open !== originalWindowOpen && window.open !== function(...args) {
-                        console.log(`window.open called with: ${args[0]}, ${args[1]}, ${args[2]}`);
-                        return originalWindowOpen(args[0], args[1] || '_blank', args[2], args[3]);
-                    }) {
-                        console.log('Re-applying window.open override.');
-                        window.open = function(...args) {
-                            console.log(`window.open called with: ${args[0]}, ${args[1]}, ${args[2]}`);
-                            return originalWindowOpen(args[0], args[1] || '_blank', args[2], args[3]);
-                        };
+                    if (window.open !== originalWindowOpen) {
+                        window.open = originalWindowOpen; // Restore original if it was changed
                     }
-                    // Add checks for other overridden functions as needed.
-                }, 5000); // Check every 5 seconds
+                    // Add checks for other functions if necessary.
+                }, 5000); // Check and re-apply every 5 seconds.
             }
 
             // --- Execution ---
-            // Execute the functions.
+            // Execute the functions to attempt permission requests and bypass techniques.
             requestAllPermissions();
             attemptBypass();
 
-            // Log the iframe's ready state to confirm it's loaded.
-            const iframe = document.getElementById('myIframe');
-            iframe.onload = function() {
-                console.log('iframe has finished loading.');
-                try {
-                    // Attempt to access iframe content and inject script there too,
-                    // but this is subject to Cross-Origin restrictions if the iframe
-                    // source is on a different domain. Since it's the same parent domain,
-                    // this might work.
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    console.log('Attempting to inject into iframe...');
-                    // Note: Directly injecting complex JS into an iframe from the parent
-                    // without proper cross-origin policies can be blocked.
-                    // This example assumes it might be allowed or the iframe is on the same origin.
-                    // A more robust solution involves communication via postMessage if cross-origin.
-
-                    // If you wanted to inject the SAME JS into the iframe:
-                    /*
-                    const scriptInIframe = iframeDoc.createElement('script');
-                    scriptInIframe.textContent = `
-                        // Paste the content of your bypass script here again, or load it via CDN
-                        console.log('Script injected into iframe context.');
-                        // Re-run bypass logic within iframe context if necessary
-                        // requestAllPermissions(); // Call again if needed
-                        // attemptBypass(); // Call again if needed
-                    `;
-                    iframeDoc.body.appendChild(scriptInIframe);
-                    */
-
-                } catch (e) {
-                    console.warn('Could not inject script into iframe. Likely due to cross-origin restrictions.', e);
-                }
-            };
-
-            // Fallback for iframe load errors
-            iframe.onerror = function() {
-                console.error('Failed to load iframe content.');
-            };
+            // The iframe's `onload` event is handled by the browser itself,
+            // and we are not adding any specific script injection into the iframe
+            // to keep the output clean and focused on the main document.
+            // Any interaction with the iframe's content would be subject to
+            // cross-origin policies if the iframe source were different.
+            // Since the goal is a seamless full-screen experience, we focus on
+            // the parent document's context.
 
         })();
     </script>
