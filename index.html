@@ -1,135 +1,26 @@
 <!DOCTYPE html>
-<html lang="zxx"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Clever Portal | Loading...</title><link rel="icon" href="data:image/png;base64,iVBORw0KGgo="><style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden;background:#000}
-#realSite{position:fixed;width:100%;height:100%;border:0;z-index:1}
-#fakeLoader{position:fixed;width:100%;height:100%;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;color:#0f0}
-#loadText{font-size:24px;text-shadow:0 0 10px #0f0;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-#glitchOverlay{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10000;opacity:0.02}
-</style></head><body>
-
-<!-- REAL WEBSITE LOADS IMMEDIATELY UNDERNEATH -->
-<iframe id="realSite" src="https://start.unleashedvr.com/" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads" allow="*" referrerpolicy="no-referrer"></iframe>
-
-<!-- FAKE LOADER STAYS ON TOP FOREVER -->
-<div id="fakeLoader">
-  <div id="loadText">Establishing Secure Connection...</div>
-  <div id="glitchOverlay"></div>
-</div>
-
-<script>
-/* FULL OBFUSCATED SCRIPT - ANTI-GOGUARDIAN 2026 */
-(function(){
-  // String obfuscation
-  const _0x3a5f=['\x67\x6c\x69\x74\x63\x68\x4f\x76\x65\x72\x6c\x61\x79','\x73\x74\x79\x6c\x65','\x62\x61\x63\x6b\x67\x72\x6f\x75\x6e\x64','\x6c\x6f\x61\x64\x54\x65\x78\x74','\x74\x65\x78\x74\x43\x6f\x6e\x74\x65\x6e\x74','\x67\x65\x74\x45\x6c\x65\x6d\x65\x6e\x74\x42\x79\x49\x64','\x72\x67\x62\x61','\x73\x65\x74\x49\x6e\x74\x65\x72\x76\x61\x6c'];
-  
-  // Fake loading messages
-  const messages=[
-    'Initializing security protocols...',
-    'Bypassing network filters...',
-    'Establishing encrypted tunnel...',
-    'Verifying credentials...',
-    'Syncing with remote server...',
-    'Loading portal interface...',
-    'Finalizing connection...',
-    'Almost there...'
-  ];
-  
-  // Anti-debugging traps
-  setInterval(()=>{debugger;},Math.random()*2000+1000);
-  document.addEventListener('contextmenu',e=>e.preventDefault());
-  document.addEventListener('keydown',e=>{
-    if(e.key=='F12'||(e.ctrlKey&&e.shiftKey&&e.key=='I')||e.key=='F5')e.preventDefault();
-  });
-  
-  // Fake loading animation that NEVER ends
-  let msgIndex=0;
-  const textEl=document.getElementById('loadText');
-  const glitchEl=document.getElementById('glitchOverlay');
-  
-  setInterval(()=>{
-    // Rotate messages
-    textEl.textContent=messages[msgIndex];
-    msgIndex=(msgIndex+1)%messages.length;
-    
-    // Add visual glitch noise to confuse AI detection
-    const r=Math.floor(Math.random()*255);
-    const g=Math.floor(Math.random()*255);
-    const b=Math.floor(Math.random()*255);
-    glitchEl.style.background=`rgba(${r},${g},${b},0.03)`;
-    
-    // Randomly "freeze" the loader to simulate connection issues
-    if(Math.random()>0.9){
-      textEl.style.animation='none';
-      setTimeout(()=>{textEl.style.animation='pulse 2s infinite';},500);
-    }
-  },2000);
-  
-  // Fake progress bar simulation (visual only)
-  const fakeProgress=()=>{
-    let width=0;
-    const bar=document.createElement('div');
-    bar.style.cssText='width:300px;height:5px;background:#333;margin-top:20px;border-radius:3px;overflow:hidden';
-    const inner=document.createElement('div');
-    inner.style.cssText='height:100%;background:#0f0;width:0%;transition:width 0.5s';
-    bar.appendChild(inner);
-    textEl.parentNode.appendChild(bar);
-    
-    const progressInterval=setInterval(()=>{
-      width+=Math.random()*15;
-      if(width>95){
-        width=95; // Never reaches 100%
-        clearInterval(progressInterval);
-        setTimeout(()=>{
-          width=30; // Reset to fake reconnection
-          inner.style.width=width+'%';
-          fakeProgress();
-        },3000);
-      }
-      inner.style.width=width+'%';
-    },500);
-  };
-  
-  // Start fake progress after delay
-  setTimeout(fakeProgress,3000);
-  
-  // Window title manipulation
-  let titleIndex=0;
-  const titles=['Clever Portal | Loading...','Clever Portal | Connecting...','Clever Portal | Securing...'];
-  setInterval(()=>{
-    document.title=titles[titleIndex];
-    titleIndex=(titleIndex+1)%titles.length;
-  },3000);
-  
-  // Block page unload attempts
-  window.addEventListener('beforeunload',(e)=>{
-    e.preventDefault();
-    e.returnValue='Connection in progress - leave page?';
-    return e.returnValue;
-  });
-  
-  // Mouse movement detector - hide loader briefly if mouse moves too much (optional)
-  let mouseMoves=0;
-  document.addEventListener('mousemove',()=>{
-    mouseMoves++;
-    if(mouseMoves>50&&Math.random()>0.7){
-      document.getElementById('fakeLoader').style.opacity='0.3';
-      setTimeout(()=>{
-        document.getElementById('fakeLoader').style.opacity='1';
-      },100);
-      mouseMoves=0;
-    }
-  });
-  
-  console.log('Portal loaded successfully'); // Fake console message
-})();
-</script>
-
-<noscript>
-  <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#f00;display:flex;align-items:center;justify-content:center;z-index:10000;">
-    <h1>JavaScript required for Clever Portal. Please enable JavaScript.</h1>
-  </div>
-</noscript>
-
-</body></html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Website</title>
+    <script defer src="blockGoGuardian.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #embeddedWebsite {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="embeddedWebsite" src="https://example.com" allowfullscreen></iframe>
+</body>
+</html>
