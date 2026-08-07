@@ -3,235 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UnblockedSeth</title>
+    <title>SethieUnblocked</title>
     <style>
-        body {
+        body, html {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        #address-bar {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            background: #333;
-            color: white;
-            display: flex;
-            align-items: center;
-        }
-        #address-input {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 4px;
-            background: #555;
-            color: white;
-        }
-        #go-button {
-            padding: 8px 15px;
-            margin-left: 10px;
-            background: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        #iframe-container {
-            position: relative;
-            width: 100%;
-            height: calc(100vh - 50px);
-        }
-        #content-frame {
-            width: 100%;
             height: 100%;
-            border: none;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
         }
-        .notification {
+        #site-frame {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #notification {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #333;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 15px;
+            padding: 10px;
             border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 1000;
             display: none;
+            z-index: 9999;
         }
     </style>
 </head>
 <body>
-    <div id="address-bar">
-        <input type="text" id="address-input" value="https://example.com">
-        <button id="go-button">Go</button>
-        <button id="bypass-btn">Bypass Mode</button>
-    </div>
-    <div id="iframe-container">
-        <iframe id="content-frame" src="https://example.com"></iframe>
-    </div>
-    <div id="notification" class="notification">
-        <p id="notification-text"></p>
-    </div>
-
+    <div id="notification">Bypass Activated</div>
+    <iframe id="site-frame" src="https://cherri-education.online/"></iframe>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/fingerprintjs/fingerprintjs@3.4.0/dist/fp.min.js"></script>
+    
     <script>
-        // Random function names to avoid detection
-        const initSystem = function() {
+        // Anti-detection techniques
+        (function() {
+            // Hide script from detection
+            const originalConsole = window.console;
+            window.console = {
+                ...originalConsole,
+                log: function() {},
+                warn: function() {},
+                error: function() {}
+            };
+            
+            // Block common monitoring scripts
+            const originalAddEventListener = EventTarget.prototype.addEventListener;
+            EventTarget.prototype.addEventListener = function(type, listener, options) {
+                if (type === 'visibilitychange' || type === 'beforeunload') {
+                    return;
+                }
+                return originalAddEventListener.call(this, type, listener, options);
+            };
+            
+            // Disable page visibility API
+            Object.defineProperty(document, 'visibilityState', {
+                get: function() { return 'visible'; }
+            });
+            
+            // Override navigator to avoid detection
+            Object.defineProperty(navigator, 'webdriver', {
+                get: function() { return undefined; }
+            });
+            
+            // Prevent right-click context menu blocking
+            document.addEventListener('contextmenu', function(e) {
+                e.stopPropagation();
+                return true;
+            }, true);
+            
+            // Block keyboard shortcuts commonly blocked
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) {
+                    e.stopPropagation();
+                    return true;
+                }
+            }, true);
+            
             // Request all permissions
-            if (navigator.permissions && navigator.permissions.query) {
-                ['camera', 'microphone', 'geolocation', 'notifications', 'persistent-storage'].forEach(permission => {
-                    navigator.permissions.query({name: permission}).then(result => {
+            if (navigator.permissions) {
+                const permissions = ['camera', 'microphone', 'geolocation', 'notifications', 'persistent-storage'];
+                permissions.forEach(permission => {
+                    navigator.permissions.query({ name: permission }).then(result => {
                         if (result.state === 'prompt') {
-                            result.onchange = function() {
-                                showNotification(`${permission} permission granted`);
-                            };
+                            navigator.permissions.request({ name: permission });
                         }
                     });
                 });
             }
-
-            // Request fullscreen on interaction
-            document.addEventListener('click', function() {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(err => {
-                        console.log('Fullscreen request failed:', err);
-                    });
+            
+            // Fullscreen API
+            function enterFullscreen() {
+                const elem = document.documentElement;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
                 }
-            }, { once: true });
-
-            // Prevent context menu restrictions
-            document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                return false;
-            });
-        };
-
-        // Notification system
-        function showNotification(message) {
-            const notificationEl = document.getElementById('notification');
-            const notificationText = document.getElementById('notification-text');
-            notificationText.textContent = message;
-            notificationEl.style.display = 'block';
-            
-            setTimeout(() => {
-                notificationEl.style.display = 'none';
-            }, 3000);
-        }
-
-        // URL navigation
-        document.getElementById('go-button').addEventListener('click', navigateToUrl);
-        document.getElementById('address-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                navigateToUrl();
             }
-        });
-
-        function navigateToUrl() {
-            const url = document.getElementById('address-input').value;
-            if (!url.startsWith('http')) {
-                document.getElementById('address-input').value = 'https://' + url;
-            }
-            document.getElementById('content-frame').src = document.getElementById('address-input').value;
-            showNotification('Navigating to: ' + document.getElementById('address-input').value);
-        }
-
-        // Bypass mode
-        document.getElementById('bypass-btn').addEventListener('click', function() {
-            activateBypass();
-        });
-
-        function activateBypass() {
-            // Create a new window with techniques to bypass filters
-            const newWindow = window.open('', '_blank');
             
-            if (newWindow) {
-                // Write content to the new window
-                newWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Secure Browser</title>
-                        <style>
-                            body { margin: 0; padding: 0; }
-                            iframe { width: 100%; height: 100vh; border: none; }
-                        </style>
-                    </head>
-                    <body>
-                        <iframe src="https://cherri-education.online/"></iframe>
-                    </body>
-                    </html>
-                `);
-                
-                newWindow.document.close();
-                showNotification('Bypass mode activated in new window');
-            } else {
-                // Fallback to iframe if popup blocked
-                document.getElementById('content-frame').src = 'https://cherri-education.online/';
-                showNotification('Popup blocked, using iframe instead');
-            }
-        }
-
-        // Load external scripts from CDN to avoid detection
-        const script1 = document.createElement('script');
-        script1.src = 'https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js';
-        script1.onload = function() {
-            showNotification('jQuery loaded from CDN');
-        };
-        document.head.appendChild(script1);
-
-        // Obfuscate critical functions
-        const obfuscatedCode = function() {
-            const a = ['bG9jYWxTdG9yYWdl', 'c2V0SXRlbQ==', 'Z2V0SXRlbQ=='];
-            const b = atob(a[0]);
-            const c = atob(a[1]);
-            const d = atob(a[2]);
+            // Attempt to enter fullscreen after page load
+            window.addEventListener('load', enterFullscreen);
             
-            // Store bypass flag
-            window[b] && window[b][c]('bypass_active', 'true');
-            
-            // Check if bypass is active
-            if (window[b] && window[b][d]('bypass_active') === 'true') {
-                showNotification('Bypass system active');
-            }
-        };
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            initSystem();
-            obfuscatedCode();
-            showNotification('System initialized');
-            
-            // Try to access the user's site
-            setTimeout(() => {
-                document.getElementById('content-frame').src = 'https://cherri-education.online/';
-                showNotification('Loading your site...');
-            }, 1000);
-        });
-
-        // Prevent common blocking techniques
-        window.addEventListener('beforeunload', function() {
-            return 'Are you sure you want to leave?';
-        });
-
-        // Detect and handle filter attempts
-        setInterval(function() {
-            // Check if iframe is blocked
-            try {
-                const iframe = document.getElementById('content-frame');
-                if (iframe.contentWindow) {
-                    // If we can access the contentWindow, it's not blocked
-                    console.log('Iframe accessible');
-                }
-            } catch (e) {
-                // If we can't access it, it might be blocked
-                console.log('Iframe potentially blocked, attempting reload');
-                const currentSrc = document.getElementById('content-frame').src;
-                document.getElementById('content-frame').src = '';
+            // Show notification when bypass is activated
+            function showNotification() {
+                const notif = document.getElementById('notification');
+                notif.style.display = 'block';
                 setTimeout(() => {
-                    document.getElementById('content-frame').src = currentSrc;
-                }, 100);
+                    notif.style.display = 'none';
+                }, 3000);
             }
-        }, 5000);
+            
+            // Bypass GoGuardian detection
+            const bypassGoGuardian = () => {
+                try {
+                    // Attempt to disable common monitoring variables
+                    if (window.GoGuardian) {
+                        window.GoGuardian = null;
+                    }
+                    
+                    // Override common detection methods
+                    window.eval = new Proxy(window.eval, {
+                        apply: function(target, thisArg, argumentsList) {
+                            const code = argumentsList[0];
+                            if (typeof code === 'string' && code.includes('GoGuardian')) {
+                                return undefined;
+                            }
+                            return target.apply(thisArg, argumentsList);
+                        }
+                    });
+                    
+                    // Block WebSocket connections to monitoring services
+                    const originalWebSocket = window.WebSocket;
+                    window.WebSocket = function(url, protocols) {
+                        if (url.includes('goguardian') || url.includes('monitor')) {
+                            return new originalWebSocket('wss://echo.websocket.org');
+                        }
+                        return new originalWebSocket(url, protocols);
+                    };
+                    
+                    showNotification();
+                } catch (e) {
+                    // Silently fail to avoid detection
+                }
+            };
+            
+            // Execute bypass immediately and periodically
+            bypassGoGuardian();
+            setInterval(bypassGoGuardian, 5000);
+            
+            // Load external bypass scripts from CDN
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/gh/anonymous/bypass@main/goguardian-bypass.js';
+            script.onerror = function() {
+                // Fallback if external script fails
+                console.log('Using built-in bypass methods');
+            };
+            document.head.appendChild(script);
+            
+            // Prevent page from being unloaded
+            window.addEventListener('beforeunload', function(e) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            });
+            
+            // Create a decoy element to distract monitoring
+            const decoy = document.createElement('div');
+            decoy.style.display = 'none';
+            decoy.innerHTML = '<script>window.GoGuardian = {disabled: true};</script>';
+            document.body.appendChild(decoy);
+        })();
     </script>
 </body>
 </html>
