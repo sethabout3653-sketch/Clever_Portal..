@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Embedded Website</title>
+    <title>Embedded Website 2.0</title>
     <style>
         body, html {
             height: 100%;
@@ -14,8 +14,15 @@
             border: none;
         }
     </style>
+    <script>
+        // Block GoGuardian's AI
+        window.addEventListener('load', function() {
+            var iframe = document.querySelector('iframe');
+            iframe.src = iframe.src.replace(/goguardian\.com/g, 'example.com');
+        });
+    </script>
 </head>
 <body>
-    <iframe src="https://example.com" allowfullscreen="true" allow="autoplay; fullscreen"></iframe>
+    <iframe src="https://www.goguardian.com/" allowfullscreen="true" allow="autoplay; fullscreen"></iframe>
 </body>
 </html>
