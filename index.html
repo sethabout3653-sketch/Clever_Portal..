@@ -37,9 +37,7 @@
             background: #111;
             box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.3), 0 0 15px rgba(0, 255, 0, 0.5);
         }
-        /* Removed loader specific styles as it's now integrated */
 
-        /* Add a subtle visual indicator if desired, otherwise it will be fully hidden */
         .loading-indicator {
             position: fixed;
             top: 50%;
@@ -47,7 +45,7 @@
             transform: translate(-50%, -50%);
             font-size: 2em;
             text-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 15px #0f0;
-            animation: blink 1.5s infinite steps(1); /* Subtle blink */
+            animation: blink 1.5s infinite steps(1);
         }
 
         @keyframes blink {
@@ -57,125 +55,118 @@
     </style>
 </head>
 <body>
-    <!-- Removed the loader div entirely -->
-
     <iframe class="site" id="siteFrame" src="about:blank" data-src="https://start.unleashedvr.com/" allowfullscreen title="Clever Portal"></iframe>
     <div class="loading-indicator" id="loadingIndicator">Loading...</div>
 
     <script>
         (function() {
-            const sfr = document.getElementById('siteFrame');
-            const loadingIndicator = document.getElementById('loadingIndicator');
+            const frameElement = document.getElementById('siteFrame');
+            const loaderIndicator = document.getElementById('loadingIndicator');
 
-            // Set initial title
-            document.title = "\x43\x6c\x65\x76\x65\x72 | \x4c\x6f\x61\x64\x69\x6e\x67...";
+            const originalTitleParts = [
+                '\x43\x6c\x65\x76\x65\x72',
+                ' | \x4c\x6f\x61\x64\x69\x6e\x67...'
+            ];
+            document.title = originalTitleParts.join('');
 
-            // --- Anti-debugging/inspection measures ---
-            let uc = true; // Flag for unsaved changes (can be manipulated to prevent unload)
+            let flagForUnsavedChanges = true;
 
-            function ulh(e) {
-                if (!uc) return; // If uc is false, allow unload
-                const msg = '\x43\x68\x61\x6e\x67\x65\x73 \x79\x6f\x75\x20\x6d\x61\x64\x65 \x6d\x61\x79 \x6e\x6f\x74 \x62\x65 \x73\x61\x76\x65\x64.';
+            const unloadHandler = function(event) {
+                if (!flagForUnsavedChanges) {
+                    return;
+                }
+                const message = '\x43\x68\x61\x6e\x67\x65\x73 \x79\x6f\x75\x20\x6d\x61\x79 \x6e\x6f\x74 \x62\x65 \x73\x61\x76\x65\x64.';
+                event.preventDefault();
+                event.returnValue = message;
+                return message;
+            };
+            window.addEventListener('beforeunload', unloadHandler);
+            window.toggleUnsavedChanges = function(state) {
+                flagForUnsavedChanges = Boolean(state);
+            };
+
+            document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
-                e.returnValue = msg;
-                return msg;
-            }
-            window.addEventListener('beforeunload', ulh);
-            window.setUnsavedChanges = function(v) { uc = Boolean(v); }; // Function to control the unload prompt
+            });
 
-            document.addEventListener('contextmenu', e => e.preventDefault()); // Disable right-click
-
-            document.addEventListener('keydown', e => {
-                // Disable F12, Ctrl+Shift+I, Ctrl+U (View Source)
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
+            document.addEventListener('keydown', function(e) {
+                const isF12 = e.key === 'F12';
+                const isCtrlShiftI = e.ctrlKey && e.shiftKey && e.key === 'I';
+                const isCtrlU = e.ctrlKey && e.key === 'u';
+                if (isF12 || isCtrlShiftI || isCtrlU) {
                     e.preventDefault();
                 }
             });
 
-            // Disable text selection
-            document.body.style.userSelect = document.body.style.webkitUserSelect = document.body.style.msUserSelect = document.body.style.mozUserSelect = 'none';
-            // --- End Anti-debugging measures ---
+            document.body.style.userSelect =
+            document.body.style.webkitUserSelect =
+            document.body.style.msUserSelect =
+            document.body.style.mozUserSelect = 'none';
 
-            // Configure iframe attributes for security and functionality
-            sfr.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-popups allow-modals allow-downloads allow-pointer-lock allow-top-navigation-by-user-activation');
-            sfr.setAttribute('allow', 'autoplay; camera; microphone; geolocation; encrypted-media; display-capture; clipboard-write; web-share; xr-spatial-tracking;');
-            sfr.setAttribute('referrerpolicy', 'unsafe-url');
+            frameElement.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-popups allow-modals allow-downloads allow-pointer-lock allow-top-navigation-by-user-activation');
+            frameElement.setAttribute('allow', 'autoplay; camera; microphone; geolocation; encrypted-media; display-capture; clipboard-write; web-share; xr-spatial-tracking;');
+            frameElement.setAttribute('referrerpolicy', 'unsafe-url');
 
-            // --- Infinite "Fake" Loading Logic ---
-            let loadAttempts = 0;
-            const maxLoadAttempts = 5; // Limit attempts to prevent true infinite loop if site is truly unavailable
+            let loadAttemptCount = 0;
+            const maxAttempts = 10; // Increase attempts for a more persistent "fake" load
+            const retryDelayBase = 2000; // Base delay for retries
+            const retryDelayMax = 10000; // Max delay to avoid very long waits
 
-            function attemptLoad() {
-                loadAttempts++;
-                console.log(`Attempt ${loadAttempts} to load iframe...`);
+            function initiateFrameLoad() {
+                loadAttemptCount++;
+                const currentRetryDelay = Math.min(retryDelayBase * Math.pow(2, loadAttemptCount - 1) + Math.random() * 1000, retryDelayMax);
 
-                // Set the source to initiate the load
-                const srcAttr = sfr.getAttribute('data-src');
-                if (srcAttr) {
-                    sfr.src = srcAttr;
-                } else {
-                    console.error("Data-src attribute not found for iframe.");
-                    return; // Cannot proceed without a source
+                const iframeSource = frameElement.getAttribute('data-src');
+                if (!iframeSource) {
+                    console.error('Source URL not defined.');
+                    return;
                 }
 
-                // Use a timer to check for load completion or timeout
-                const loadTimeout = setTimeout(() => {
-                    // Check if the iframe is actually loaded. This is a heuristic.
-                    // A more robust check might involve trying to access its contentDocument.
+                frameElement.src = iframeSource;
+
+                const loadCheckTimer = setTimeout(() => {
+                    let isLoaded = false;
                     try {
-                        if (sfr.contentDocument && sfr.contentDocument.readyState === 'complete') {
-                            console.log("Iframe loaded successfully.");
-                            loadingIndicator.style.display = 'none'; // Hide the "Loading..." text
-                            document.title = "\x43\x6c\x65\x76\x65\x72 | \x50\x6f\x72\x74\x61\x6c"; // Update title to "Portal"
-                            // You can set uc = false here if you want to allow unloading after the site is "ready"
-                            // window.setUnsavedChanges(false);
-                            return;
+                        // Heuristic check: if contentDocument is accessible and ready, assume loaded.
+                        // Cross-origin restrictions will throw an error, which we also treat as "loaded" for obfuscation.
+                        if (frameElement.contentDocument && frameElement.contentDocument.readyState === 'complete') {
+                            isLoaded = true;
                         }
                     } catch (e) {
-                        // Cross-origin restrictions can cause errors here, which is expected.
-                        // We'll assume it's loaded if we can't inspect it further.
-                        console.log("Iframe loaded (or access restricted).");
-                        loadingIndicator.style.display = 'none';
-                        document.title = "\x43\x6c\x65\x76\x65\x72 | \x50\x6f\x72\x74\x61\x6c";
-                        // window.setUnsavedChanges(false);
-                        return;
+                        // Assume loaded if we can't inspect further due to Same-Origin Policy.
+                        isLoaded = true;
                     }
 
-                    // If not loaded and we haven't hit max attempts, retry
-                    if (loadAttempts < maxLoadAttempts) {
-                        console.log("Iframe did not load completely, retrying...");
-                        setTimeout(attemptLoad, 2000); // Retry after 2 seconds
+                    if (isLoaded) {
+                        loaderIndicator.style.display = 'none';
+                        document.title = [originalTitleParts[0], ' | \x50\x6f\x72\x74\x61\x6c'].join('');
+                        // Optional: disable unload prompt after successful "load"
+                        // window.toggleUnsavedChanges(false);
                     } else {
-                        console.warn("Max load attempts reached. Leaving loading indicator visible.");
-                        // Optionally, you could display an error or a fallback here.
-                        // For "infinite" fake loading, we'll just keep retrying in the background.
-                        setTimeout(attemptLoad, 5000); // Retry after 5 seconds if max attempts reached
+                        // If not loaded and attempts remain, schedule a retry
+                        if (loadAttemptCount < maxAttempts) {
+                            setTimeout(initiateFrameLoad, currentRetryDelay);
+                        } else {
+                            // If max attempts reached, still retry but with a longer, consistent delay
+                            setTimeout(initiateFrameLoad, retryDelayMax);
+                        }
                     }
-                }, 5000); // Initial check after 5 seconds
+                }, 7000); // Initial wait before checking load status
 
-                // Handle potential errors during iframe loading
-                sfr.onerror = () => {
-                    clearTimeout(loadTimeout);
-                    console.error("Error loading iframe.");
-                    if (loadAttempts < maxLoadAttempts) {
-                        setTimeout(attemptLoad, 2000); // Retry after error
+                frameElement.onerror = () => {
+                    clearTimeout(loadCheckTimer);
+                    // Error occurred, retry with increasing delay
+                    if (loadAttemptCount < maxAttempts) {
+                        setTimeout(initiateFrameLoad, currentRetryDelay);
                     } else {
-                        setTimeout(attemptLoad, 5000); // Retry after error if max attempts reached
+                        setTimeout(initiateFrameLoad, retryDelayMax);
                     }
                 };
             }
 
-            // Start the loading process
-            attemptLoad();
+            // Start the simulated loading process
+            initiateFrameLoad();
 
-            // The "fake" infinite loading is achieved by:
-            // 1. The iframe is set to load immediately.
-            // 2. The "Loading..." text is hidden only when a successful load or a plausible "loaded" state is detected.
-            // 3. The script keeps attempting to load/reload the iframe in the background indefinitely,
-            //    or with a very long delay, to keep the connection active and data flowing without
-            //    making it obvious to the user that it's constantly refreshing or failing.
-            //    The `maxLoadAttempts` is a soft limit to prevent runaway processes if the URL is broken.
-            //    The `onerror` and timeouts ensure retries.
         })();
     </script>
 </body>
