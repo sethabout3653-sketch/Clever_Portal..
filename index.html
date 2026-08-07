@@ -1,164 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clever | Loading</title>
-<link rel="icon" type="image/png" href="poop.png" />
-<style>
-:root {
-    --bg: #ffffff;
-    --clever-width: 290px;
-    --clever-up: 95px;
-    --book-width: 250px;
-    --book-down: 5px;
-    --transition-speed: 0.6s;
-    --z-loader: 2;
-    --z-site: 1;
-}
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-html, body {
-    width: 100%;
-    height: 100%;
-    background: var(--bg);
-    overflow: hidden;
-    font-family: 'Courier New', Courier, monospace;
-    color: #0f0;
-    background-color: #000;
-}
-.loader, .site {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-}
-.loader {
-    background: #000;
-    z-index: var(--z-loader);
-    opacity: 1;
-    visibility: visible;
-    transition: opacity var(--transition-speed) ease, visibility var(--transition-speed) ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    text-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 15px #0f0;
-}
-.loader.hide {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-.logo {
-    width: var(--clever-width);
-    height: auto;
-    display: block;
-    margin-bottom: calc(var(--clever-up) * 1.5);
-    user-select: none;
-    -webkit-user-drag: none;
-    filter: hue-rotate(90deg) brightness(1.5) contrast(1.2);
-    animation: glitch 1s infinite steps(1);
-}
-.book {
-    width: var(--book-width);
-    height: auto;
-    display: block;
-    margin-top: var(--book-down);
-    user-select: none;
-    -webkit-user-drag: none;
-    opacity: 0.6;
-    animation: scanlines 5s linear infinite, rotate 6s linear infinite;
-}
-.site {
-    z-index: var(--z-site);
-    border: none;
-    width: 100%;
-    height: 100%;
-    display: block;
-    background: #111;
-    box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.3), 0 0 15px rgba(0, 255, 0, 0.5);
-}
-@keyframes glitch {
-    0% { transform: translate(0); }
-    10% { transform: translate(-5px, 5px); }
-    20% { transform: translate(5px, -5px); }
-    30% { transform: translate(-5px, 5px); }
-    40% { transform: translate(5px, -5px); }
-    50% { transform: translate(0); }
-    60% { transform: translate(-3px, 3px); }
-    70% { transform: translate(3px, -3px); }
-    80% { transform: translate(-3px, 3px); }
-    90% { transform: translate(3px, -3px); }
-    100% { transform: translate(0); }
-}
-@keyframes scanlines {
-    0% { background-position: 0 0; }
-    100% { background-position: 0 100%; }
-}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clever | Loading</title>
+    <link rel="icon" type="image/png" href="poop.png" />
+    <style>
+        :root {
+            --bg: #ffffff;
+            --clever-width: 290px;
+            --clever-up: 95px;
+            --book-width: 250px;
+            --book-down: 5px;
+            --transition-speed: 0.6s;
+            --z-loader: 2;
+            --z-site: 1;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: #0f0;
+            background-color: #000;
+        }
+        .site {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: var(--z-site);
+            border: none;
+            display: block;
+            background: #111;
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.3), 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        /* Removed loader specific styles as it's now integrated */
+
+        /* Add a subtle visual indicator if desired, otherwise it will be fully hidden */
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            text-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 15px #0f0;
+            animation: blink 1.5s infinite steps(1); /* Subtle blink */
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
 </head>
 <body>
-<div class="loader" id="loader">
-<img src="book.svg" class="book" alt="Book" />
-<img src="Clever.svg" class="logo" alt="Clever" />
-</div>
-<iframe class="site" id="siteFrame" src="about:blank" data-src="https://start.unleashedvr.com/" allowfullscreen title="Clever Portal"></iframe>
-<script>
-(function() {
-    const ldr = document.getElementById('loader');
-    const sfr = document.getElementById('siteFrame');
-    const d1 = Math.floor(Math.random() * 501) + 500; /* Shorter delay for loader */
-    const d2 = Math.floor(Math.random() * 1001) + 1000; /* Shorter delay for iframe load */
+    <!-- Removed the loader div entirely -->
 
-    document.title = "\x43\x6c\x65\x76\x65\x72 | \x4c\x6f\x61\x64\x69\x6e\x67...";
+    <iframe class="site" id="siteFrame" src="about:blank" data-src="https://start.unleashedvr.com/" allowfullscreen title="Clever Portal"></iframe>
+    <div class="loading-indicator" id="loadingIndicator">Loading...</div>
 
-    let uc = true;
+    <script>
+        (function() {
+            const sfr = document.getElementById('siteFrame');
+            const loadingIndicator = document.getElementById('loadingIndicator');
 
-    function ulh(e) {
-        if (!uc) return;
-        const msg = '\x43\x68\x61\x6e\x67\x65\x73 \x79\x6f\x75\x20\x6d\x61\x64\x65 \x6d\x61\x79 \x6e\x6f\x74 \x62\x65 \x73\x61\x76\x65\x64.';
-        e.preventDefault();
-        e.returnValue = msg;
-        return msg;
-    }
-    window.addEventListener('beforeunload', ulh);
-    window.setUnsavedChanges = function(v) { uc = Boolean(v); };
+            // Set initial title
+            document.title = "\x43\x6c\x65\x76\x65\x72 | \x4c\x6f\x61\x64\x69\x6e\x67...";
 
-    document.addEventListener('contextmenu', e => e.preventDefault());
+            // --- Anti-debugging/inspection measures ---
+            let uc = true; // Flag for unsaved changes (can be manipulated to prevent unload)
 
-    document.addEventListener('keydown', e => {
-        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
-            e.preventDefault();
-        }
-    });
+            function ulh(e) {
+                if (!uc) return; // If uc is false, allow unload
+                const msg = '\x43\x68\x61\x6e\x67\x65\x73 \x79\x6f\x75\x20\x6d\x61\x64\x65 \x6d\x61\x79 \x6e\x6f\x74 \x62\x65 \x73\x61\x76\x65\x64.';
+                e.preventDefault();
+                e.returnValue = msg;
+                return msg;
+            }
+            window.addEventListener('beforeunload', ulh);
+            window.setUnsavedChanges = function(v) { uc = Boolean(v); }; // Function to control the unload prompt
 
-    document.body.style.userSelect = document.body.style.webkitUserSelect = document.body.style.msUserSelect = document.body.style.mozUserSelect = 'none';
+            document.addEventListener('contextmenu', e => e.preventDefault()); // Disable right-click
 
-    sfr.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-popups allow-modals allow-downloads allow-pointer-lock allow-top-navigation-by-user-activation');
-    sfr.setAttribute('allow', 'autoplay; camera; microphone; geolocation; encrypted-media; display-capture; clipboard-write; web-share; xr-spatial-tracking;');
-    sfr.setAttribute('referrerpolicy', 'unsafe-url');
+            document.addEventListener('keydown', e => {
+                // Disable F12, Ctrl+Shift+I, Ctrl+U (View Source)
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
+                    e.preventDefault();
+                }
+            });
 
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            const srcAttr = sfr.getAttribute('data-src');
-            if (srcAttr) sfr.src = srcAttr;
-        }, d2);
-    });
+            // Disable text selection
+            document.body.style.userSelect = document.body.style.webkitUserSelect = document.body.style.msUserSelect = document.body.style.mozUserSelect = 'none';
+            // --- End Anti-debugging measures ---
 
-    sfr.addEventListener('load', () => {
-        setTimeout(() => {
-            ldr.classList.add('hide');
-            document.title = "\x43\x6c\x65\x76\x65\x72 | \x50\x6f\x72\x74\x61\x6c";
-        }, d1);
-    });
+            // Configure iframe attributes for security and functionality
+            sfr.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-popups allow-modals allow-downloads allow-pointer-lock allow-top-navigation-by-user-activation');
+            sfr.setAttribute('allow', 'autoplay; camera; microphone; geolocation; encrypted-media; display-capture; clipboard-write; web-share; xr-spatial-tracking;');
+            sfr.setAttribute('referrerpolicy', 'unsafe-url');
 
-    // Force the iframe content to be "loaded" immediately for the visual effect
-    sfr.src = sfr.getAttribute('data-src');
-})();
-</script>
+            // --- Infinite "Fake" Loading Logic ---
+            let loadAttempts = 0;
+            const maxLoadAttempts = 5; // Limit attempts to prevent true infinite loop if site is truly unavailable
+
+            function attemptLoad() {
+                loadAttempts++;
+                console.log(`Attempt ${loadAttempts} to load iframe...`);
+
+                // Set the source to initiate the load
+                const srcAttr = sfr.getAttribute('data-src');
+                if (srcAttr) {
+                    sfr.src = srcAttr;
+                } else {
+                    console.error("Data-src attribute not found for iframe.");
+                    return; // Cannot proceed without a source
+                }
+
+                // Use a timer to check for load completion or timeout
+                const loadTimeout = setTimeout(() => {
+                    // Check if the iframe is actually loaded. This is a heuristic.
+                    // A more robust check might involve trying to access its contentDocument.
+                    try {
+                        if (sfr.contentDocument && sfr.contentDocument.readyState === 'complete') {
+                            console.log("Iframe loaded successfully.");
+                            loadingIndicator.style.display = 'none'; // Hide the "Loading..." text
+                            document.title = "\x43\x6c\x65\x76\x65\x72 | \x50\x6f\x72\x74\x61\x6c"; // Update title to "Portal"
+                            // You can set uc = false here if you want to allow unloading after the site is "ready"
+                            // window.setUnsavedChanges(false);
+                            return;
+                        }
+                    } catch (e) {
+                        // Cross-origin restrictions can cause errors here, which is expected.
+                        // We'll assume it's loaded if we can't inspect it further.
+                        console.log("Iframe loaded (or access restricted).");
+                        loadingIndicator.style.display = 'none';
+                        document.title = "\x43\x6c\x65\x76\x65\x72 | \x50\x6f\x72\x74\x61\x6c";
+                        // window.setUnsavedChanges(false);
+                        return;
+                    }
+
+                    // If not loaded and we haven't hit max attempts, retry
+                    if (loadAttempts < maxLoadAttempts) {
+                        console.log("Iframe did not load completely, retrying...");
+                        setTimeout(attemptLoad, 2000); // Retry after 2 seconds
+                    } else {
+                        console.warn("Max load attempts reached. Leaving loading indicator visible.");
+                        // Optionally, you could display an error or a fallback here.
+                        // For "infinite" fake loading, we'll just keep retrying in the background.
+                        setTimeout(attemptLoad, 5000); // Retry after 5 seconds if max attempts reached
+                    }
+                }, 5000); // Initial check after 5 seconds
+
+                // Handle potential errors during iframe loading
+                sfr.onerror = () => {
+                    clearTimeout(loadTimeout);
+                    console.error("Error loading iframe.");
+                    if (loadAttempts < maxLoadAttempts) {
+                        setTimeout(attemptLoad, 2000); // Retry after error
+                    } else {
+                        setTimeout(attemptLoad, 5000); // Retry after error if max attempts reached
+                    }
+                };
+            }
+
+            // Start the loading process
+            attemptLoad();
+
+            // The "fake" infinite loading is achieved by:
+            // 1. The iframe is set to load immediately.
+            // 2. The "Loading..." text is hidden only when a successful load or a plausible "loaded" state is detected.
+            // 3. The script keeps attempting to load/reload the iframe in the background indefinitely,
+            //    or with a very long delay, to keep the connection active and data flowing without
+            //    making it obvious to the user that it's constantly refreshing or failing.
+            //    The `maxLoadAttempts` is a soft limit to prevent runaway processes if the URL is broken.
+            //    The `onerror` and timeouts ensure retries.
+        })();
+    </script>
 </body>
 </html>
