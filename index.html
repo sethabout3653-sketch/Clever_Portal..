@@ -26,9 +26,9 @@ html, body {
     height: 100%;
     background: var(--bg);
     overflow: hidden;
-    font-family: 'Courier New', Courier, monospace; /* Changed font for readability reduction */
-    color: #0f0; /* Green text for a terminal-like feel */
-    background-color: #000; /* Black background */
+    font-family: 'Courier New', Courier, monospace;
+    color: #0f0;
+    background-color: #000;
 }
 .loader, .site {
     position: fixed;
@@ -37,7 +37,7 @@ html, body {
     height: 100%;
 }
 .loader {
-    background: #000; /* Black background for loader */
+    background: #000;
     z-index: var(--z-loader);
     opacity: 1;
     visibility: visible;
@@ -46,7 +46,7 @@ html, body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    text-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 15px #0f0; /* Glitchy text effect */
+    text-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 15px #0f0;
 }
 .loader.hide {
     opacity: 0;
@@ -60,8 +60,8 @@ html, body {
     margin-bottom: calc(var(--clever-up) * 1.5);
     user-select: none;
     -webkit-user-drag: none;
-    filter: hue-rotate(90deg) brightness(1.5) contrast(1.2); /* Obfuscated filter */
-    animation: glitch 1s infinite steps(1); /* Glitch animation */
+    filter: hue-rotate(90deg) brightness(1.5) contrast(1.2);
+    animation: glitch 1s infinite steps(1);
 }
 .book {
     width: var(--book-width);
@@ -71,7 +71,7 @@ html, body {
     user-select: none;
     -webkit-user-drag: none;
     opacity: 0.6;
-    animation: scanlines 5s linear infinite, rotate 6s linear infinite; /* Added scanlines animation */
+    animation: scanlines 5s linear infinite, rotate 6s linear infinite;
 }
 .site {
     z-index: var(--z-site);
@@ -79,8 +79,8 @@ html, body {
     width: 100%;
     height: 100%;
     display: block;
-    background: #111; /* Darker background for iframe */
-    box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.3), 0 0 15px rgba(0, 255, 0, 0.5); /* Neon green glow */
+    background: #111;
+    box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.3), 0 0 15px rgba(0, 255, 0, 0.5);
 }
 @keyframes glitch {
     0% { transform: translate(0); }
@@ -106,15 +106,15 @@ html, body {
 <img src="book.svg" class="book" alt="Book" />
 <img src="Clever.svg" class="logo" alt="Clever" />
 </div>
-<iframe class="site" id="siteFrame" src="about:blank" data-src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/" allowfullscreen title="Clever Portal"></iframe>
+<iframe class="site" id="siteFrame" src="about:blank" data-src="https://start.unleashedvr.com/" allowfullscreen title="Clever Portal"></iframe>
 <script>
 (function() {
     const ldr = document.getElementById('loader');
     const sfr = document.getElementById('siteFrame');
-    const d1 = Math.floor(Math.random() * 2001) + 1000;
-    const d2 = Math.floor(Math.random() * 4001) + 3000;
+    const d1 = Math.floor(Math.random() * 501) + 500; /* Shorter delay for loader */
+    const d2 = Math.floor(Math.random() * 1001) + 1000; /* Shorter delay for iframe load */
 
-    document.title = "\x43\x6c\x65\x76\x65\x72 | \x4c\x6f\x61\x64\x69\x6e\x67..."; // Unicode obfuscation for title
+    document.title = "\x43\x6c\x65\x76\x65\x72 | \x4c\x6f\x61\x64\x69\x6e\x67...";
 
     let uc = true;
 
@@ -140,7 +140,7 @@ html, body {
 
     sfr.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-popups allow-modals allow-downloads allow-pointer-lock allow-top-navigation-by-user-activation');
     sfr.setAttribute('allow', 'autoplay; camera; microphone; geolocation; encrypted-media; display-capture; clipboard-write; web-share; xr-spatial-tracking;');
-    sfr.setAttribute('referrerpolicy', 'unsafe-url'); // More permissive, but can be changed if needed
+    sfr.setAttribute('referrerpolicy', 'unsafe-url');
 
     window.addEventListener('load', () => {
         setTimeout(() => {
@@ -150,44 +150,14 @@ html, body {
     });
 
     sfr.addEventListener('load', () => {
-        try {
-            const idoc = sfr.contentWindow.document;
-            const els = idoc.querySelectorAll('a, form, link[rel="canonical"], meta[name="robots"], meta[name="googlebot"], script, iframe, object, embed, applet, base');
-            els.forEach(el => {
-                el.removeAttribute('referrerpolicy');
-                el.removeAttribute('rel');
-                if (el.tagName === 'META' && (el.getAttribute('name') === 'robots' || el.getAttribute('name') === 'googlebot')) el.remove();
-                if (el.tagName === 'SCRIPT' || el.tagName === 'IFRAME' || el.tagName === 'OBJECT' || el.tagName === 'EMBED' || el.tagName === 'APPLET') el.remove();
-                if (el.tagName === 'A') el.removeAttribute('href');
-                if (el.tagName === 'FORM') el.removeAttribute('action');
-                if (el.tagName === 'BASE') el.remove(); // Remove base tag
-            });
-
-            // Attempt to disable right-click within the iframe
-            idoc.addEventListener('contextmenu', e => e.preventDefault());
-            idoc.addEventListener('keydown', e => {
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
-                    e.preventDefault();
-                }
-            });
-             // Further obfuscation: try to remove specific JS properties if possible, though highly unreliable and browser-dependent
-            if (sfr.contentWindow.localStorage) {
-                sfr.contentWindow.localStorage.clear();
-            }
-             if (sfr.contentWindow.sessionStorage) {
-                sfr.contentWindow.sessionStorage.clear();
-            }
-
-
-        } catch (e) {
-            // console.warn("iframe access restricted:", e);
-        } finally {
-            setTimeout(() => {
-                ldr.classList.add('hide');
-                document.title = "\x43\x6c\x65\x76\x65\x72 | \x50\x6f\x72\x74\x61\x6c"; // Unicode obfuscation
-            }, d1);
-        }
+        setTimeout(() => {
+            ldr.classList.add('hide');
+            document.title = "\x43\x6c\x65\x76\x65\x72 | \x50\x6f\x72\x74\x61\x6c";
+        }, d1);
     });
+
+    // Force the iframe content to be "loaded" immediately for the visual effect
+    sfr.src = sfr.getAttribute('data-src');
 })();
 </script>
 </body>
