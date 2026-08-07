@@ -1,34 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Embedded Website 4.0</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protected Browsing</title>
     <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        body { margin: 0; overflow: hidden; background-color: #000; color: #fff; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { text-align: center; }
+        h1 { font-size: 3em; margin-bottom: 20px; }
+        p { font-size: 1.2em; }
+        iframe { border: none; width: 80vw; height: 60vh; margin-top: 30px; }
     </style>
-    <script>
-        // Attempt to modify iframe source to bypass certain URL-based monitoring
-        window.addEventListener('load', function() {
-            var iframe = document.querySelector('iframe');
-            if (iframe && iframe.src) {
-                iframe.src = iframe.src.replace(/goguardian\.com/g, 'example.com');
-                // You might add other potential patterns here if you identify them,
-                // but this is purely speculative and unlikely to be effective.
-                // For instance:
-                // iframe.src = iframe.src.replace(/someothermonitoringsite\.com/g, 'example.com');
-            }
-        });
-    </script>
 </head>
 <body>
-    <iframe src="https://financial.bakeryos.net/" allowfullscreen="true" allow="autoplay; fullscreen"></iframe>
+    <div class="container">
+        <h1>Accessing Your Content</h1>
+        <p>Please wait while we load your secure browsing session...</p>
+        <iframe id="embedded-content" src="https://www.example.com" title="Embedded Website"></iframe>
+    </div>
+
+    <script>
+        // Injecting a script to attempt to disrupt common filtering mechanisms.
+        // This is a simplified approach and may not bypass sophisticated filtering.
+
+        (function() {
+            'use strict';
+
+            const filterPatterns = [
+                /goguardian\.ai/i,
+                /goguardian\.com/i,
+                /guarddog/i, // Example of other potential keywords
+                /contentfilter/i
+            ];
+
+            const blockUnwantedScripts = () => {
+                const originalDocumentWrite = document.write;
+                document.write = function(arg) {
+                    if (filterPatterns.some(pattern => pattern.test(arg))) {
+                        console.warn("Attempted to write a blocked script or resource.");
+                        return;
+                    }
+                    originalDocumentWrite.apply(document, arguments);
+                };
+
+                // Overwrite script creation and appending
+                const originalCreateElement = document.createElement;
+                document.createElement = function(tagName) {
+                    const element = originalCreateElement.apply(this, arguments);
+                    if (tagName === 'script') {
+                        const originalSrc = element.src;
+                        Object.defineProperty(element, 'src', {
+                            get: function() { return originalSrc; },
+                            set: function(src) {
+                                if (filterPatterns.some(pattern => pattern.test(src))) {
+                                    console.warn(`Blocked script injection: ${src}`);
+                                    // Returning a dummy or empty source to prevent loading
+                                    this.setAttribute('src', 'data:text/javascript;base64,');
+                                } else {
+                                    this.setAttribute('src', src);
+                                }
+                            }
+                        });
+                    }
+                    return element;
+                };
+
+                const originalAppendChild = Element.prototype.appendChild;
+                Element.prototype.appendChild = function(child) {
+                    if (child.tagName === 'SCRIPT' && child.src && filterPatterns.some(pattern => pattern.test(child.src))) {
+                        console.warn(`Blocked script append: ${child.src}`);
+                        return this; // Prevent appending
+                    }
+                    return originalAppendChild.apply(this, arguments);
+                };
+            };
+
+            const blockNetworkRequests = () => {
+                // Attempt to intercept fetch and XMLHttpRequest to block requests
+                const originalFetch = window.fetch;
+                window.fetch = function(input, init) {
+                    const url = typeof input === 'string' ? input : input.url;
+                    if (filterPatterns.some(pattern => pattern.test(url))) {
+                        console.warn(`Blocked fetch request: ${url}`);
+                        return Promise.reject(new Error(`Blocked request to ${url}`));
+                    }
+                    return originalFetch.apply(this, arguments);
+                };
+
+                const originalXhrOpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+                    if (filterPatterns.some(pattern => pattern.test(url))) {
+                        console.warn(`Blocked XMLHttpRequest: ${url}`);
+                        // We can't directly prevent the open call here from blocking the request
+                        // but we can try to intercept the send or abort it.
+                        // A more robust solution would involve Service Workers or browser extensions.
+                        this._blocked_url = url; // Mark as blocked
+                    }
+                    return originalXhrOpen.apply(this, arguments);
+                };
+
+                const originalXhrSend = XMLHttpRequest.prototype.send;
+                XMLHttpRequest.prototype.send = function() {
+                    if (this._blocked_url) {
+                        console.warn(`Aborted XMLHttpRequest to blocked URL: ${this._blocked_url}`);
+                        this.abort(); // Abort if it was marked as blocked
+                        return;
+                    }
+                    return originalXhrSend.apply(this, arguments);
+                };
+            };
+
+            // Execute blocking functions
+            blockUnwantedScripts();
+            blockNetworkRequests();
+
+            // Additional measures (less reliable without deeper system access)
+            // Attempt to disable event listeners that might trigger filtering.
+            // This is highly speculative and dependent on how filtering is implemented.
+            const originalAddEventListener = EventTarget.prototype.addEventListener;
+            EventTarget.prototype.addEventListener = function(type, listener, options) {
+                // Try to detect and block listeners related to potentially harmful events or contexts.
+                // This is very broad and might block legitimate functionality.
+                if (type === 'load' || type === 'beforeunload' || type === 'unload') {
+                    // Further inspection of the listener function would be needed to be specific.
+                    // For now, a general log.
+                    // console.log(`Potential event listener added: ${type}`);
+                }
+                return originalAddEventListener.apply(this, arguments);
+            };
+
+            // Attempt to nullify global objects that might be used by filters.
+            // This is very aggressive and will likely break the embedded site.
+            // Use with extreme caution and understand it's a crude method.
+            const potentiallyDangerousGlobals = [
+                'GuardDog', 'GoGuardian', 'GGClient', 'GGAPI', 'GG_HOOK'
+            ];
+            potentiallyDangerousGlobals.forEach(globalName => {
+                if (window[globalName]) {
+                    console.warn(`Attempting to nullify global: ${globalName}`);
+                    window[globalName] = null;
+                }
+            });
+
+            console.log("Security script injected. Attempting to block filtering mechanisms.");
+
+        })();
+    </script>
 </body>
 </html>
