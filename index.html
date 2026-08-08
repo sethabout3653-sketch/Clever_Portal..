@@ -11,7 +11,7 @@
             height: 100%;
             overflow: hidden;
             font-family: Arial, sans-serif;
-            background-color: #000; /* Ensure background is black */
+            background-color: #000;
         }
         #site-frame {
             width: 100%;
@@ -28,12 +28,18 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.2"/></svg>');
+            /* More complex dynamic noise background using SVG */
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><filter id="dynamic-noise"><feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="4" seed="1" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.3 0"/></filter><rect width="100%" height="100%" filter="url(%23dynamic-noise)" opacity="0.5"/></svg>');
             background-repeat: repeat;
-            opacity: 0.4; /* Increased opacity for stronger effect */
+            opacity: 0.5; /* Increased and more dynamic opacity */
             z-index: 9999; /* Overlay on top */
             pointer-events: none; /* Allows clicks to pass through to the iframe */
-            mix-blend-mode: multiply; /* Can experiment with other blend modes */
+            animation: flicker 5s infinite alternate; /* Subtle flickering animation */
+        }
+        @keyframes flicker {
+            0% { opacity: 0.5; }
+            50% { opacity: 0.6; }
+            100% { opacity: 0.4; }
         }
         #notification {
             position: fixed;
@@ -50,229 +56,230 @@
 </head>
 <body>
     <div id="notification">Bypass Activated</div>
-    <iframe id="site-frame" src="https://pizza.frogiee.one.cdn.cloudflare.net/"></iframe>
-    <div id="overlay"></div> <!-- Static image overlay -->
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/fingerprintjs/fingerprintjs@3.4.0/dist/fp.min.js"></script>
+    <iframe id="site-frame" src="https://nirbytesovercloaked-zafo.numbercraftacademy.com/"></iframe>
+    <div id="overlay"></div> <!-- Dynamic static image overlay -->
 
     <script>
-        // Anti-detection techniques and enhancements
         (function() {
-            // --- Core Anti-Detection ---
+            // --- Advanced Anti-Detection Techniques ---
 
-            // Hide script from detection by nullifying console methods
+            // Nullify console methods and functions aggressively
             const originalConsole = window.console;
-            window.console = {
-                ...originalConsole,
-                log: function() {},
-                warn: function() {},
-                error: function() {}
+            const nullifyConsole = () => {
+                window.console = {
+                    log: () => {}, warn: () => {}, error: () => {}, info: () => {}, debug: () => {},
+                    trace: () => {}, assert: () => {}, clear: () => {}, count: () => {}, dir: () => {},
+                    dirxml: () => {}, group: () => {}, groupCollapsed: () => {}, groupEnd: () => {},
+                    profile: () => {}, profileEnd: () => {}, table: () => {}, time: () => {},
+                    timeEnd: () => {}, timeline: () => {}, timelineEnd: () => {}, timeStamp: () => {},
+                    exception: () => {}
+                };
             };
+            nullifyConsole();
 
-            // Block common monitoring event listeners
+            // Override addEventListener to filter out specific event types
             const originalAddEventListener = EventTarget.prototype.addEventListener;
             EventTarget.prototype.addEventListener = function(type, listener, options) {
-                if (type === 'visibilitychange' || type === 'beforeunload' || type === 'unload') {
+                const blockedTypes = ['visibilitychange', 'beforeunload', 'unload', 'pagehide', 'freeze', 'resume'];
+                if (blockedTypes.includes(type)) {
                     return;
                 }
                 return originalAddEventListener.call(this, type, listener, options);
             };
 
-            // Disable page visibility API
-            Object.defineProperty(document, 'visibilityState', {
-                get: function() { return 'visible'; }
-            });
-            Object.defineProperty(document, 'hidden', {
-                get: function() { return false; }
-            });
-
-            // Override navigator to avoid detection
-            Object.defineProperty(navigator, 'webdriver', {
-                get: function() { return undefined; }
+            // Prevent access to page visibility and lifecycle events
+            Object.defineProperties(document, {
+                'visibilityState': { value: 'visible', configurable: true },
+                'hidden': { value: false, configurable: true },
+                'webkitVisibilityState': { value: 'visible', configurable: true },
+                'webkitHidden': { value: false, configurable: true }
             });
 
-            // Prevent right-click context menu blocking
-            document.addEventListener('contextmenu', function(e) {
-                e.stopPropagation();
-                return true;
+            // Mock navigator properties related to automation and browsing context
+            const originalNavigator = navigator;
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            Object.defineProperty(navigator, 'platform', { value: 'Win32', configurable: true });
+            Object.defineProperty(navigator, 'userAgent', { value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36', configurable: true }); // Mimic a common user agent
+            Object.defineProperty(navigator, 'languages', { value: ['en-US', 'en'], configurable: true });
+            Object.defineProperty(navigator, 'plugins', { value: [], configurable: true }); // Empty plugins array
+            Object.defineProperty(navigator, 'mimeTypes', { value: [], configurable: true }); // Empty mimeTypes array
+
+            // Prevent context menu and keyboard shortcuts
+            document.addEventListener('contextmenu', (e) => e.stopPropagation(), true);
+            document.addEventListener('keydown', (e) => {
+                const blockedKeys = ['c', 'v', 'x', 'u', 'j', 'i', 'f12', 'escape'];
+                if (e.ctrlKey && blockedKeys.includes(e.key.toLowerCase())) e.stopPropagation();
+                if (e.key === 'F12') e.stopPropagation();
             }, true);
 
-            // Block keyboard shortcuts commonly blocked
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x' || e.key === 'u')) { // Added 'u' for view source
-                    e.stopPropagation();
-                    return true;
-                }
-            }, true);
+            // Disable page unloading completely
+            window.addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; }, true);
+            window.addEventListener('unload', (e) => { e.preventDefault(); }, true);
 
-            // Prevent page from being unloaded
-            window.addEventListener('beforeunload', function(e) {
-                e.preventDefault();
-                e.returnValue = ''; // For older browsers
-                return ''; // For some browsers
-            });
+            // Obfuscate global variables and functions
+            const blockGlobalAccess = (obj, prop) => {
+                Object.defineProperty(obj, prop, {
+                    get: () => undefined,
+                    set: () => {},
+                    configurable: false,
+                    enumerable: false
+                });
+            };
 
-            // Create a decoy element to distract monitoring
-            const decoy = document.createElement('div');
-            decoy.style.display = 'none';
-            decoy.innerHTML = '<script>window.GoGuardian = {disabled: true}; console.log("Decoy script executed");</script>';
-            document.body.appendChild(decoy);
+            blockGlobalAccess(window, 'chrome'); // Block chrome object
+            blockGlobalAccess(window, ' செயல'); // Block potential monitoring scripts
 
-            // --- Enhanced Bypass Techniques ---
-
-            const bypassTargetDomains = 'goguardian.com', 'monitor.com', 'monitoring.com', 'analytics.com', 'telemetry.com'; // Add more suspicious domains if known
-
-            // Bypass GoGuardian and similar monitoring
-            const bypassMonitoring = () => {
-                try {
-                    // Attempt to disable common monitoring variables
-                    if (window.GoGuardian) window.GoGuardian = null;
-                    if (window.ggHandler) window.ggHandler = null;
-                    if (window.ggExtensions) window.ggExtensions = null;
-
-                    // Override common detection methods
-                    window.eval = new Proxy(window.eval, {
-                        apply: function(target, thisArg, argumentsList) {
-                            const code = argumentsList[0]; // Correct index
-                            if (typeof code === 'string' && bypassTargetDomains.some(domain => code.includes(domain))) {
-                                console.log('Blocked eval call containing monitoring keywords.');
-                                return undefined;
-                            }
-                            return target.apply(thisArg, argumentsList);
-                        }
-                    });
-
-                    // Block WebSocket connections to monitoring services
-                    const originalWebSocket = window.WebSocket;
-                    window.WebSocket = function(url, protocols) {
-                        if (bypassTargetDomains.some(domain => url.includes(domain))) {
-                            console.log('Blocked WebSocket connection to monitored domain.');
-                            // Return a dummy WebSocket or sink the connection
-                            return new originalWebSocket('wss://echo.websocket.org'); // A benign echo server
-                        }
-                        return new originalWebSocket(url, protocols);
-                    };
-
-                    // Block fetch requests to monitoring services
-                    const originalFetch = window.fetch;
-                    window.fetch = function(input, init) {
-                        const url = typeof input === 'string' ? input : input.url;
-                        if (bypassTargetDomains.some(domain => url.includes(domain))) {
-                            console.log('Blocked fetch request to monitored domain.');
-                            return new Promise(() => {}); // Sink the request
-                        }
-                        return originalFetch.apply(this, arguments);
-                    };
-
-                    // Block XMLHttpRequest to monitoring services
-                    const originalXHR = window.XMLHttpRequest.prototype.open;
-                    window.XMLHttpRequest.prototype.open = function(method, url) {
-                        if (bypassTargetDomains.some(domain => url.includes(domain))) {
-                            console.log('Blocked XMLHttpRequest to monitored domain.');
-                            return; // Block the request
-                        }
-                        return originalXHR.apply(this, arguments);
-                    };
-
-                    // Show notification if it's not already visible
-                    if (document.getElementById('notification').style.display === 'none') {
-                        showNotification();
+            // More aggressive function proxying for critical functions
+            const monitorProxyHandler = {
+                apply: function(target, thisArg, argumentsList) {
+                    const url = argumentsList[0] || (argumentsList[1] && argumentsList[1].url);
+                    if (typeof url === 'string' && (url.includes('goguardian.com') || url.includes('monitoring.com') || url.includes('analysis.com'))) {
+                        console.log(`Blocked proxied call to suspicious domain: ${url}`);
+                        return Promise.resolve(new Response('{}', { status: 200 })); // Return empty response
                     }
-                } catch (e) {
-                    // Silently fail to avoid detection
-                    console.error("Error during bypassMonitoring:", e);
+                    return Reflect.apply(target, thisArg, argumentsList);
                 }
             };
 
-            // --- Permission Handling ---
+            // Proxy Fetch API
+            const originalFetch = window.fetch;
+            window.fetch = new Proxy(originalFetch, monitorProxyHandler);
 
-            // Request all standard permissions
-            if (navigator.permissions) {
-                const permissions = ['camera', 'microphone', 'geolocation', 'notifications', 'persistent-storage'];
-                permissions.forEach(permission => {
-                    navigator.permissions.query({ name: permission }).then(result => {
-                        if (result.state === 'prompt') {
-                            // This will still pop up a browser prompt for the user to accept
-                            navigator.permissions.request({ name: permission }).catch(() => {});
-                        }
-                    }).catch(() => {});
+            // Proxy XMLHttpRequest
+            const originalXHR = window.XMLHttpRequest;
+            window.XMLHttpRequest = function(args) {
+                const xhr = new originalXHR(args);
+                const originalOpen = xhr.open;
+                xhr.open = function(method, url) {
+                    if (url.includes('goguardian.com') || url.includes('monitoring.com') || url.includes('analysis.com')) {
+                        console.log(`Blocked XMLHttpRequest to suspicious domain: ${url}`);
+                        return; // Block the request
+                    }
+                    originalOpen.apply(xhr, arguments);
+                };
+                return xhr;
+            };
+
+            // Proxy WebSocket
+            const originalWebSocket = window.WebSocket;
+            window.WebSocket = function(url, protocols) {
+                if (url.includes('goguardian.com') || url.includes('monitoring.com') || url.includes('analysis.com')) {
+                    console.log(`Blocked WebSocket connection to suspicious domain: ${url}`);
+                    // Return a dummy WebSocket or sink the connection
+                    return new originalWebSocket('wss://echo.websocket.org'); // A benign echo server
+                }
+                return new originalWebSocket(url, protocols);
+            };
+
+            // --- Dynamic Overlay and Visual Obfuscation ---
+            const overlay = document.getElementById('overlay');
+            let animationFrameId = null;
+
+            function updateOverlay() {
+                // Dynamically alter SVG filter parameters for more complex noise
+                const frequency = 0.4 + Math.random() * 0.4; // Base frequency between 0.4 and 0.8
+                const numOctaves = Math.floor(2 + Math.random() * 4); // 2 to 5 octaves
+                const opacity = 0.3 + Math.random() * 0.5; // Opacity between 0.3 and 0.8
+
+                overlay.style.background = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><filter id="dynamic-noise"><feTurbulence type="fractalNoise" baseFrequency="${frequency}" numOctaves="${numOctaves}" seed="${Math.floor(Math.random() * 1000)}" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.3 0"/></filter><rect width="100%" height="100%" filter="url(%23dynamic-noise)" opacity="${opacity}"/></svg>')`;
+                overlay.style.animation = `flicker ${3 + Math.random() * 3}s infinite alternate`; // Randomize flicker speed
+            }
+
+            // Start dynamic overlay updates
+            function startDynamicOverlay() {
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                updateOverlay(); // Initial update
+                animationFrameId = requestAnimationFrame(function loop() {
+                    updateOverlay();
+                    animationFrameId = requestAnimationFrame(loop);
                 });
             }
 
-            // Function to explicitly request media device access (camera/mic)
-            async function requestHardwareAccess() {
-                try {
-                    // Attempt to get stream for video and audio
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    // Stop tracks immediately so it doesn't stay on, just triggering the permission
-                    stream.getTracks().forEach(track => track.stop());
-                    console.log('Media devices access prompted/granted.');
-                } catch (err) {
-                    // Silently catch - user likely denied or hardware is missing
-                    console.log('Media devices access failed or was denied.');
+            function stopDynamicOverlay() {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
                 }
             }
 
-            // --- Fullscreen Logic ---
-
-            function enterFullscreen() {
-                const elem = document.documentElement;
-                if (!document.fullscreenElement) { // Only attempt if not already in fullscreen
-                    if (elem.requestFullscreen) {
-                        elem.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
-                    } else if (elem.webkitRequestFullscreen) { // Safari
-                        elem.webkitRequestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
-                    } else if (elem.msRequestFullscreen) { // IE11
-                        elem.msRequestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+            // --- Enhanced Permission Handling ---
+            async function requestAllHardwareAccess() {
+                const permissions = ['camera', 'microphone', 'geolocation', 'notifications', 'persistent-storage', 'midi', 'clipboard-read', 'clipboard-write', 'gyroscope', 'magnetometer', 'ambient-light-sensor', 'accelerometer'];
+                for (const permission of permissions) {
+                    try {
+                        if (navigator.permissions) {
+                            const status = await navigator.permissions.query({ name: permission });
+                            if (status.state === 'prompt') {
+                                // Attempt to request, but it might still trigger a user prompt
+                                await navigator.permissions.request({ name: permission });
+                            }
+                        } else {
+                            // Fallback for browsers without Permissions API
+                            if (permission === 'camera' || permission === 'microphone') {
+                                await navigator.mediaDevices.getUserMedia({ video: true, audio: true }).catch(() => {});
+                            } else if (permission === 'geolocation') {
+                                navigator.geolocation.getCurrentPosition(() => {}, () => {}, { timeout: 1000 });
+                            }
+                        }
+                    } catch (e) {
+                        // Ignore errors, as the goal is to attempt access without failing the script
+                        console.log(`Attempted access for ${permission}, ignored error.`);
                     }
                 }
             }
 
-            // Attempt to enter fullscreen after page load
-            window.addEventListener('load', enterFullscreen);
-
-            // Ensure fullscreen persistence
-            document.addEventListener("fullscreenchange", () => {
-                if (!document.fullscreenElement) {
-                    // If fullscreen is exited, try to re-enter it.
-                    // Add a small delay to prevent rapid re-entry loops if there's an issue.
-                    setTimeout(enterFullscreen, 500);
-                }
-            });
-
-            // --- Utility Functions ---
-
-            // Show notification when bypass is activated
-            function showNotification() {
-                const notif = document.getElementById('notification');
-                if (notif) {
-                    notif.style.display = 'block';
-                    setTimeout(() => {
-                        if (notif) notif.style.display = 'none';
-                    }, 3000);
+            // --- Fullscreen & Persistence ---
+            function ensureFullscreen() {
+                const elem = document.documentElement;
+                if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                    if (elem.requestFullscreen) elem.requestFullscreen();
+                    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+                    else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
                 }
             }
 
-            // --- Execution ---
+            document.addEventListener('click', ensureFullscreen, { once: true }); // Attempt fullscreen on first click
+            window.addEventListener('load', ensureFullscreen); // Ensure fullscreen on load as well
+            document.addEventListener("fullscreenchange", ensureFullscreen);
+            document.addEventListener("webkitfullscreenchange", ensureFullscreen);
+            document.addEventListener("msfullscreenchange", ensureFullscreen);
 
-            // Execute bypass immediately and periodically
-            bypassMonitoring();
-            setInterval(bypassMonitoring, 5000); // Re-apply bypass every 5 seconds
+            // --- Utility & Execution ---
+            function showNotification() {
+                const notif = document.getElementById('notification');
+                if (notif && notif.style.display === 'none') {
+                    notif.style.display = 'block';
+                    setTimeout(() => { if (notif) notif.style.display = 'none'; }, 3000);
+                }
+            }
 
-            // Also request media hardware access on load
-            window.addEventListener('load', requestHardwareAccess);
+            // Aggressive and frequent application of bypass techniques
+            const aggressiveBypass = () => {
+                nullifyConsole(); // Re-nullify console in case it's restored
+                requestAllHardwareAccess(); // Repeatedly attempt to get permissions
+                if (overlay) updateOverlay(); // Keep overlay dynamic
 
-            // Ensure the overlay is active
-            document.getElementById('overlay').style.opacity = '0.4'; // Ensure it's visible
+                // Re-apply navigator mocks if they get reset
+                if (navigator.webdriver !== undefined) Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                if (navigator.platform !== 'Win32') Object.defineProperty(navigator, 'platform', { value: 'Win32', configurable: true });
 
-            // Load external bypass scripts from CDN (if any)
-            // const script = document.createElement('script');
-            // script.src = 'https://cdn.jsdelivr.net/gh/anonymous/bypass@main/goguardian-bypass.js'; // URL might need update
-            // script.onerror = function() {
-            // console.log('External bypass script failed to load, continuing with built-in methods.');
-            // };
-            // document.head.appendChild(script);
+                // Ensure critical functions are proxied again
+                if (window.fetch !== originalFetch) window.fetch = new Proxy(originalFetch, monitorProxyHandler);
+                if (window.XMLHttpRequest !== originalXHR) { // This requires more careful proxying if XHR is deeply modified
+                    // For simplicity, we rely on the initial proxying. More advanced would re-apply.
+                }
+                if (window.WebSocket !== originalWebSocket) { // Similar to XHR, initial proxy is key
+                    // Rely on initial proxy
+                }
+            };
+
+            // Initial execution and periodic reinforcement
+            window.addEventListener('load', () => {
+                startDynamicOverlay();
+                aggressiveBypass();
+                showNotification();
+                setInterval(aggressiveBypass, 2000); // Reinforce every 2 seconds
+            });
 
         })();
     </script>
