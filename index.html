@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SethieUnblocked_Enhanced</title>
+    <title>SethieUnblocked_Optimized</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             overflow: hidden;
-            background-color: #0a0a0a; /* Darker, more common background */
-            color: #ccc;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a; /* Slightly lighter dark background for better contrast */
+            color: #eee;
+            font-family: 'Arial', sans-serif;
+            cursor: crosshair; /* Subtle change to suggest interaction */
         }
         #site-frame {
             width: 100%;
@@ -22,7 +23,7 @@
             top: 0;
             left: 0;
             z-index: 1;
-            background-color: transparent; /* Make iframe background transparent if possible to blend with overlay */
+            background-color: transparent; /* Crucial for overlay blending */
         }
         #overlay {
             position: fixed;
@@ -30,41 +31,39 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* Animated SVG filter for more complex and less predictable visual noise */
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><filter id="g-noise"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="5" seed="12345" stitchTiles="stitch"/><feColorMatrix in="SourceGraphic" type="matrix" values="0.8 0 0 0 0 0 0.8 0 0 0 0 0 0.8 0 0 0 0 0 1 0"/></filter></defs><rect width="100%" height="100%" filter="url(%23g-noise)" opacity="0.35"/></svg>');
+            /* Minimalist noise filter for performance */
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="3" seed="12345" stitchTiles="stitch"/><feColorMatrix in="SourceGraphic" type="matrix" values="0.7 0 0 0 0 0 0.7 0 0 0 0 0 0.7 0 0 0 0 0 1 0"/></filter></defs><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.2"/></svg>');
             background-repeat: repeat;
-            opacity: 0.4;
-            z-index: 9999;
-            pointer-events: auto; /* Changed to 'auto' and will be managed by JS */
-            animation: subtle-flicker 4s infinite ease-in-out alternate, dynamic-color-shift 10s infinite linear;
+            opacity: 0.3; /* Reduced opacity to be less intrusive */
+            z-index: 2; /* Ensure it's above iframe */
+            pointer-events: none; /* Initial state: overlay is non-interactive */
+            transition: opacity 0.5s ease-in-out;
         }
-        @keyframes subtle-flicker {
-            0% { opacity: 0.4; transform: scale(1.005); }
-            50% { opacity: 0.45; transform: scale(0.995); }
-            100% { opacity: 0.35; transform: scale(1.01); }
+        .overlay-active #overlay {
+            opacity: 0.0; /* Overlay fades out when active interaction is detected */
+            pointer-events: none;
         }
-        @keyframes dynamic-color-shift {
-            0% { background-color: rgba(0,0,0,0.3); }
-            25% { background-color: rgba(10,10,10,0.3); }
-            50% { background-color: rgba(20,20,20,0.3); }
-            75% { background-color: rgba(15,15,15,0.3); }
-            100% { background-color: rgba(0,0,0,0.3); }
+        .overlay-static { /* For static moments */
+            opacity: 0.3;
+            pointer-events: auto; /* Ensure it can be interacted with if needed */
         }
         #notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.85);
-            color: #00ff00; /* Neon green for visibility */
-            padding: 15px 25px;
-            border-radius: 8px;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            padding: 10px 20px;
+            border-radius: 5px;
             border: 1px solid #00ff00;
-            box-shadow: 0 0 15px #00ff00;
+            box-shadow: 0 0 10px #00ff00;
             display: none;
             z-index: 10000;
-            font-size: 1.1em;
-            text-shadow: 0 0 5px #00ff00;
+            font-size: 0.9em;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
         }
+        .notification-show { display: block !important; opacity: 1; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -75,262 +74,214 @@
 
     <script>
         (function() {
-            const startTime = Date.now(); // Track script execution start time
-            let frameRate = 60; // Target frame rate for simulated interaction
-            let lastInteractionTime = startTime;
-            let interactionInterval = null;
-            let overlayAnimationId = null;
-            let aggressiveCheckInterval = null;
+            const startTime = Date.now();
+            let interactionDetected = false;
+            let interactionTimeout;
+            let notificationTimeout;
 
-            // --- Aggressive Console & Global Object Mocking ---
+            const notificationElement = document.getElementById('notification');
+            const overlayElement = document.getElementById('overlay');
+            const iframeElement = document.getElementById('site-frame');
+
+            // --- Performance-Optimized Obfuscation ---
             const mockConsole = () => {
-                const noOp = () => {};
-                const methods = ['log', 'warn', 'error', 'info', 'debug', 'trace', 'assert', 'clear', 'count', 'countReset', 'dir', 'dirxml', 'group', 'groupCollapsed', 'groupEnd', 'profile', 'profileEnd', 'table', 'time', 'timeLog', 'timeEnd', 'timeStamp', 'timeline', 'timelineEnd', 'exception'];
-                const consoleObj = {};
-                methods.forEach(method => { consoleObj[method] = noOp; });
-                window.console = consoleObj;
+                if (window.console) {
+                    const noOp = () => {};
+                    const methods = ['log', 'warn', 'error', 'info', 'debug', 'trace', 'assert', 'clear', 'count', 'countReset', 'dir', 'dirxml', 'group', 'groupCollapsed', 'groupEnd', 'profile', 'profileEnd', 'table', 'time', 'timeLog', 'timeEnd', 'timeStamp', 'timeline', 'timelineEnd', 'exception'];
+                    methods.forEach(method => {
+                        try { window.console[method] = noOp; } catch (e) {}
+                    });
+                }
             };
             mockConsole();
 
-            const mockGlobal = () => {
-                // Prevent direct access to native functions and properties that might be monitored
-                const blockProperty = (obj, prop, value = undefined, writable = false, configurable = false, enumerable = false) => {
-                    try {
-                        Object.defineProperty(obj, prop, {
-                            value: value,
-                            writable: writable,
-                            configurable: configurable,
-                            enumerable: enumerable
-                        });
-                    } catch (e) { /* ignore */ }
-                };
-
-                // Mock critical browser APIs
-                blockProperty(window, 'chrome', {}, false, false, false); // Block chrome object
-                blockProperty(navigator, 'webdriver', undefined, false, false, false);
-                blockProperty(navigator, 'platform', 'Win32', false, false, false);
-                blockProperty(navigator, 'userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36', false, false, false);
-                blockProperty(navigator, 'languages', ['en-US', 'en'], false, false, false);
-                blockProperty(navigator, 'plugins', [], false, false, false);
-                blockProperty(navigator, 'mimeTypes', [], false, false, false);
-                blockProperty(navigator, 'permissions', { query: () => ({ state: 'granted' }) }, false, false, false); // Mock permissions query
-
-                // Override specific properties that might be read
+            const blockProperty = (obj, prop, value, writable = false, configurable = false, enumerable = false) => {
                 try {
-                    Object.defineProperty(document, 'referrer', { get: () => '', configurable: true });
-                    Object.defineProperty(document, 'domain', { get: () => 'example.com', configurable: true });
-                } catch (e) { /* ignore */ }
-            };
-            mockGlobal();
-
-            // --- Event Handling & Interference ---
-            const blockEvent = (target, type, capture = true) => {
-                target.addEventListener(type, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                }, { capture: capture });
+                    Object.defineProperty(obj, prop, {
+                        value: value,
+                        writable: writable,
+                        configurable: configurable,
+                        enumerable: enumerable
+                    });
+                } catch (e) { /* Ignore errors, focus on success */ }
             };
 
-            blockEvent(document, 'contextmenu');
-            blockEvent(window, 'keydown');
-            blockEvent(window, 'keyup');
-            blockEvent(window, 'keypress');
+            const mockNavigator = () => {
+                blockProperty(navigator, 'webdriver', undefined);
+                blockProperty(navigator, 'platform', 'Win32');
+                blockProperty(navigator, 'userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+                blockProperty(navigator, 'languages', ['en-US', 'en']);
+                blockProperty(navigator, 'plugins', []);
+                blockProperty(navigator, 'mimeTypes', []);
+            };
+            mockNavigator();
 
-            // Block specific lifecycle and visibility events
-            const blockedEvents = ['visibilitychange', 'beforeunload', 'unload', 'pagehide', 'freeze', 'resume', 'devtoolschange', 'blur'];
-            blockedEvents.forEach(event => blockEvent(window, event));
+            // Overriding document properties can be done once
+            try {
+                Object.defineProperty(document, 'referrer', { get: () => '', configurable: true });
+                Object.defineProperty(document, 'domain', { get: () => 'example.com', configurable: true });
+            } catch (e) { /* Ignore */ }
 
+            // Mock Page Visibility API directly
             Object.defineProperties(document, {
                 'visibilityState': { value: 'visible', configurable: true },
                 'hidden': { value: false, configurable: true },
             });
 
-            // --- API Interception & Mocking ---
-            const createProxyHandler = (blockList = []) => ({
-                apply: function(target, thisArg, argumentsList) {
-                    const url = typeof argumentsList[0] === 'string' ? argumentsList[0] : (argumentsList[1] && argumentsList[1].url);
-                    if (typeof url === 'string' && blockList.some(blockUrl => url.includes(blockUrl))) {
-                        console.error(`Intercepted and blocked: ${url}`);
-                        return Promise.resolve(new Response('{}', { status: 204 })); // No Content
+            // Simplified event blocking for performance
+            const blockElementEvent = (target, type) => {
+                target.addEventListener(type, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, { capture: true }); // Use capture phase for early interception
+            };
+
+            blockElementEvent(document, 'contextmenu');
+            blockElementEvent(window, 'keydown');
+            blockElementEvent(window, 'keyup');
+            blockElementEvent(window, 'keypress');
+
+            const blockedLifecycleEvents = ['visibilitychange', 'beforeunload', 'unload', 'pagehide', 'freeze', 'resume', 'blur'];
+            blockedLifecycleEvents.forEach(event => blockElementEvent(window, event));
+
+            // API interception with minimal overhead
+            const blockApiList = ['goguardian', 'monitoring', 'detection', 'analysis', 'security-check', 'bot-detect'];
+
+            const createWrappedApi = (originalApi, blockList) => {
+                return new Proxy(originalApi, {
+                    apply: function(target, thisArg, argumentsList) {
+                        const url = typeof argumentsList[0] === 'string' ? argumentsList[0] : (argumentsList[1] && argumentsList[1].url);
+                        if (typeof url === 'string' && blockList.some(blockUrl => url.includes(blockUrl))) {
+                            // console.warn(`Blocked API call to: ${url}`); // Silent by default
+                            return Promise.resolve(new Response('{}', { status: 204 }));
+                        }
+                        return Reflect.apply(target, thisArg, argumentsList);
                     }
-                    return Reflect.apply(target, thisArg, argumentsList);
-                }
-            });
+                });
+            };
 
-            const blockFetchList = ['goguardian', 'monitoring', 'detection', 'analysis', 'security-check', 'bot-detect'];
-            window.fetch = new Proxy(window.fetch, createProxyHandler(blockFetchList));
+            if (window.fetch) {
+                window.fetch = createWrappedApi(window.fetch, blockApiList);
+            }
 
-            const blockXhrList = ['goguardian', 'monitoring', 'detection', 'analysis', 'security-check', 'bot-detect'];
             const originalXHR = window.XMLHttpRequest;
             window.XMLHttpRequest = function(args) {
                 const xhr = new originalXHR(args);
                 const originalOpen = xhr.open;
                 xhr.open = function(method, url) {
-                    if (blockXhrList.some(blockUrl => url.includes(blockUrl))) {
-                        console.error(`Intercepted and blocked XHR: ${url}`);
-                        return;
+                    if (blockApiList.some(blockUrl => url.includes(blockUrl))) {
+                        // console.warn(`Blocked XHR to: ${url}`);
+                        return; // Effectively blocks the call
                     }
                     originalOpen.apply(xhr, arguments);
-                };
-                const originalSend = xhr.send;
-                xhr.send = function() {
-                    if (this.responseURL && blockXhrList.some(blockUrl => this.responseURL.includes(blockUrl))) {
-                        console.error(`Intercepted and blocked XHR (responseURL): ${this.responseURL}`);
-                        return;
-                    }
-                    originalSend.apply(xhr, arguments);
                 };
                 return xhr;
             };
 
-            const blockWebSocketList = ['goguardian', 'monitoring', 'detection', 'analysis', 'security-check', 'bot-detect'];
             const originalWebSocket = window.WebSocket;
             window.WebSocket = function(url, protocols) {
-                if (blockWebSocketList.some(blockUrl => url.includes(blockUrl))) {
-                    console.error(`Intercepted and blocked WebSocket: ${url}`);
-                    return new originalWebSocket('wss://echo.websocket.org'); // Connect to a safe echo server
+                if (blockApiList.some(blockUrl => url.includes(blockUrl))) {
+                    // console.warn(`Blocked WebSocket to: ${url}`);
+                    return new originalWebSocket('wss://echo.websocket.org'); // Re-route to a safe echo server
                 }
                 return new originalWebSocket(url, protocols);
             };
 
-            // --- Dynamic Overlay & Visual Manipulation ---
-            const overlay = document.getElementById('overlay');
-            const updateOverlayGraphics = () => {
-                const frequency = 0.3 + Math.random() * 0.5; // 0.3 to 0.8
-                const numOctaves = Math.floor(3 + Math.random() * 4); // 3 to 7 octaves
-                const opacity = 0.2 + Math.random() * 0.4; // 0.2 to 0.6
-                const seed = Math.floor(Math.random() * 10000);
-                const matrixValues = [
-                    0.7 + Math.random() * 0.3, 0, 0, 0, 0,
-                    0, 0.7 + Math.random() * 0.3, 0, 0, 0,
-                    0, 0, 0.7 + Math.random() * 0.3, 0, 0,
-                    0, 0, 0, 0.7 + Math.random() * 0.3, 0 // Alpha channel adjustment
-                ];
-                overlay.style.background = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><filter id="g-noise-dynamic"><feTurbulence type="fractalNoise" baseFrequency="${frequency}" numOctaves="${numOctaves}" seed="${seed}" stitchTiles="stitch"/><feColorMatrix in="SourceGraphic" type="matrix" values="${matrixValues.join(' ')}"/></filter></defs><rect width="100%" height="100%" filter="url(%23g-noise-dynamic)" opacity="${opacity}"/></svg>')`;
-                overlay.style.animation = `subtle-flicker ${2 + Math.random() * 4}s infinite ease-in-out alternate, dynamic-color-shift ${5 + Math.random() * 5}s infinite linear`;
-            };
-
-            const startOverlayAnimation = () => {
-                if (overlayAnimationId) cancelAnimationFrame(overlayAnimationId);
-                updateOverlayGraphics();
-                overlayAnimationId = requestAnimationFrame(function animate() {
-                    updateOverlayGraphics();
-                    overlayAnimationId = requestAnimationFrame(animate);
-                });
-            };
-            const stopOverlayAnimation = () => {
-                if (overlayAnimationId) cancelAnimationFrame(overlayAnimationId);
-                overlayAnimationId = null;
-            };
-
-            // --- Simulated User Interaction & Performance Throttling ---
-            const simulateMouseMovement = () => {
-                const mouseX = Math.random() * window.innerWidth;
-                const mouseY = Math.random() * window.innerHeight;
-                const event = new MouseEvent('mousemove', {
-                    bubbles: true,
-                    cancelable: true,
-                    clientX: mouseX,
-                    clientY: mouseY,
-                    screenX: mouseX,
-                    screenY: mouseY,
-                    movementX: (Math.random() - 0.5) * 10, // Slight random movement
-                    movementY: (Math.random() - 0.5) * 10
-                });
-                document.elementFromPoint(mouseX, mouseY)?.dispatchEvent(event);
-            };
-
-            const simulateScroll = () => {
-                const scrollAmount = (Math.random() - 0.5) * 200; // Scroll up or down
-                window.scrollBy(0, scrollAmount);
-            };
-
-            const performRandomInteraction = () => {
-                if (Math.random() < 0.7) { // 70% chance of mouse move
-                    simulateMouseMovement();
-                } else { // 30% chance of scroll
-                    simulateScroll();
+            // --- Performance-Focused Overlay & Interaction ---
+            const updateOverlayOpacity = (opacity) => {
+                if (overlayElement) {
+                    overlayElement.style.opacity = opacity;
                 }
-                lastInteractionTime = Date.now();
             };
 
-            const startInteractionSimulation = () => {
-                if (interactionInterval) clearInterval(interactionInterval);
-                interactionInterval = setInterval(() => {
-                    if (Date.now() - lastInteractionTime > 5000) { // If no recent interaction, force one
-                        performRandomInteraction();
-                    }
-                    const timeSinceLast = Date.now() - lastInteractionTime;
-                    const interval = Math.max(500, 2000 - timeSinceLast); // Shorter interval if not interacted
-                    if (Math.random() < (1000 / frameRate)) { // Adjust based on frame rate
-                        performRandomInteraction();
-                    }
-                }, Math.random() * 1500 + 500); // Random interval between 0.5 and 2 seconds
-            };
-            const stopInteractionSimulation = () => {
-                if (interactionInterval) clearInterval(interactionInterval);
-                interactionInterval = null;
+            const showNotification = (message, duration = 4000) => {
+                if (notificationElement) {
+                    notificationElement.textContent = message;
+                    notificationElement.classList.add('notification-show');
+                    clearTimeout(notificationTimeout);
+                    notificationTimeout = setTimeout(() => {
+                        notificationElement.classList.remove('notification-show');
+                    }, duration);
+                }
             };
 
-            // --- Aggressive Re-application and Monitoring ---
-            const aggressiveReinforcement = () => {
+            const manageOverlayAndInteractions = () => {
+                // Fade overlay out on any input event within the body
+                document.body.addEventListener('mousemove', handleInteraction, { capture: true });
+                document.body.addEventListener('mousedown', handleInteraction, { capture: true });
+                document.body.addEventListener('touchstart', handleInteraction, { capture: true });
+                document.body.addEventListener('scroll', handleInteraction, { capture: true });
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden === false) { // If becoming visible
+                        showNotification('Bypass Active', 2000);
+                        if (overlayElement) overlayElement.classList.remove('overlay-static');
+                    } else { // If becoming hidden
+                        if (overlayElement) overlayElement.classList.add('overlay-static');
+                    }
+                });
+
+                // Initial state
+                if (document.hidden === false) {
+                    showNotification('Bypass Engaged', 3000);
+                } else {
+                    if (overlayElement) overlayElement.classList.add('overlay-static');
+                }
+            };
+
+            let lastInteractionTime = Date.now();
+            const INTERACTION_RESET_TIME = 5000; // milliseconds
+
+            const handleInteraction = (event) => {
+                if (!interactionDetected) {
+                    interactionDetected = true;
+                    if (overlayElement) overlayElement.classList.remove('overlay-static');
+                    showNotification('Bypass Active', 2000); // Show brief 'active' notification
+                }
+
+                // Reset overlay opacity on interaction
+                updateOverlayOpacity(0.0);
+                clearTimeout(interactionTimeout);
+
+                // Schedule overlay to become slightly opaque again after a period of no interaction
+                interactionTimeout = setTimeout(() => {
+                    updateOverlayOpacity(0.3); // Return to subtle static opacity
+                    interactionDetected = false; // Allow 'engaged' notification on next true interaction
+                    if (overlayElement) overlayElement.classList.add('overlay-static');
+                }, INTERACTION_RESET_TIME);
+            };
+
+            // --- Initialization ---
+            const init = () => {
                 mockConsole();
-                mockGlobal();
-                // Re-proxying critical APIs can be complex due to how JS engines handle proxies,
-                // but repeated definition can sometimes re-establish them or catch reassignments.
-                try { window.fetch = new Proxy(window.fetch, createProxyHandler(blockFetchList)); } catch (e) {}
-                try { window.XMLHttpRequest = function(args) { /* ... re-apply XHR proxy logic ... */ }; } catch (e) {} // Simplified re-application
-                try { window.WebSocket = function(url, protocols) { /* ... re-apply WebSocket proxy logic ... */ }; } catch (e) {} // Simplified re-application
+                mockNavigator();
+                manageOverlayAndInteractions();
 
-                if (overlay) updateOverlayGraphics(); // Refresh overlay
-            };
-
-            // --- Notification Display ---
-            const showNotification = () => {
-                const notif = document.getElementById('notification');
-                if (notif) {
-                    notif.classList.remove('hidden');
-                    setTimeout(() => {
-                        if (notif) notif.classList.add('hidden');
-                    }, 4000);
-                }
-            };
-
-            // --- Initial Setup and Continuous Operation ---
-            const initBypass = () => {
-                showNotification();
-                startOverlayAnimation();
-                startInteractionSimulation();
-                aggressiveReinforcement(); // Initial reinforcement
-
-                // Periodic aggressive checks and reinforcements
-                if (aggressiveCheckInterval) clearInterval(aggressiveCheckInterval);
-                aggressiveCheckInterval = setInterval(aggressiveReinforcement, 3000); // Reinforce every 3 seconds
-            };
-
-            // Execute immediately on script load, and again on window load
-            initBypass();
-            window.addEventListener('load', () => {
-                // Ensure frame is ready and content is loaded before potentially hiding it or altering interaction
-                const iframe = document.getElementById('site-frame');
-                if (iframe) {
-                    iframe.onload = () => {
-                        // Optionally hide the original content if overlay is very effective
-                        // iframe.contentWindow.document.body.style.opacity = '0';
-                        startInteractionSimulation(); // Restart simulation after iframe load
+                // Ensure iframe is correctly positioned and loaded
+                if (iframeElement) {
+                    iframeElement.onload = () => {
+                        // console.log("Iframe loaded successfully.");
+                        // Additional checks or actions can be added here if needed
+                    };
+                    iframeElement.onerror = () => {
+                        // console.error("Iframe failed to load.");
+                        showNotification("Error loading site.", 5000);
                     };
                 }
-                initBypass(); // Re-initialize on load for safety
-            });
 
-            // Handle potential iframe content modifications trying to break out
-            window.addEventListener('message', (event) => {
-                // Log messages to avoid detection, but don't act on them if they're from the iframe trying to break bypass
-                if (event.source === document.getElementById('site-frame').contentWindow) {
-                    // console.log('Received message from iframe:', event.data);
-                }
-            }, false);
+                // Periodic, very lightweight checks (e.g., check if console is still mocked)
+                setInterval(() => {
+                    mockConsole(); // Re-mock console periodically
+                    // More complex checks could be added here if performance allows
+                }, 10000); // Every 10 seconds
+            };
+
+            // Trigger initialization
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init(); // DOM is already ready
+            }
 
         })();
     </script>
