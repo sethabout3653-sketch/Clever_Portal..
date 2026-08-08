@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn Math & Games and History</title>
+    <title>SethieUnblocked_Fortified</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             overflow: hidden;
-            background-color: #1a1a1a; /* Slightly lighter dark background for better contrast */
-            color: #eee;
-            font-family: 'Arial', sans-serif;
-            cursor: crosshair; /* Subtle change to suggest interaction */
+            background-color: #0d0d0d; /* Deeper black */
+            color: #00ff00; /* Neon green for contrast */
+            font-family: 'Consolas', 'Monaco', monospace; /* Monospace font */
+            cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABYSURBVDhPZZAxDoIwFET/kI0iI6eOgpM71i2I5Bw6uI3s4Osg31AEo5o7pW4K2l2HAEh7+8C4uJ01a4UAY/g/dI3+XwD3wJ3Bf3p/M7zC7xW+XzJ+1K2vW/Qo7f81h72h207m4f/b+h7f8PPAj4vV/b8vjV+h9t9XoGv8t+eT/T/P/v74q+f726BfBf0N9r60X97Bv6/U9W8C7g8D/9gA69t3P/mX/Q+9oX8z3/2wP3f43hS3rZ9345O/4o8/wHl1oMvN+mSNAAAAAElFTkSuQmCC') 16 16, auto; /* Custom cursor */
         }
         #site-frame {
             width: 100%;
@@ -23,7 +23,7 @@
             top: 0;
             left: 0;
             z-index: 1;
-            background-color: transparent; /* Crucial for overlay blending */
+            background-color: transparent;
         }
         #overlay {
             position: fixed;
@@ -31,137 +31,175 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* Minimalist noise filter for performance */
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="3" seed="12345" stitchTiles="stitch"/><feColorMatrix in="SourceGraphic" type="matrix" values="0.7 0 0 0 0 0 0.7 0 0 0 0 0 0.7 0 0 0 0 0 1 0"/></filter></defs><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.2"/></svg>');
-            background-repeat: repeat;
-            opacity: 0.3; /* Reduced opacity to be less intrusive */
-            z-index: 2; /* Ensure it's above iframe */
-            pointer-events: none; /* Initial state: overlay is non-interactive */
-            transition: opacity 0.5s ease-in-out;
+            /* More complex, performance-conscious noise/scanline effect */
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.8) 0px,
+                rgba(0, 0, 0, 0.9) 1px,
+                rgba(0, 0, 0, 0.8) 2px
+            ),
+            repeating-linear-gradient(
+                90deg,
+                rgba(0, 255, 0, 0.05) 0px,
+                rgba(0, 255, 0, 0.02) 0.5px,
+                rgba(0, 255, 0, 0.05) 1px
+            );
+            opacity: 0.7; /* Higher opacity */
+            z-index: 2;
+            pointer-events: auto; /* Overlay is always interactable to prevent direct iframe clicks */
+            transition: opacity 0.2s ease-in-out;
         }
-        .overlay-active #overlay {
-            opacity: 0.0; /* Overlay fades out when active interaction is detected */
+        .overlay-hidden {
+            opacity: 0.0;
             pointer-events: none;
-        }
-        .overlay-static { /* For static moments */
-            opacity: 0.3;
-            pointer-events: auto; /* Ensure it can be interacted with if needed */
         }
         #notification {
             position: fixed;
-            top: 15px;
-            right: 15px;
-            background: rgba(0, 0, 0, 0.9);
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.95);
             color: #00ff00;
-            padding: 10px 20px;
-            border-radius: 5px;
-            border: 1px solid #00ff00;
-            box-shadow: 0 0 10px #00ff00;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 15px #00ff00, 0 0 5px rgba(0, 255, 0, 0.5);
             display: none;
             z-index: 10000;
-            font-size: 0.9em;
+            font-size: 1em;
+            font-family: 'Consolas', monospace;
+            letter-spacing: 0.5px;
             opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+            transition: opacity 0.8s ease-out;
         }
         .notification-show { display: block !important; opacity: 1; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div id="notification">Bypass Engaged</div>
-    <iframe id="site-frame" src="https://financial.bakeryos.net/"></iframe>
+    <iframe id="site-frame" src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"></iframe>
     <div id="overlay"></div>
 
     <script>
         (function() {
             const startTime = Date.now();
-            let interactionDetected = false;
-            let interactionTimeout;
             let notificationTimeout;
 
             const notificationElement = document.getElementById('notification');
             const overlayElement = document.getElementById('overlay');
             const iframeElement = document.getElementById('site-frame');
 
-            // --- Performance-Optimized Obfuscation ---
-            const mockConsole = () => {
+            // --- Aggressive Obfuscation & Anti-Detection ---
+
+            // Deep Mocking of Console & Related Objects
+            const deepMockConsole = () => {
+                const noOp = () => {};
+                const methods = ['log', 'warn', 'error', 'info', 'debug', 'trace', 'assert', 'clear', 'count', 'countReset', 'dir', 'dirxml', 'group', 'groupCollapsed', 'groupEnd', 'profile', 'profileEnd', 'table', 'time', 'timeLog', 'timeEnd', 'timeStamp', 'timeline', 'timelineEnd', 'exception'];
                 if (window.console) {
-                    const noOp = () => {};
-                    const methods = ['log', 'warn', 'error', 'info', 'debug', 'trace', 'assert', 'clear', 'count', 'countReset', 'dir', 'dirxml', 'group', 'groupCollapsed', 'groupEnd', 'profile', 'profileEnd', 'table', 'time', 'timeLog', 'timeEnd', 'timeStamp', 'timeline', 'timelineEnd', 'exception'];
                     methods.forEach(method => {
-                        try { window.console[method] = noOp; } catch (e) {}
+                        try {
+                            Object.defineProperty(window.console, method, { value: noOp, configurable: true, writable: true });
+                        } catch (e) { /* Ignore errors, continue mocking */ }
                     });
                 }
+                // Mock console methods on window object as well, in case they are accessed directly
+                if (window.console && typeof window.console !== 'object') { // Check if console is not already an object (rare case)
+                   window.console = {};
+                   methods.forEach(method => { window.console[method] = noOp; });
+                }
+                Object.defineProperty(window, 'console', { value: window.console || {}, configurable: true });
             };
-            mockConsole();
+            deepMockConsole();
 
-            const blockProperty = (obj, prop, value, writable = false, configurable = false, enumerable = false) => {
+            // Advanced Property Overriding
+            const overrideProperty = (obj, prop, descriptor) => {
                 try {
-                    Object.defineProperty(obj, prop, {
-                        value: value,
-                        writable: writable,
-                        configurable: configurable,
-                        enumerable: enumerable
-                    });
-                } catch (e) { /* Ignore errors, focus on success */ }
+                    Object.defineProperty(obj, prop, descriptor);
+                } catch (e) { /* Silent failure, attempt to continue */ }
             };
 
+            // Mock navigator properties with realistic but generic values
             const mockNavigator = () => {
-                blockProperty(navigator, 'webdriver', undefined);
-                blockProperty(navigator, 'platform', 'Win32');
-                blockProperty(navigator, 'userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-                blockProperty(navigator, 'languages', ['en-US', 'en']);
-                blockProperty(navigator, 'plugins', []);
-                blockProperty(navigator, 'mimeTypes', []);
+                overrideProperty(navigator, 'webdriver', { value: false, configurable: true });
+                overrideProperty(navigator, 'platform', { value: 'Win32', configurable: true });
+                overrideProperty(navigator, 'userAgent', { value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36', configurable: true });
+                overrideProperty(navigator, 'languages', { value: ['en-US', 'en'], configurable: true });
+                overrideProperty(navigator, 'plugins', { get: () => [], configurable: true }); // Mock as empty array
+                overrideProperty(navigator, 'mimeTypes', { get: () => [], configurable: true }); // Mock as empty array
+                overrideProperty(navigator, 'connection', { value: null, configurable: true }); // Remove connection info
+                overrideProperty(navigator, 'hardwareConcurrency', { value: 8, configurable: true }); // Provide a common value
+                overrideProperty(navigator, 'deviceMemory', { value: 8, configurable: true }); // Provide a common value
             };
             mockNavigator();
 
-            // Overriding document properties can be done once
-            try {
-                Object.defineProperty(document, 'referrer', { get: () => '', configurable: true });
-                Object.defineProperty(document, 'domain', { get: () => 'example.com', configurable: true });
-            } catch (e) { /* Ignore */ }
+            // Overriding document properties for stealth
+            overrideProperty(document, 'referrer', { value: '', configurable: true });
+            overrideProperty(document, 'domain', { value: 'localhost', configurable: true }); // Set to a generic local domain
 
-            // Mock Page Visibility API directly
-            Object.defineProperties(document, {
-                'visibilityState': { value: 'visible', configurable: true },
-                'hidden': { value: false, configurable: true },
+            // Aggressively mock Page Visibility API
+            overrideProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+            overrideProperty(document, 'hidden', { value: false, configurable: true });
+
+            // Enhanced Event & API Blocking
+            const blockEvent = (target, type, handler = (e) => { e.preventDefault(); e.stopPropagation(); }) => {
+                try {
+                    target.addEventListener(type, handler, { capture: true });
+                } catch (e) { /* Ignore */ }
+            };
+
+            // Block common debugging and navigation-related events
+            const eventsToBlock = [
+                'contextmenu', 'keydown', 'keyup', 'keypress', 'mousedown', 'mouseup', 'touchstart', 'touchend',
+                'visibilitychange', 'beforeunload', 'unload', 'pagehide', 'freeze', 'resume', 'blur', 'focus',
+                'copy', 'cut', 'paste', 'delete', 'insertText', 'input'
+            ];
+            eventsToBlock.forEach(event => blockEvent(window, event));
+            eventsToBlock.forEach(event => blockEvent(document, event)); // Block on document too
+
+            // Block potentially sensitive Web API access
+            const protectedApis = [
+                'chrome', // Chrome-specific APIs often used for detection
+                'runtime', // Chrome runtime APIs
+                'webdriver', // Redundant but ensures no leaks
+                'permissions', // API for requesting permissions
+                'mediaDevices', // Access to camera/mic
+                'getBattery' // Battery status API
+            ];
+            protectedApis.forEach(api => {
+                if (window[api]) {
+                    overrideProperty(window, api, { value: undefined, configurable: true });
+                }
             });
 
-            // Simplified event blocking for performance
-            const blockElementEvent = (target, type) => {
-                target.addEventListener(type, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }, { capture: true }); // Use capture phase for early interception
+            // Mock specific WebSocket connections
+            const blockedWebSocketDomains = [
+                'deledao.com', 'go guardian.com', 'monitoring-api.net', 'analytics.local', 'web-filter.org'
+            ];
+            const originalWebSocket = window.WebSocket;
+            window.WebSocket = function(url, protocols) {
+                if (blockedWebSocketDomains.some(domain => url.includes(domain))) {
+                    // console.warn(`Blocked WebSocket connection to: ${url}`); // Log silently
+                    const safeSocket = new originalWebSocket('wss://echo.websocket.org'); // Re-route to a harmless echo server
+                    return safeSocket;
+                }
+                return new originalWebSocket(url, protocols);
             };
 
-            blockElementEvent(document, 'contextmenu');
-            blockElementEvent(window, 'keydown');
-            blockElementEvent(window, 'keyup');
-            blockElementEvent(window, 'keypress');
-
-            const blockedLifecycleEvents = ['visibilitychange', 'beforeunload', 'unload', 'pagehide', 'freeze', 'resume', 'blur'];
-            blockedLifecycleEvents.forEach(event => blockElementEvent(window, event));
-
-            // API interception with minimal overhead
-            const blockApiList = ['goguardian', 'monitoring', 'detection', 'analysis', 'security-check', 'bot-detect'];
-
-            const createWrappedApi = (originalApi, blockList) => {
-                return new Proxy(originalApi, {
-                    apply: function(target, thisArg, argumentsList) {
-                        const url = typeof argumentsList[0] === 'string' ? argumentsList[0] : (argumentsList[1] && argumentsList[1].url);
-                        if (typeof url === 'string' && blockList.some(blockUrl => url.includes(blockUrl))) {
-                            // console.warn(`Blocked API call to: ${url}`); // Silent by default
-                            return Promise.resolve(new Response('{}', { status: 204 }));
-                        }
-                        return Reflect.apply(target, thisArg, argumentsList);
-                    }
-                });
-            };
+            // Intercept fetch and XHR requests more aggressively
+            const blockedRequestPatterns = [
+                /deledao\.com/, /go guardian\.com/, /monitoring-api\.net/, /analytics\.local/, /web-filter\.org/,
+                /api\.browser-detection\.com/, /detection\.js/, /checker\.script/
+            ];
 
             if (window.fetch) {
-                window.fetch = createWrappedApi(window.fetch, blockApiList);
+                const originalFetch = window.fetch;
+                window.fetch = function(resource, options) {
+                    const url = typeof resource === 'string' ? resource : resource.url;
+                    if (blockedRequestPatterns.some(pattern => pattern.test(url))) {
+                        // console.warn(`Blocked fetch to: ${url}`);
+                        return Promise.resolve(new Response('{}', { status: 204 })); // No Content response
+                    }
+                    return originalFetch.apply(this, arguments);
+                };
             }
 
             const originalXHR = window.XMLHttpRequest;
@@ -169,31 +207,55 @@
                 const xhr = new originalXHR(args);
                 const originalOpen = xhr.open;
                 xhr.open = function(method, url) {
-                    if (blockApiList.some(blockUrl => url.includes(blockUrl))) {
+                    if (blockedRequestPatterns.some(pattern => pattern.test(url))) {
                         // console.warn(`Blocked XHR to: ${url}`);
-                        return; // Effectively blocks the call
+                        return; // Silently fail to open
                     }
                     originalOpen.apply(xhr, arguments);
                 };
                 return xhr;
             };
 
-            const originalWebSocket = window.WebSocket;
-            window.WebSocket = function(url, protocols) {
-                if (blockApiList.some(blockUrl => url.includes(blockUrl))) {
-                    // console.warn(`Blocked WebSocket to: ${url}`);
-                    return new originalWebSocket('wss://echo.websocket.org'); // Re-route to a safe echo server
-                }
-                return new originalWebSocket(url, protocols);
-            };
-
-            // --- Performance-Focused Overlay & Interaction ---
-            const updateOverlayOpacity = (opacity) => {
+            // --- Enhanced Overlay for Stronger Obfuscation ---
+            const manageOverlay = () => {
+                // Make overlay fully opaque and non-interactive by default
                 if (overlayElement) {
-                    overlayElement.style.opacity = opacity;
+                    overlayElement.style.opacity = '0.95'; // High opacity
+                    overlayElement.style.pointerEvents = 'auto'; // Always block interaction
                 }
+
+                // Function to hide overlay after a delay
+                const hideOverlayTemporarily = (duration = 3000) => {
+                    if (!overlayElement) return;
+                    overlayElement.classList.add('overlay-hidden');
+                    setTimeout(() => {
+                        if (overlayElement) overlayElement.classList.remove('overlay-hidden');
+                    }, duration);
+                };
+
+                // Trigger overlay hide on document interactions
+                const interactionHandler = () => {
+                    hideOverlayTemporarily(1000); // Hide for a shorter duration on interaction
+                };
+
+                document.body.addEventListener('mousemove', interactionHandler, { passive: true });
+                document.body.addEventListener('mousedown', interactionHandler, { passive: true });
+                document.body.addEventListener('touchstart', interactionHandler, { passive: true });
+                document.body.addEventListener('scroll', interactionHandler, { passive: true });
+                document.body.addEventListener('keydown', interactionHandler, { passive: true });
+
+                // Ensure overlay is visible on page load
+                if (overlayElement) overlayElement.style.opacity = '0.95';
+
+                // Keep overlay active for initial loading period
+                setTimeout(() => {
+                    if (overlayElement && !document.hidden) { // If not hidden by user/OS
+                         overlayElement.style.pointerEvents = 'auto'; // Ensure it's blocking
+                    }
+                }, 5000); // Keep blocking for 5 seconds or until first interaction
             };
 
+            // --- Initialization ---
             const showNotification = (message, duration = 4000) => {
                 if (notificationElement) {
                     notificationElement.textContent = message;
@@ -205,82 +267,45 @@
                 }
             };
 
-            const manageOverlayAndInteractions = () => {
-                // Fade overlay out on any input event within the body
-                document.body.addEventListener('mousemove', handleInteraction, { capture: true });
-                document.body.addEventListener('mousedown', handleInteraction, { capture: true });
-                document.body.addEventListener('touchstart', handleInteraction, { capture: true });
-                document.body.addEventListener('scroll', handleInteraction, { capture: true });
-
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden === false) { // If becoming visible
-                        showNotification('Bypass Active', 2000);
-                        if (overlayElement) overlayElement.classList.remove('overlay-static');
-                    } else { // If becoming hidden
-                        if (overlayElement) overlayElement.classList.add('overlay-static');
-                    }
-                });
-
-                // Initial state
-                if (document.hidden === false) {
-                    showNotification('Bypass Engaged', 3000);
-                } else {
-                    if (overlayElement) overlayElement.classList.add('overlay-static');
-                }
-            };
-
-            let lastInteractionTime = Date.now();
-            const INTERACTION_RESET_TIME = 5000; // milliseconds
-
-            const handleInteraction = (event) => {
-                if (!interactionDetected) {
-                    interactionDetected = true;
-                    if (overlayElement) overlayElement.classList.remove('overlay-static');
-                    showNotification('Bypass Active', 2000); // Show brief 'active' notification
-                }
-
-                // Reset overlay opacity on interaction
-                updateOverlayOpacity(0.0);
-                clearTimeout(interactionTimeout);
-
-                // Schedule overlay to become slightly opaque again after a period of no interaction
-                interactionTimeout = setTimeout(() => {
-                    updateOverlayOpacity(0.3); // Return to subtle static opacity
-                    interactionDetected = false; // Allow 'engaged' notification on next true interaction
-                    if (overlayElement) overlayElement.classList.add('overlay-static');
-                }, INTERACTION_RESET_TIME);
-            };
-
-            // --- Initialization ---
             const init = () => {
-                mockConsole();
+                deepMockConsole();
                 mockNavigator();
-                manageOverlayAndInteractions();
+                manageOverlay();
+                showNotification('Fortified Bypass Engaged', 4000);
 
-                // Ensure iframe is correctly positioned and loaded
+                // Add a timestamp to the iframe source to potentially break caching or detect changes
+                // This is a minor tactic, might not be universally effective
                 if (iframeElement) {
+                    const currentSrc = iframeElement.src;
+                    iframeElement.src = `${currentSrc}?t=${Date.now()}`;
+
                     iframeElement.onload = () => {
-                        // console.log("Iframe loaded successfully.");
-                        // Additional checks or actions can be added here if needed
+                        // console.log("Iframe loaded.");
                     };
                     iframeElement.onerror = () => {
                         // console.error("Iframe failed to load.");
-                        showNotification("Error loading site.", 5000);
+                        showNotification("Error: Site may be blocked or unavailable.", 5000);
                     };
                 }
 
-                // Periodic, very lightweight checks (e.g., check if console is still mocked)
+                // Periodically re-apply mocks to counter dynamic script injection or modification
                 setInterval(() => {
-                    mockConsole(); // Re-mock console periodically
-                    // More complex checks could be added here if performance allows
-                }, 10000); // Every 10 seconds
+                    deepMockConsole();
+                    mockNavigator();
+                    // If overlay is ever hidden programmatically by mistake, re-apply its state
+                    if (overlayElement && overlayElement.classList.contains('overlay-hidden')) {
+                         overlayElement.classList.remove('overlay-hidden');
+                         overlayElement.style.opacity = '0.95';
+                         overlayElement.style.pointerEvents = 'auto';
+                    }
+                }, 3000); // Re-apply mocks every 3 seconds
             };
 
-            // Trigger initialization
+            // Ensure DOM is ready before initializing
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
-                init(); // DOM is already ready
+                init();
             }
 
         })();
