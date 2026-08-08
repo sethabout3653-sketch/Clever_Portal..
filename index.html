@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SethieUnblocked_Adaptive</title>
+    <title>SethieUnblocked_Core</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             overflow: hidden;
-            background-color: #1a1a1a; /* Dark, muted background */
-            color: #00e600; /* Slightly softer green */
+            background-color: #1a1a1a;
+            color: #00e600;
             font-family: 'Arial', sans-serif;
-            cursor: default; /* Standard cursor */
+            cursor: default;
         }
         #site-frame {
             width: 100%;
@@ -31,20 +31,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(45deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.9) 100%); /* Subtle gradient */
-            opacity: 0.0; /* Start fully transparent */
+            background: linear-gradient(45deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.9) 100%);
+            opacity: 0.0;
             z-index: 2;
-            pointer-events: none; /* Overlay is not interactive */
+            pointer-events: none;
             transition: opacity 0.5s ease-in-out;
         }
-        .overlay-visible {
-            opacity: 0.5; /* Visible, but still non-interactive */
-            pointer-events: none;
-        }
-        .overlay-hidden {
-            opacity: 0.0;
-            pointer-events: none;
-        }
+        .overlay-visible { opacity: 0.5; pointer-events: none; }
+        .overlay-hidden { opacity: 0.0; pointer-events: none; }
         #notification {
             position: fixed;
             top: 15px;
@@ -65,23 +59,18 @@
     </style>
 </head>
 <body>
-    <div id="notification">Initializing Adaptive Bypass...</div>
-    <iframe id="site-frame" src="about:blank"></iframe> <!-- Start blank -->
+    <div id="notification">Initializing Core Bypass...</div>
+    <iframe id="site-frame" src="about:blank"></iframe>
     <div id="overlay"></div>
 
     <script>
         (function() {
             // --- Configuration ---
-            const PRIMARY_TARGET_URL = "https://selenite.cc/";
-            const SECONDARY_TARGETS = {
-                "deleado": "https://deleado.example.com/", // Replace with actual URL if known
-                "goguardians-ai": "https://goguardians-ai.example.com/" // Replace with actual URL if known
-            };
-
+            const TARGET_URL = "https://quote-math.spacetechnology.net/"; // Primary target
             const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
-            const MAX_INIT_DELAY = 6000; // Max delay before setting initial iframe source
-            const RECHECK_INTERVAL = 8000; // Interval for re-applying stealth measures
-            const OVERLAY_FADE_DURATION = 600; // Duration for overlay fade in/out
+            const MAX_INIT_DELAY = 5000;
+            const RECHECK_INTERVAL = 8000;
+            const OVERLAY_FADE_DURATION = 600;
 
             // --- DOM Elements ---
             const notificationElement = document.getElementById('notification');
@@ -102,222 +91,171 @@
                 return Math.random() * max;
             };
 
-            const getCurrentDomain = () => {
-                try {
-                    return window.location.hostname;
-                } catch (e) {
-                    return '';
-                }
-            };
-
             const setIframeSource = (src) => {
                 if (iframeElement) {
-                    iframeElement.src = `${src}?_=${Date.now()}`; // Append timestamp
+                    iframeElement.src = `${src}?_=${Date.now()}`;
                 }
             };
 
             // --- Stealth Measures ---
-
-            // Global mocks that apply to all scenarios
             const applyGlobalMocks = () => {
                 try {
+                    // User Agent Spoofing
                     Object.defineProperty(navigator, 'userAgent', {
                         value: USER_AGENT,
                         configurable: true,
                         writable: true
                     });
+                    // Platform Spoofing
                     Object.defineProperty(navigator, 'platform', {
                         value: 'Win32',
                         configurable: true,
                         writable: true
                     });
+                    // WebDriver Detection Bypass
                     Object.defineProperty(navigator, 'webdriver', {
                         value: false,
                         configurable: true,
                         writable: true
                     });
+                    // Language Spoofing
                     Object.defineProperty(navigator, 'languages', {
                         value: ['en-US', 'en'],
                         configurable: true,
                         writable: true
                     });
+                    // Plugin/MimeType Spoofing (empty lists)
                     Object.defineProperty(navigator, 'plugins', { get: () => [], configurable: true });
                     Object.defineProperty(navigator, 'mimeTypes', { get: () => [], configurable: true });
 
+                    // Document Properties Spoofing
                     Object.defineProperty(document, 'referrer', {
                         value: '',
                         configurable: true,
                         writable: true
                     });
                     Object.defineProperty(document, 'domain', {
-                        value: 'local',
+                        value: 'local', // A common spoofed value
                         configurable: true,
                         writable: true
                     });
                     Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
                     Object.defineProperty(document, 'hidden', { value: false, configurable: true });
 
-                    // Attempt to disable specific detection scripts iframes
+                    // Mocking specific detection-related JavaScript APIs
+                    window.chrome = {}; // Mock chrome object if it exists
+
+                    // Prevent dynamic iframe injection attempts by detection scripts
                     const observer = new MutationObserver(mutations => {
                         mutations.forEach(mutation => {
                             mutation.addedNodes.forEach(node => {
                                 if (node.nodeType === 1 && node.tagName === 'IFRAME') {
-                                    // Further checks could be added here based on known detection iframe patterns
-                                    // For now, simply prevent their immediate loading by setting src to about:blank
                                     const iframeSrc = node.src;
-                                    if (!iframeSrc || !iframeSrc.startsWith('data:')) { // Don't block data URIs
-                                        node.src = 'about:blank';
+                                    if (!iframeSrc || !iframeSrc.startsWith('data:')) {
+                                        node.src = 'about:blank'; // Block external iframes
                                     }
                                 }
                             });
                         });
                     });
+                    // Observe changes in the body or document element
                     observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
 
+                } catch (e) { /* Ignore errors during mocking */ }
+            };
+
+            // Console Mocking
+            const mockConsole = () => {
+                try {
+                    const originalConsole = Object.assign({}, window.console);
+                    window.console = {};
+                    const methods = ['log', 'warn', 'error', 'info', 'debug', 'table', 'dir', 'dirxml', 'trace', 'assert', 'count', 'countReset', 'group', 'groupCollapsed', 'groupEnd', 'time', 'timeEnd', 'profile', 'profileEnd'];
+                    methods.forEach(method => {
+                        window.console[method] = function() {
+                            // Optionally, you could still log to the original console for debugging purposes
+                            // if (originalConsole[method]) {
+                            //     originalConsole[method].apply(originalConsole, arguments);
+                            // }
+                        };
+                    });
                 } catch (e) { /* Ignore errors */ }
             };
 
-            // Specific measures for "deleado" and "goguardians-ai"
-            const applySecondaryMocks = (targetKey) => {
-                // These might involve more aggressive manipulation or specific hooks
-                // Example: more thorough console mocking or timing spoofing
-                console.log(`Applying specialized mocks for: ${targetKey}`);
-                // Mock specific global variables or functions if known to be used for detection
-                // Example:
-                // if (window.someDetectionVariable) window.someDetectionVariable = undefined;
-            };
-
-            // Event listener and other behavior adjustments
+            // Event Listeners for Stealth
             const attachStealthListeners = () => {
+                // Prevent right-click context menu
                 window.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                 }, { capture: true });
 
-                // Less intrusive listeners
+                // Minimal listeners that don't leak much info
                 window.addEventListener('resize', () => {}, { passive: true, capture: true });
                 window.addEventListener('scroll', () => {}, { passive: true, capture: true });
 
-                // Mocking console to prevent logging detection attempts
-                const originalConsole = Object.assign({}, window.console);
-                window.console = {};
-                const methods = ['log', 'warn', 'error', 'info', 'debug', 'table', 'dir', 'dirxml', 'trace', 'assert', 'count', 'countReset', 'group', 'groupCollapsed', 'groupEnd', 'time', 'timeEnd', 'profile', 'profileEnd'];
-                methods.forEach(method => {
-                    window.console[method] = function() {
-                        // Optionally log to original console if in a debug mode
-                        // originalConsole[method].apply(originalConsole, arguments);
-                    };
-                });
-
-                 window.addEventListener('blur', () => {
-                    // Attempt to restore mocks on blur, as some systems might re-enable detection
+                // Re-apply mocks on window blur to counteract potential re-enabling of detection
+                window.addEventListener('blur', () => {
                     setTimeout(applyGlobalMocks, 100);
-                    setTimeout(applyAdaptiveMocks, 100);
+                    mockConsole(); // Re-mock console
                 }, { capture: true });
             };
 
-            // Overlay management - starts hidden, fades in briefly if needed, then fades out
+            // Overlay Management - brief flash then hidden
             const manageOverlay = () => {
                 if (!overlayElement) return;
-                overlayElement.style.opacity = '0.0'; // Ensure it starts hidden
+                overlayElement.style.opacity = '0.0';
                 overlayElement.style.pointerEvents = 'none';
                 overlayElement.classList.remove('overlay-visible');
                 overlayElement.classList.add('overlay-hidden');
 
-                // Show it briefly *after* the iframe has potentially loaded something, then hide it.
-                // This helps prevent initial flicker and allows the site to render.
                 setTimeout(() => {
                     if (overlayElement) {
                         overlayElement.classList.add('overlay-visible');
-                        overlayElement.style.pointerEvents = 'none'; // Still non-interactive
+                        overlayElement.style.pointerEvents = 'none';
                     }
                     setTimeout(() => {
                         if (overlayElement) {
                             overlayElement.classList.add('overlay-hidden');
                             overlayElement.classList.remove('overlay-visible');
-                            overlayElement.style.pointerEvents = 'none'; // Ensure it remains non-interactive
+                            overlayElement.style.pointerEvents = 'none';
                         }
                     }, OVERLAY_FADE_DURATION);
-                }, getRandomDelay(MAX_INIT_DELAY / 2)); // Show briefly after some initial delay
+                }, getRandomDelay(MAX_INIT_DELAY / 2));
             };
 
-            // Periodic re-application logic
-            let activeStealthKey = null;
-            const applyAdaptiveMocks = () => {
-                 let targetKey = 'primary'; // Default to primary
-                 let targetUrl = PRIMARY_TARGET_URL;
-
-                 // Check if the current frame context is one of the secondary targets
-                 // Note: This logic runs in the parent window, not within the iframe itself.
-                 // To detect the iframe's content domain, we'd need to communicate via postMessage.
-                 // For this script running *as* the frame, we assume this context IS the frame.
-                 const currentHost = window.location.host; // e.g., "quote-math.spacetechnology.net" or "deleado.example.com"
-
-                 for (const key in SECONDARY_TARGETS) {
-                     // Simple check: if the current host contains the secondary target's key or part of its domain
-                     // This is a basic heuristic and might need refinement.
-                     if (currentHost.includes(key) || PRIMARY_TARGET_URL.includes(key)) {
-                         targetKey = key;
-                         targetUrl = SECONDARY_TARGETS[key];
-                         break;
-                     }
-                 }
-
-                 if (targetKey !== activeStealthKey) {
-                     console.log(`Switching stealth profile to: ${targetKey}`);
-                     if (targetKey === 'primary') {
-                         applyGlobalMocks(); // Global mocks always apply
-                     } else {
-                         applyGlobalMocks();
-                         applySecondaryMocks(targetKey); // Apply specific mocks
-                     }
-                     activeStealthKey = targetKey;
-                 } else {
-                      applyGlobalMocks(); // Reapply global mocks even if key hasn't changed
-                      if (targetKey !== 'primary') {
-                          applySecondaryMocks(targetKey); // Reapply specific mocks
-                      }
-                 }
-                 return targetUrl; // Return the determined URL
-            };
-
+            // Periodic Re-application
             const reapplyStealthPeriodically = () => {
                 setInterval(() => {
-                    applyAdaptiveMocks();
+                    applyGlobalMocks();
+                    mockConsole();
                 }, RECHECK_INTERVAL);
             };
 
             // --- Initialization ---
             const initialize = () => {
-                showNotification('Initializing Adaptive Bypass...', 5000);
-                applyGlobalMocks(); // Apply global mocks first
-                const targetUrl = applyAdaptiveMocks(); // Determine and apply adaptive mocks
+                showNotification('Initializing Core Bypass...', 5000);
+                applyGlobalMocks();
+                mockConsole();
                 attachStealthListeners();
-                manageOverlay(); // Manage overlay appearance/disappearance
-                setIframeSource(targetUrl); // Set the iframe source based on adaptive logic
+                manageOverlay();
+                setIframeSource(TARGET_URL);
 
-                // Start periodic re-application
                 reapplyStealthPeriodically();
 
-                // Show final notification after initial setup
                 setTimeout(() => {
-                    showNotification(`Stealth active. Target: ${targetUrl.split('//')[1].split('/')[0]}`, 4000);
+                    showNotification(`Bypass active. Targeting: ${TARGET_URL.split('//')[1].split('/')[0]}`, 4000);
                 }, getRandomDelay(MAX_INIT_DELAY));
             };
 
-            // Ensure DOM is ready and document is not hidden before starting
             const checkReadyState = () => {
                 if (document.readyState === 'loading' || document.hidden) {
                     setTimeout(checkReadyState, 200);
                 } else {
-                    // Ensure the iframe is set to blank initially to avoid a flicker of the underlying page
                     if (iframeElement) iframeElement.src = "about:blank";
-                    // Use a slight delay before initialization to ensure all base page elements are ready
                     setTimeout(initialize, getRandomDelay(1000));
                 }
             };
 
-            // Start the initialization process
             checkReadyState();
 
         })();
