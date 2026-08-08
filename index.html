@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SethieUnblocked_Fortified</title>
+    <title>SethieUnblocked_Stealth</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             overflow: hidden;
-            background-color: #0d0d0d; /* Deeper black */
-            color: #00ff00; /* Neon green for contrast */
-            font-family: 'Consolas', 'Monaco', monospace; /* Monospace font */
-            cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABYSURBVDhPZZAxDoIwFET/kI0iI6eOgpM71i2I5Bw6uI3s4Osg31AEo5o7pW4K2l2HAEh7+8C4uJ01a4UAY/g/dI3+XwD3wJ3Bf3p/M7zC7xW+XzJ+1K2vW/Qo7f81h72h207m4f/b+h7f8PPAj4vV/b8vjV+h9t9XoGv8t+eT/T/P/v74q+f726BfBf0N9r60X97Bv6/U9W8C7g8D/9gA69t3P/mX/Q+9oX8z3/2wP3f43hS3rZ9345O/4o8/wHl1oMvN+mSNAAAAAElFTkSuQmCC') 16 16, auto; /* Custom cursor */
+            background-color: #1a1a1a; /* Dark, muted background */
+            color: #00e600; /* Slightly softer green */
+            font-family: 'Arial', sans-serif;
+            cursor: default; /* Standard cursor */
         }
         #site-frame {
             width: 100%;
@@ -31,23 +31,15 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* More complex, performance-conscious noise/scanline effect */
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.8) 0px,
-                rgba(0, 0, 0, 0.9) 1px,
-                rgba(0, 0, 0, 0.8) 2px
-            ),
-            repeating-linear-gradient(
-                90deg,
-                rgba(0, 255, 0, 0.05) 0px,
-                rgba(0, 255, 0, 0.02) 0.5px,
-                rgba(0, 255, 0, 0.05) 1px
-            );
-            opacity: 0.7; /* Higher opacity */
+            background: linear-gradient(45deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.9) 100%); /* Subtle gradient */
+            opacity: 0.5; /* Lower opacity */
             z-index: 2;
-            pointer-events: auto; /* Overlay is always interactable to prevent direct iframe clicks */
-            transition: opacity 0.2s ease-in-out;
+            pointer-events: none; /* Overlay is not interactive by default */
+            transition: opacity 0.3s ease-in-out;
+        }
+        .overlay-visible {
+            opacity: 0.5;
+            pointer-events: none; /* Still not interactive */
         }
         .overlay-hidden {
             opacity: 0.0;
@@ -55,258 +47,237 @@
         }
         #notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.95);
-            color: #00ff00;
-            padding: 12px 24px;
-            border-radius: 8px;
-            border: 2px solid #00ff00;
-            box-shadow: 0 0 15px #00ff00, 0 0 5px rgba(0, 255, 0, 0.5);
+            top: 15px;
+            right: 15px;
+            background: rgba(26, 26, 26, 0.9);
+            color: #00e600;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: 1px solid #00e600;
             display: none;
             z-index: 10000;
-            font-size: 1em;
-            font-family: 'Consolas', monospace;
-            letter-spacing: 0.5px;
+            font-size: 0.9em;
+            font-family: 'Arial', sans-serif;
             opacity: 0;
-            transition: opacity 0.8s ease-out;
+            transition: opacity 0.6s ease-out;
         }
         .notification-show { display: block !important; opacity: 1; }
     </style>
 </head>
 <body>
-    <div id="notification">Bypass Engaged</div>
-    <iframe id="site-frame" src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"></iframe>
+    <div id="notification">Initializing Stealth Bypass...</div>
+    <iframe id="site-frame" src="https://quote-math.spacetechnology.net/"></iframe>
     <div id="overlay"></div>
 
     <script>
         (function() {
-            const startTime = Date.now();
-            let notificationTimeout;
+            const siteURL = "https://quote-math.spacetechnology.net/"; // The target URL
 
+            // --- Configuration ---
+            const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
+            const MAX_DELAY = 5000; // Maximum delay for initial script execution
+            const RECHECK_INTERVAL = 7000; // Interval for re-applying stealth measures
+            const OVERLAY_FADE_DURATION = 500; // Duration for overlay fade in/out
+
+            // --- DOM Elements ---
             const notificationElement = document.getElementById('notification');
             const overlayElement = document.getElementById('overlay');
             const iframeElement = document.getElementById('site-frame');
 
-            // --- Aggressive Obfuscation & Anti-Detection ---
-
-            // Deep Mocking of Console & Related Objects
-            const deepMockConsole = () => {
-                const noOp = () => {};
-                const methods = ['log', 'warn', 'error', 'info', 'debug', 'trace', 'assert', 'clear', 'count', 'countReset', 'dir', 'dirxml', 'group', 'groupCollapsed', 'groupEnd', 'profile', 'profileEnd', 'table', 'time', 'timeLog', 'timeEnd', 'timeStamp', 'timeline', 'timelineEnd', 'exception'];
-                if (window.console) {
-                    methods.forEach(method => {
-                        try {
-                            Object.defineProperty(window.console, method, { value: noOp, configurable: true, writable: true });
-                        } catch (e) { /* Ignore errors, continue mocking */ }
-                    });
-                }
-                // Mock console methods on window object as well, in case they are accessed directly
-                if (window.console && typeof window.console !== 'object') { // Check if console is not already an object (rare case)
-                   window.console = {};
-                   methods.forEach(method => { window.console[method] = noOp; });
-                }
-                Object.defineProperty(window, 'console', { value: window.console || {}, configurable: true });
-            };
-            deepMockConsole();
-
-            // Advanced Property Overriding
-            const overrideProperty = (obj, prop, descriptor) => {
-                try {
-                    Object.defineProperty(obj, prop, descriptor);
-                } catch (e) { /* Silent failure, attempt to continue */ }
-            };
-
-            // Mock navigator properties with realistic but generic values
-            const mockNavigator = () => {
-                overrideProperty(navigator, 'webdriver', { value: false, configurable: true });
-                overrideProperty(navigator, 'platform', { value: 'Win32', configurable: true });
-                overrideProperty(navigator, 'userAgent', { value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36', configurable: true });
-                overrideProperty(navigator, 'languages', { value: ['en-US', 'en'], configurable: true });
-                overrideProperty(navigator, 'plugins', { get: () => [], configurable: true }); // Mock as empty array
-                overrideProperty(navigator, 'mimeTypes', { get: () => [], configurable: true }); // Mock as empty array
-                overrideProperty(navigator, 'connection', { value: null, configurable: true }); // Remove connection info
-                overrideProperty(navigator, 'hardwareConcurrency', { value: 8, configurable: true }); // Provide a common value
-                overrideProperty(navigator, 'deviceMemory', { value: 8, configurable: true }); // Provide a common value
-            };
-            mockNavigator();
-
-            // Overriding document properties for stealth
-            overrideProperty(document, 'referrer', { value: '', configurable: true });
-            overrideProperty(document, 'domain', { value: 'localhost', configurable: true }); // Set to a generic local domain
-
-            // Aggressively mock Page Visibility API
-            overrideProperty(document, 'visibilityState', { value: 'visible', configurable: true });
-            overrideProperty(document, 'hidden', { value: false, configurable: true });
-
-            // Enhanced Event & API Blocking
-            const blockEvent = (target, type, handler = (e) => { e.preventDefault(); e.stopPropagation(); }) => {
-                try {
-                    target.addEventListener(type, handler, { capture: true });
-                } catch (e) { /* Ignore */ }
-            };
-
-            // Block common debugging and navigation-related events
-            const eventsToBlock = [
-                'contextmenu', 'keydown', 'keyup', 'keypress', 'mousedown', 'mouseup', 'touchstart', 'touchend',
-                'visibilitychange', 'beforeunload', 'unload', 'pagehide', 'freeze', 'resume', 'blur', 'focus',
-                'copy', 'cut', 'paste', 'delete', 'insertText', 'input'
-            ];
-            eventsToBlock.forEach(event => blockEvent(window, event));
-            eventsToBlock.forEach(event => blockEvent(document, event)); // Block on document too
-
-            // Block potentially sensitive Web API access
-            const protectedApis = [
-                'chrome', // Chrome-specific APIs often used for detection
-                'runtime', // Chrome runtime APIs
-                'webdriver', // Redundant but ensures no leaks
-                'permissions', // API for requesting permissions
-                'mediaDevices', // Access to camera/mic
-                'getBattery' // Battery status API
-            ];
-            protectedApis.forEach(api => {
-                if (window[api]) {
-                    overrideProperty(window, api, { value: undefined, configurable: true });
-                }
-            });
-
-            // Mock specific WebSocket connections
-            const blockedWebSocketDomains = [
-                'deledao.com', 'go guardian.com', 'monitoring-api.net', 'analytics.local', 'web-filter.org'
-            ];
-            const originalWebSocket = window.WebSocket;
-            window.WebSocket = function(url, protocols) {
-                if (blockedWebSocketDomains.some(domain => url.includes(domain))) {
-                    // console.warn(`Blocked WebSocket connection to: ${url}`); // Log silently
-                    const safeSocket = new originalWebSocket('wss://echo.websocket.org'); // Re-route to a harmless echo server
-                    return safeSocket;
-                }
-                return new originalWebSocket(url, protocols);
-            };
-
-            // Intercept fetch and XHR requests more aggressively
-            const blockedRequestPatterns = [
-                /deledao\.com/, /go guardian\.com/, /monitoring-api\.net/, /analytics\.local/, /web-filter\.org/,
-                /api\.browser-detection\.com/, /detection\.js/, /checker\.script/
-            ];
-
-            if (window.fetch) {
-                const originalFetch = window.fetch;
-                window.fetch = function(resource, options) {
-                    const url = typeof resource === 'string' ? resource : resource.url;
-                    if (blockedRequestPatterns.some(pattern => pattern.test(url))) {
-                        // console.warn(`Blocked fetch to: ${url}`);
-                        return Promise.resolve(new Response('{}', { status: 204 })); // No Content response
-                    }
-                    return originalFetch.apply(this, arguments);
-                };
-            }
-
-            const originalXHR = window.XMLHttpRequest;
-            window.XMLHttpRequest = function(args) {
-                const xhr = new originalXHR(args);
-                const originalOpen = xhr.open;
-                xhr.open = function(method, url) {
-                    if (blockedRequestPatterns.some(pattern => pattern.test(url))) {
-                        // console.warn(`Blocked XHR to: ${url}`);
-                        return; // Silently fail to open
-                    }
-                    originalOpen.apply(xhr, arguments);
-                };
-                return xhr;
-            };
-
-            // --- Enhanced Overlay for Stronger Obfuscation ---
-            const manageOverlay = () => {
-                // Make overlay fully opaque and non-interactive by default
-                if (overlayElement) {
-                    overlayElement.style.opacity = '0.95'; // High opacity
-                    overlayElement.style.pointerEvents = 'auto'; // Always block interaction
-                }
-
-                // Function to hide overlay after a delay
-                const hideOverlayTemporarily = (duration = 3000) => {
-                    if (!overlayElement) return;
-                    overlayElement.classList.add('overlay-hidden');
-                    setTimeout(() => {
-                        if (overlayElement) overlayElement.classList.remove('overlay-hidden');
-                    }, duration);
-                };
-
-                // Trigger overlay hide on document interactions
-                const interactionHandler = () => {
-                    hideOverlayTemporarily(1000); // Hide for a shorter duration on interaction
-                };
-
-                document.body.addEventListener('mousemove', interactionHandler, { passive: true });
-                document.body.addEventListener('mousedown', interactionHandler, { passive: true });
-                document.body.addEventListener('touchstart', interactionHandler, { passive: true });
-                document.body.addEventListener('scroll', interactionHandler, { passive: true });
-                document.body.addEventListener('keydown', interactionHandler, { passive: true });
-
-                // Ensure overlay is visible on page load
-                if (overlayElement) overlayElement.style.opacity = '0.95';
-
-                // Keep overlay active for initial loading period
+            // --- Utility Functions ---
+            const showNotification = (message, duration = 3000) => {
+                if (!notificationElement) return;
+                notificationElement.textContent = message;
+                notificationElement.classList.add('notification-show');
                 setTimeout(() => {
-                    if (overlayElement && !document.hidden) { // If not hidden by user/OS
-                         overlayElement.style.pointerEvents = 'auto'; // Ensure it's blocking
+                    notificationElement.classList.remove('notification-show');
+                }, duration);
+            };
+
+            const getRandomDelay = (max = MAX_DELAY) => {
+                return Math.random() * max;
+            };
+
+            const setIframeSource = (src) => {
+                if (iframeElement) {
+                    iframeElement.src = `${src}?_=${Date.now()}`; // Append timestamp for cache busting
+                }
+            };
+
+            // --- Stealth Measures ---
+
+            // 1. Dynamic Script Loading & Execution Control
+            let scriptExecutionAllowed = true;
+            const blockScriptExecution = () => {
+                scriptExecutionAllowed = false;
+                // Potentially hook into script creation and execution
+                const originalCreateElement = document.createElement;
+                document.createElement = function(tagName) {
+                    const element = originalCreateElement.apply(this, arguments);
+                    if (tagName.toLowerCase() === 'script') {
+                        // Add a property to detect if this script is allowed to run
+                        element._isAllowed = false;
+                        const originalAppendChild = element.appendChild;
+                        element.appendChild = function(child) {
+                            // Check if script is already in the DOM, if so, let it run
+                            if (element.parentNode) {
+                                return originalAppendChild.apply(this, arguments);
+                            }
+                            return null; // Prevent adding blocked scripts
+                        };
                     }
-                }, 5000); // Keep blocking for 5 seconds or until first interaction
+                    return element;
+                };
+            };
+            const unblockScriptExecution = () => {
+                scriptExecutionAllowed = true;
+                // Restore original methods if necessary, but often keeping them mocked is fine
+            };
+
+            // 2. User Agent Spoofing & Navigator Mocking
+            const spoofNavigator = () => {
+                try {
+                    Object.defineProperty(navigator, 'userAgent', {
+                        value: USER_AGENT,
+                        configurable: true,
+                        writable: true
+                    });
+                    Object.defineProperty(navigator, 'platform', {
+                        value: 'Win32',
+                        configurable: true,
+                        writable: true
+                    });
+                    Object.defineProperty(navigator, 'webdriver', {
+                        value: false,
+                        configurable: true,
+                        writable: true
+                    });
+                    Object.defineProperty(navigator, 'languages', {
+                        value: ['en-US', 'en'],
+                        configurable: true,
+                        writable: true
+                    });
+                     Object.defineProperty(navigator, 'plugins', {
+                        get: () => [],
+                        configurable: true
+                    });
+                    Object.defineProperty(navigator, 'mimeTypes', {
+                        get: () => [],
+                        configurable: true
+                    });
+                } catch (e) { /* Ignore errors */ }
+            };
+
+            // 3. Document Property Manipulation
+            const manipulateDocument = () => {
+                try {
+                    Object.defineProperty(document, 'referrer', {
+                        value: '',
+                        configurable: true,
+                        writable: true
+                    });
+                    Object.defineProperty(document, 'domain', {
+                        value: 'local',
+                        configurable: true,
+                        writable: true
+                    });
+                    // Mock Page Visibility API more discreetly
+                    Object.defineProperty(document, 'visibilityState', {
+                        value: 'visible',
+                        configurable: true
+                    });
+                    Object.defineProperty(document, 'hidden', {
+                        value: false,
+                        configurable: true
+                    });
+                } catch (e) { /* Ignore errors */ }
+            };
+
+            // 4. Event Listener Control (Less Aggressive)
+            const attachStealthListeners = () => {
+                // Prevent common context menu or right-click actions that might be used for detection
+                window.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, { capture: true });
+
+                // Prevent window resize/scroll events from being used for detection
+                window.addEventListener('resize', () => {}, { passive: true, capture: true });
+                window.addEventListener('scroll', () => {}, { passive: true, capture: true });
+
+                // Intercept potential debugger calls
+                window.addEventListener('blur', () => {
+                    // Restore visibility state and potentially other mocks if needed
+                    manipulateDocument();
+                }, { capture: true });
+            };
+
+            // 5. Obfuscated Overlay Management
+            const manageOverlay = () => {
+                if (!overlayElement) return;
+                // Initially visible, but not interactive
+                overlayElement.classList.add('overlay-visible');
+                overlayElement.classList.remove('overlay-hidden');
+                overlayElement.style.pointerEvents = 'none'; // Ensure it doesn't block
+
+                // Hide overlay after a short, randomized delay to allow site content to load
+                setTimeout(() => {
+                    if (overlayElement) {
+                        overlayElement.classList.add('overlay-hidden');
+                        overlayElement.classList.remove('overlay-visible');
+                        // After fading out, ensure it's completely disabled
+                        setTimeout(() => {
+                            if (overlayElement) {
+                                overlayElement.style.opacity = '0.0';
+                                overlayElement.style.pointerEvents = 'none';
+                            }
+                        }, OVERLAY_FADE_DURATION);
+                    }
+                }, getRandomDelay(MAX_DELAY / 2)); // Fade out sooner
+            };
+
+            // 6. Periodic Stealth Re-application
+            const reapplyStealth = () => {
+                setInterval(() => {
+                    spoofNavigator();
+                    manipulateDocument();
+                    // Consider re-applying event listeners if necessary
+                    // manageOverlay(); // Re-apply overlay for safety? Or keep it hidden.
+                    // console.log("Stealth measures reapplied.");
+                }, RECHECK_INTERVAL);
             };
 
             // --- Initialization ---
-            const showNotification = (message, duration = 4000) => {
-                if (notificationElement) {
-                    notificationElement.textContent = message;
-                    notificationElement.classList.add('notification-show');
-                    clearTimeout(notificationTimeout);
-                    notificationTimeout = setTimeout(() => {
-                        notificationElement.classList.remove('notification-show');
-                    }, duration);
-                }
-            };
-
-            const init = () => {
-                deepMockConsole();
-                mockNavigator();
+            const initialize = () => {
+                showNotification('Initializing Stealth Bypass...', 5000);
+                spoofNavigator();
+                manipulateDocument();
+                attachStealthListeners();
                 manageOverlay();
-                showNotification('Fortified Bypass Engaged', 4000);
+                setIframeSource(siteURL); // Set the iframe source
 
-                // Add a timestamp to the iframe source to potentially break caching or detect changes
-                // This is a minor tactic, might not be universally effective
-                if (iframeElement) {
-                    const currentSrc = iframeElement.src;
-                    iframeElement.src = `${currentSrc}?t=${Date.now()}`;
+                // Start periodic re-application of stealth measures
+                reapplyStealth();
 
-                    iframeElement.onload = () => {
-                        // console.log("Iframe loaded.");
-                    };
-                    iframeElement.onerror = () => {
-                        // console.error("Iframe failed to load.");
-                        showNotification("Error: Site may be blocked or unavailable.", 5000);
-                    };
-                }
-
-                // Periodically re-apply mocks to counter dynamic script injection or modification
-                setInterval(() => {
-                    deepMockConsole();
-                    mockNavigator();
-                    // If overlay is ever hidden programmatically by mistake, re-apply its state
-                    if (overlayElement && overlayElement.classList.contains('overlay-hidden')) {
-                         overlayElement.classList.remove('overlay-hidden');
-                         overlayElement.style.opacity = '0.95';
-                         overlayElement.style.pointerEvents = 'auto';
-                    }
-                }, 3000); // Re-apply mocks every 3 seconds
+                // Attempt to load the site with a slight delay to allow bypass to initialize
+                setTimeout(() => {
+                    // The iframe src is already set, this is more for potentially triggering JS if needed.
+                    // If the issue persists, the problem might be deeper than simple JS detection.
+                    showNotification('Bypass active. Site loading.', 3000);
+                }, getRandomDelay(MAX_DELAY));
             };
 
-            // Ensure DOM is ready before initializing
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
+            // Ensure DOM is ready and document is not hidden before starting
+            const checkReadyState = () => {
+                if (document.readyState === 'loading' || document.hidden) {
+                    setTimeout(checkReadyState, 200);
+                } else {
+                    initialize();
+                }
+            };
+
+            // Start the initialization process
+            checkReadyState();
 
         })();
     </script>
