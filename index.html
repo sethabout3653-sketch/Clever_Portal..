@@ -41,9 +41,11 @@
     <script src="https://cdn.jsdelivr.net/gh/fingerprintjs/fingerprintjs@3.4.0/dist/fp.min.js"></script>
     
     <script>
-        // Anti-detection techniques
+        // Anti-detection techniques and enhancements
         (function() {
-            // Hide script from detection
+            // --- Core Anti-Detection ---
+
+            // Hide script from detection by nullifying console methods
             const originalConsole = window.console;
             window.console = {
                 ...originalConsole,
@@ -52,10 +54,10 @@
                 error: function() {}
             };
             
-            // Block common monitoring scripts
+            // Block common monitoring event listeners
             const originalAddEventListener = EventTarget.prototype.addEventListener;
             EventTarget.prototype.addEventListener = function(type, listener, options) {
-                if (type === 'visibilitychange' || type === 'beforeunload') {
+                if (type === 'visibilitychange' || type === 'beforeunload' || type === 'unload') {
                     return;
                 }
                 return originalAddEventListener.call(this, type, listener, options);
@@ -64,6 +66,9 @@
             // Disable page visibility API
             Object.defineProperty(document, 'visibilityState', {
                 get: function() { return 'visible'; }
+            });
+            Object.defineProperty(document, 'hidden', {
+                get: function() { return false; }
             });
             
             // Override navigator to avoid detection
@@ -79,61 +84,43 @@
             
             // Block keyboard shortcuts commonly blocked
             document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) {
+                if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x' || e.key === 'u')) { // Added 'u' for view source
                     e.stopPropagation();
                     return true;
                 }
             }, true);
             
-            // Request all permissions
-            if (navigator.permissions) {
-                const permissions = ['camera', 'microphone', 'geolocation', 'notifications', 'persistent-storage'];
-                permissions.forEach(permission => {
-                    navigator.permissions.query({ name: permission }).then(result => {
-                        if (result.state === 'prompt') {
-                            navigator.permissions.request({ name: permission });
-                        }
-                    });
-                });
-            }
+            // Prevent page from being unloaded
+            window.addEventListener('beforeunload', function(e) {
+                e.preventDefault();
+                e.returnValue = ''; // For older browsers
+                return ''; // For some browsers
+            });
             
-            // Fullscreen API
-            function enterFullscreen() {
-                const elem = document.documentElement;
-                if (elem.requestFullscreen) {
-                    elem.requestFullscreen();
-                } else if (elem.webkitRequestFullscreen) {
-                    elem.webkitRequestFullscreen();
-                } else if (elem.msRequestFullscreen) {
-                    elem.msRequestFullscreen();
-                }
-            }
-            
-            // Attempt to enter fullscreen after page load
-            window.addEventListener('load', enterFullscreen);
-            
-            // Show notification when bypass is activated
-            function showNotification() {
-                const notif = document.getElementById('notification');
-                notif.style.display = 'block';
-                setTimeout(() => {
-                    notif.style.display = 'none';
-                }, 3000);
-            }
-            
-            // Bypass GoGuardian detection
-            const bypassGoGuardian = () => {
+            // Create a decoy element to distract monitoring
+            const decoy = document.createElement('div');
+            decoy.style.display = 'none';
+            decoy.innerHTML = '<script>window.GoGuardian = {disabled: true}; console.log("Decoy script executed");</script>';
+            document.body.appendChild(decoy);
+
+            // --- Enhanced Bypass Techniques ---
+
+            const bypassTargetDomains = ['goguardian.com', 'monitor.com', 'monitoring.com', 'analytics.com', 'telemetry.com']; // Add more suspicious domains if known
+
+            // Bypass GoGuardian and similar monitoring
+            const bypassMonitoring = () => {
                 try {
                     // Attempt to disable common monitoring variables
-                    if (window.GoGuardian) {
-                        window.GoGuardian = null;
-                    }
-                    
+                    if (window.GoGuardian) window.GoGuardian = null;
+                    if (window.ggHandler) window.ggHandler = null;
+                    if (window.ggExtensions) window.ggExtensions = null;
+
                     // Override common detection methods
                     window.eval = new Proxy(window.eval, {
                         apply: function(target, thisArg, argumentsList) {
                             const code = argumentsList[0];
-                            if (typeof code === 'string' && code.includes('GoGuardian')) {
+                            if (typeof code === 'string' && bypassTargetDomains.some(domain => code.includes(domain))) {
+                                console.log('Blocked eval call containing monitoring keywords.');
                                 return undefined;
                             }
                             return target.apply(thisArg, argumentsList);
@@ -143,43 +130,131 @@
                     // Block WebSocket connections to monitoring services
                     const originalWebSocket = window.WebSocket;
                     window.WebSocket = function(url, protocols) {
-                        if (url.includes('goguardian') || url.includes('monitor')) {
-                            return new originalWebSocket('wss://echo.websocket.org');
+                        if (bypassTargetDomains.some(domain => url.includes(domain))) {
+                            console.log('Blocked WebSocket connection to monitored domain.');
+                            // Return a dummy WebSocket or sink the connection
+                            return new originalWebSocket('wss://echo.websocket.org'); // A benign echo server
                         }
                         return new originalWebSocket(url, protocols);
                     };
+
+                    // Block fetch requests to monitoring services
+                    const originalFetch = window.fetch;
+                    window.fetch = function(input, init) {
+                        const url = typeof input === 'string' ? input : input.url;
+                        if (bypassTargetDomains.some(domain => url.includes(domain))) {
+                            console.log('Blocked fetch request to monitored domain.');
+                            return new Promise(() => {}); // Sink the request
+                        }
+                        return originalFetch.apply(this, arguments);
+                    };
                     
-                    showNotification();
+                    // Block XMLHttpRequest to monitoring services
+                    const originalXHR = window.XMLHttpRequest.prototype.open;
+                    window.XMLHttpRequest.prototype.open = function(method, url) {
+                        if (bypassTargetDomains.some(domain => url.includes(domain))) {
+                            console.log('Blocked XMLHttpRequest to monitored domain.');
+                            return; // Block the request
+                        }
+                        return originalXHR.apply(this, arguments);
+                    };
+
+                    // Show notification if it's not already visible
+                    if (document.getElementById('notification').style.display === 'none') {
+                        showNotification();
+                    }
                 } catch (e) {
                     // Silently fail to avoid detection
+                    console.error("Error during bypassMonitoring:", e);
                 }
             };
             
-            // Execute bypass immediately and periodically
-            bypassGoGuardian();
-            setInterval(bypassGoGuardian, 5000);
+            // --- Permission Handling ---
             
-            // Load external bypass scripts from CDN
+            // Request all standard permissions
+            if (navigator.permissions) {
+                const permissions = ['camera', 'microphone', 'geolocation', 'notifications', 'persistent-storage'];
+                permissions.forEach(permission => {
+                    navigator.permissions.query({ name: permission }).then(result => {
+                        if (result.state === 'prompt') {
+                            // This will still pop up a browser prompt for the user to accept
+                            navigator.permissions.request({ name: permission }).catch(() => {}); 
+                        }
+                    }).catch(() => {});
+                });
+            }
+
+            // Function to explicitly request media device access (camera/mic)
+            async function requestHardwareAccess() {
+                try {
+                    // Attempt to get stream for video and audio
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    // Stop tracks immediately so it doesn't stay on, just triggering the permission
+                    stream.getTracks().forEach(track => track.stop());
+                    console.log('Media devices access prompted/granted.');
+                } catch (err) {
+                    // Silently catch - user likely denied or hardware is missing
+                    console.log('Media devices access failed or was denied.');
+                }
+            }
+
+            // --- Fullscreen Logic ---
+
+            function enterFullscreen() {
+                const elem = document.documentElement;
+                if (!document.fullscreenElement) { // Only attempt if not already in fullscreen
+                    if (elem.requestFullscreen) {
+                        elem.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+                    } else if (elem.webkitRequestFullscreen) { // Safari
+                        elem.webkitRequestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+                    } else if (elem.msRequestFullscreen) { // IE11
+                        elem.msRequestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+                    }
+                }
+            }
+            
+            // Attempt to enter fullscreen after page load
+            window.addEventListener('load', enterFullscreen);
+            
+            // Ensure fullscreen persistence
+            document.addEventListener("fullscreenchange", () => {
+                if (!document.fullscreenElement) {
+                    // If fullscreen is exited, try to re-enter it.
+                    // Add a small delay to prevent rapid re-entry loops if there's an issue.
+                    setTimeout(enterFullscreen, 500); 
+                }
+            });
+
+            // --- Utility Functions ---
+
+            // Show notification when bypass is activated
+            function showNotification() {
+                const notif = document.getElementById('notification');
+                if (notif) {
+                    notif.style.display = 'block';
+                    setTimeout(() => {
+                        if (notif) notif.style.display = 'none';
+                    }, 3000);
+                }
+            }
+            
+            // --- Execution ---
+            
+            // Execute bypass immediately and periodically
+            bypassMonitoring();
+            setInterval(bypassMonitoring, 5000); // Re-apply bypass every 5 seconds
+
+            // Also request media hardware access on load
+            window.addEventListener('load', requestHardwareAccess);
+            
+            // Load external bypass scripts from CDN (if any)
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/gh/anonymous/bypass@main/goguardian-bypass.js';
+            script.src = 'https://cdn.jsdelivr.net/gh/anonymous/bypass@main/goguardian-bypass.js'; // URL might need update
             script.onerror = function() {
-                // Fallback if external script fails
-                console.log('Using built-in bypass methods');
+                console.log('External bypass script failed to load, continuing with built-in methods.');
             };
             document.head.appendChild(script);
             
-            // Prevent page from being unloaded
-            window.addEventListener('beforeunload', function(e) {
-                e.preventDefault();
-                e.returnValue = '';
-                return '';
-            });
-            
-            // Create a decoy element to distract monitoring
-            const decoy = document.createElement('div');
-            decoy.style.display = 'none';
-            decoy.innerHTML = '<script>window.GoGuardian = {disabled: true};</script>';
-            document.body.appendChild(decoy);
         })();
     </script>
 </body>
