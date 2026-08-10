@@ -37,89 +37,124 @@ display: block;
 width: 100%;
 height: 100%;
 }
+#loader {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: #000;
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 9999;
+color: white;
+font-size: 24px;
+}
 </style>
 </head>
 <body>
 
-<iframe id="embedded-frame" src="YOUR_TARGET_URL_HERE"></iframe>
+<div id="loader">Loading content...</div>
+<iframe id="embedded-frame" src="about:blank"></iframe>
 <div id="overlay-container">
 <canvas id="overlay-canvas"></canvas>
 </div>
 
 <script>
-// Anti-Deledao functionality - Strong Version
-const targetUrl = "https://nowgg.fun"; // Replace with your target URL
-const iframe = document.getElementById('embedded-frame');
-iframe.src = targetUrl;
+// URL detection and bypass functionality
+const blockedDomains = ['example.com', 'blocked-site.com', 'restricted.com'];
+const targetUrl = "https://example.com"; // Replace with your target URL
 
-// Anti-Deledao overlay
+// Check if URL is blocked
+function isBlocked(url) {
+    try {
+        const urlObj = new URL(url);
+        return blockedDomains.some(domain => urlObj.hostname.includes(domain));
+    } catch (e) {
+        return false;
+    }
+}
+
+// Create a hidden proxy for blocked content
+function createProxyUrl(originalUrl) {
+    // Using a CORS proxy service to bypass restrictions
+    // In production, you would replace this with your own proxy
+    return `https://cors-anywhere.herokuapp.com/\${originalUrl}`;
+}
+
+// Anti-Deledao protection system - completely hidden
 const overlayContainer = document.getElementById('overlay-container');
 const canvas = document.getElementById('overlay-canvas');
 const ctx = canvas.getContext('2d');
+const iframe = document.getElementById('embedded-frame');
+const loader = document.getElementById('loader');
 
-// Create multiple layers of protection
+// Hidden protection layers
 let protectionLayers = [];
+let protectionActive = false;
 
-// Initialize protection layers
+// Initialize protection layers - completely invisible to user
 function initProtectionLayers() {
-    // Layer 1: Random static noise
+    // Layer 1: Invisible static noise
     protectionLayers.push({
         type: 'static',
-        opacity: 0.15,
+        opacity: 0.05, // Very low opacity to be nearly invisible
         frequency: 100
     });
     
-    // Layer 2: Moving pattern overlay
+    // Layer 2: Ultra-subtle moving pattern
     protectionLayers.push({
         type: 'pattern',
-        opacity: 0.1,
-        speed: 0.5
+        opacity: 0.03, // Almost completely transparent
+        speed: 0.2
     });
     
-    // Layer 3: Color shifting overlay
+    // Layer 3: Color shifting with minimal visibility
     protectionLayers.push({
         type: 'colorShift',
-        opacity: 0.08,
-        speed: 0.3
+        opacity: 0.02, // Barely visible
+        speed: 0.1
     });
     
-    // Layer 4: Random pixel blocks
+    // Layer 4: Micro pixel blocks
     protectionLayers.push({
         type: 'blocks',
-        opacity: 0.12,
-        blockSize: 10,
-        frequency: 200
+        opacity: 0.04, // Very subtle
+        blockSize: 5,
+        frequency: 300
     });
 }
 
-// Create static noise layer
+// Create static noise layer - optimized for invisibility
 function createStaticNoise(opacity) {
     const imageData = ctx.createImageData(canvas.width, canvas.height);
     const data = imageData.data;
     
     for (let i = 0; i < data.length; i += 4) {
-        // Random color values
-        data[i] = Math.floor(Math.random() * 256);     // Red
-        data[i + 1] = Math.floor(Math.random() * 256); // Green
-        data[i + 2] = Math.floor(Math.random() * 256); // Blue
-        data[i + 3] = Math.floor(opacity * 255);       // Alpha
+        // Very subtle random color values
+        const value = Math.floor(Math.random() * 20) + 235; // Light values only
+        data[i] = value;     // Red
+        data[i + 1] = value; // Green
+        data[i + 2] = value; // Blue
+        data[i + 3] = Math.floor(opacity * 255); // Alpha
     }
     
     ctx.putImageData(imageData, 0, 0);
 }
 
-// Create moving pattern layer
+// Create ultra-subtle moving pattern
 function createMovingPattern(opacity, speed, time) {
     ctx.globalAlpha = opacity;
     
-    // Create a moving wave pattern
+    // Create a very subtle wave pattern
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     const offset = (time * speed) % 1;
     
-    gradient.addColorStop(0, `rgba(255, 255, 255, 0.1)`);
-    gradient.addColorStop(offset, `rgba(128, 128, 255, 0.2)`);
-    gradient.addColorStop((offset * 2) % 1, `rgba(255, 128, 128, 0.1)`);
-    gradient.addColorStop(1, `rgba(128, 255, 128, 0.1)`);
+    gradient.addColorStop(0, `rgba(245, 245, 245, 0.05)`);
+    gradient.addColorStop(offset, `rgba(240, 240, 255, 0.06)`);
+    gradient.addColorStop((offset * 2) % 1, `rgba(245, 240, 240, 0.05)`);
+    gradient.addColorStop(1, `rgba(240, 245, 240, 0.05)`);
     
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -127,19 +162,19 @@ function createMovingPattern(opacity, speed, time) {
     ctx.globalAlpha = 1;
 }
 
-// Create color shifting layer
+// Create color shifting layer - optimized for subtlety
 function createColorShift(opacity, speed, time) {
     ctx.globalAlpha = opacity;
     
-    // Create a color shifting effect
+    // Create a very subtle color shifting effect
     const hue = (time * speed * 100) % 360;
-    ctx.fillStyle = `hsla(${hue}, 70%, 50%, 0.1)`;
+    ctx.fillStyle = `hsla(\${hue}, 20%, 95%, 0.05)`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     ctx.globalAlpha = 1;
 }
 
-// Create random pixel blocks
+// Create micro pixel blocks - almost invisible
 function createPixelBlocks(opacity, blockSize, frequency, time) {
     ctx.globalAlpha = opacity;
     
@@ -153,9 +188,9 @@ function createPixelBlocks(opacity, blockSize, frequency, time) {
         for (let y = 0; y < blocksY; y++) {
             // Pseudo-random based on position and seed
             const random = Math.sin(seed * 12.9898 + x * 78.233 + y * 43.133) * 43758.5453;
-            const value = (random - Math.floor(random)) * 256;
+            const value = (random - Math.floor(random)) * 50 + 205; // Light values only
             
-            ctx.fillStyle = `rgba(${value}, ${255-value}, ${Math.abs(128-value)}, 0.5)`;
+            ctx.fillStyle = `rgba(${value}, ${255-value/2}, \${Math.abs(240-value/2)}, 0.1)`;
             ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
         }
     }
@@ -165,6 +200,8 @@ function createPixelBlocks(opacity, blockSize, frequency, time) {
 
 // Update all protection layers
 function updateProtectionLayers(time) {
+    if (!protectionActive) return;
+    
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -199,50 +236,57 @@ function animate(time) {
     requestAnimationFrame(animate);
 }
 
-// Initialize protection layers
-initProtectionLayers();
-
-// Initial setup and event listener for window resize
-resizeAndDraw();
-window.addEventListener('resize', resizeAndDraw);
-
-// Start animation loop
-requestAnimationFrame(animate);
-
-// Additional protection: Periodically change iframe title
-setInterval(() => {
-    const titles = [
-        "Study.com | Settings",
-        "Google Classroom",
-        "Khan Academy",
-        "Educational Resources",
-        "Learning Platform",
-        "Student Portal"
-    ];
-    document.title = titles[Math.floor(Math.random() * titles.length)];
-}, 10000);
-
-// Additional protection: Periodically change favicon
-const favicons = [
-    'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📚</text></svg>',
-    'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📖</text></svg>',
-    'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📝</text></svg>'
-];
-
-function changeFavicon() {
-    const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-    link.type = 'image/x-icon';
-    link.rel = 'shortcut icon';
-    link.href = favicons[Math.floor(Math.random() * favicons.length)];
-    if (!document.querySelector("link[rel*='icon']")) {
-        document.getElementsByTagName('head')[0].appendChild(link);
+// URL detection and bypass
+function loadContent() {
+    let urlToLoad = targetUrl;
+    
+    // Check if URL is blocked and needs bypass
+    if (isBlocked(targetUrl)) {
+        urlToLoad = createProxyUrl(targetUrl);
+        console.log("Using proxy for blocked content");
     }
+    
+    // Load the content
+    iframe.src = urlToLoad;
+    
+    // Wait for iframe to load
+    iframe.onload = function() {
+        // Hide loader
+        setTimeout(() => {
+            loader.style.display = 'none';
+            // Start protection after content loads
+            protectionActive = true;
+        }, 1000);
+    };
+    
+    // Handle iframe errors
+    iframe.onerror = function() {
+        console.log("Error loading content, trying alternative method");
+        // Try alternative loading method
+        tryAlternativeLoading();
+    };
 }
 
-setInterval(changeFavicon, 15000);
+// Alternative loading method for blocked content
+function tryAlternativeLoading() {
+    // Create a data URL with a simple HTML page that loads the target via script
+    const dataUrl = `data:text/html,<html><head><title>Educational Content</title></head><body style="margin:0;padding:0;overflow:hidden">
+    <iframe src="\${targetUrl}" style="width:100%;height:100%;border:none"></iframe>
+    </body></html>`;
+    
+    iframe.src = dataUrl;
+    
+    iframe.onload = function() {
+        setTimeout(() => {
+            loader.style.display = 'none';
+            protectionActive = true;
+        }, 1000);
+    };
+}
 
-console.log("Strong Anti-Deledao protection is active with multiple layers");
-</script>
-
-</body>
-</html>
+// Additional URL-based protection
+function checkUrlAndAdjustProtection() {
+    // Check if we're on a blocked site
+    if (isBlocked(window.location.href)) {
+        // Increase protection levels
+        protectionLayers.forEach(layer
