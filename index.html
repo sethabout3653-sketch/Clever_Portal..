@@ -1,292 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Study.com | Settings</title>
-<style>
-body {
-margin: 0;
-overflow: hidden;
-background-color: #000;
-position: relative;
-font-family: Arial, sans-serif;
-}
-#embedded-frame {
-width: 100vw;
-height: 100vh;
-border: none;
-display: block;
-position: relative;
-z-index: 1;
-}
-#overlay-container {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-z-index: 2;
-pointer-events: none;
-display: flex;
-justify-content: center;
-align-items: center;
-}
-#overlay-canvas {
-display: block;
-width: 100%;
-height: 100%;
-}
-#loader {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background-color: #000;
-display: flex;
-justify-content: center;
-align-items: center;
-z-index: 9999;
-color: white;
-font-size: 24px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UnblockedGames</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Hide scrollbars */
+            background-color: #000; /* Black background for immersion */
+            position: relative; /* Needed for absolute positioning of children */
+            font-family: Arial, sans-serif; /* Basic font for any text */
+        }
+        #embedded-frame {
+            width: 100vw;
+            height: 100vh;
+            border: none; /* No border */
+            display: block; /* Remove extra space below the frame */
+            position: relative; /* Ensure it stays behind the overlay */
+            z-index: 1; /* Below the overlay */
+        }
+        #overlay-container {
+            position: absolute; /* Position it over everything */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2; /* Above the iframe */
+            pointer-events: none; /* Crucial: Allows clicks to pass through to the iframe */
+            display: flex; /* Use flexbox for centering content */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            color: rgba(255, 255, 255, 0.8); /* Default text color for overlay */
+            font-size: 1.2em; /* Default font size */
+            text-align: center;
+        }
+        #overlay-canvas {
+            display: block; /* Remove extra space below canvas */
+            width: 100%; /* Make canvas fill its container */
+            height: 100%;
+        }
+        /* Style for any text you might want to display over the canvas */
+        .overlay-text {
+            position: absolute;
+            top: 10px; /* Position from the top */
+            left: 10px; /* Position from the left */
+            z-index: 3; /* Ensure text is above canvas if needed, but still below pointer-events:none */
+            pointer-events: none; /* Text should also not block clicks */
+            color: rgba(255, 255, 255, 0.9); /* White text, slightly transparent */
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Add shadow for readability */
+        }
+    </style>
 </head>
 <body>
 
-<div id="loader">Loading content...</div>
-<iframe id="embedded-frame" src="about:blank"></iframe>
-<div id="overlay-container">
-<canvas id="overlay-canvas"></canvas>
-</div>
+    <iframe id="embedded-frame" src="YOUR_TARGET_URL_HERE"></iframe>
+    <div id="overlay-container">
+        <canvas id="overlay-canvas"></canvas>
+        <div class="overlay-text">UnblockedGames</div>
+    </div>
 
-<script>
-// URL detection and bypass functionality
-const blockedDomains = ['example.com', 'blocked-site.com', 'restricted.com'];
-const targetUrl = "https://example.com"; // Replace with your target URL
+    <script>
+        // --- Core Embedding Logic ---
+        const targetUrl = "https://frogiesarcade.net"; // !!! REPLACE WITH YOUR ACTUAL TARGET WEBSITE !!!
+        const iframe = document.getElementById('embedded-frame');
+        iframe.src = targetUrl;
 
-// Check if URL is blocked
-function isBlocked(url) {
-    try {
-        const urlObj = new URL(url);
-        return blockedDomains.some(domain => urlObj.hostname.includes(domain));
-    } catch (e) {
-        return false;
-    }
-}
+        // --- Non-Savable Transparent Static Image Overlay Logic ---
+        const overlayContainer = document.getElementById('overlay-container');
+        const canvas = document.getElementById('overlay-canvas');
+        const ctx = canvas.getContext('2d');
 
-// Create a hidden proxy for blocked content
-function createProxyUrl(originalUrl) {
-    // Using a CORS proxy service to bypass restrictions
-    // In production, you would replace this with your own proxy
-    return `https://cors-anywhere.herokuapp.com/\${originalUrl}`;
-}
+        // !!! REPLACE THIS BASE64 STRING WITH YOUR IMAGE'S BASE64 ENCODED DATA !!!
+        // This is a small, transparent 1x1 pixel image as a placeholder.
+        // For a more "static" feel, use an image that doesn't rely on dynamic generation.
+        // Example: Convert your static image (e.g., a logo) to a base64 string.
+        // You can use online converters for this.
+        // Example Data URL for a small transparent PNG:
+        const imageUrlDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+        // !!! IMPORTANT: Replace the above placeholder with your actual static image's Base64 Data URL !!!
 
-// Anti-Deledao protection system - completely hidden
-const overlayContainer = document.getElementById('overlay-container');
-const canvas = document.getElementById('overlay-canvas');
-const ctx = canvas.getContext('2d');
-const iframe = document.getElementById('embedded-frame');
-const loader = document.getElementById('loader');
+        const overlayImage = new Image();
+        let imageLoaded = false;
 
-// Hidden protection layers
-let protectionLayers = [];
-let protectionActive = false;
+        overlayImage.onload = function() {
+            imageLoaded = true;
+            // --- Drawing Configuration ---
+            // These settings define how the static image is displayed on the canvas.
+            // Since the request is for a "transparent one" and "static," we'll draw
+            // it once and ensure it covers appropriately without tiling by default.
 
-// Initialize protection layers - completely invisible to user
-function initProtectionLayers() {
-    // Layer 1: Invisible static noise
-    protectionLayers.push({
-        type: 'static',
-        opacity: 0.05, // Very low opacity to be nearly invisible
-        frequency: 100
-    });
-    
-    // Layer 2: Ultra-subtle moving pattern
-    protectionLayers.push({
-        type: 'pattern',
-        opacity: 0.03, // Almost completely transparent
-        speed: 0.2
-    });
-    
-    // Layer 3: Color shifting with minimal visibility
-    protectionLayers.push({
-        type: 'colorShift',
-        opacity: 0.02, // Barely visible
-        speed: 0.1
-    });
-    
-    // Layer 4: Micro pixel blocks
-    protectionLayers.push({
-        type: 'blocks',
-        opacity: 0.04, // Very subtle
-        blockSize: 5,
-        frequency: 300
-    });
-}
+            const opacity = 0.4; // Transparency of the image (0.0 to 1.0). Adjust as needed.
+            const scale = 0.3;   // Scale factor for the image if drawn as a single instance.
+                                // Adjust this to make the image larger or smaller.
+                                // Set to 1 if you want original size, or adjust for desired fit.
 
-// Create static noise layer - optimized for invisibility
-function createStaticNoise(opacity) {
-    const imageData = ctx.createImageData(canvas.width, canvas.height);
-    const data = imageData.data;
-    
-    for (let i = 0; i < data.length; i += 4) {
-        // Very subtle random color values
-        const value = Math.floor(Math.random() * 20) + 235; // Light values only
-        data[i] = value;     // Red
-        data[i + 1] = value; // Green
-        data[i + 2] = value; // Blue
-        data[i + 3] = Math.floor(opacity * 255); // Alpha
-    }
-    
-    ctx.putImageData(imageData, 0, 0);
-}
+            ctx.globalAlpha = opacity; // Set the transparency for the drawn image.
 
-// Create ultra-subtle moving pattern
-function createMovingPattern(opacity, speed, time) {
-    ctx.globalAlpha = opacity;
-    
-    // Create a very subtle wave pattern
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    const offset = (time * speed) % 1;
-    
-    gradient.addColorStop(0, `rgba(245, 245, 245, 0.05)`);
-    gradient.addColorStop(offset, `rgba(240, 240, 255, 0.06)`);
-    gradient.addColorStop((offset * 2) % 1, `rgba(245, 240, 240, 0.05)`);
-    gradient.addColorStop(1, `rgba(240, 245, 240, 0.05)`);
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.globalAlpha = 1;
-}
+            // Calculate dimensions to maintain aspect ratio for a single instance
+            let drawWidth = overlayImage.width * scale;
+            let drawHeight = overlayImage.height * scale;
 
-// Create color shifting layer - optimized for subtlety
-function createColorShift(opacity, speed, time) {
-    ctx.globalAlpha = opacity;
-    
-    // Create a very subtle color shifting effect
-    const hue = (time * speed * 100) % 360;
-    ctx.fillStyle = `hsla(\${hue}, 20%, 95%, 0.05)`;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.globalAlpha = 1;
-}
+            // Center the image on the canvas
+            const targetX = canvas.width / 2 - drawWidth / 2;
+            const targetY = canvas.height / 2 - drawHeight / 2;
 
-// Create micro pixel blocks - almost invisible
-function createPixelBlocks(opacity, blockSize, frequency, time) {
-    ctx.globalAlpha = opacity;
-    
-    const blocksX = Math.ceil(canvas.width / blockSize);
-    const blocksY = Math.ceil(canvas.height / blockSize);
-    
-    // Use time as a seed for pseudo-randomness
-    const seed = Math.floor(time / 1000);
-    
-    for (let x = 0; x < blocksX; x++) {
-        for (let y = 0; y < blocksY; y++) {
-            // Pseudo-random based on position and seed
-            const random = Math.sin(seed * 12.9898 + x * 78.233 + y * 43.133) * 43758.5453;
-            const value = (random - Math.floor(random)) * 50 + 205; // Light values only
-            
-            ctx.fillStyle = `rgba(${value}, ${255-value/2}, \${Math.abs(240-value/2)}, 0.1)`;
-            ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+            // Draw the image once onto the canvas.
+            // No tiling is used by default to ensure it's a single "static" element.
+            ctx.drawImage(overlayImage, targetX, targetY, drawWidth, drawHeight);
+
+            ctx.globalAlpha = 1.0; // Reset alpha to default.
+        };
+
+        overlayImage.onerror = function() {
+            console.error("Failed to load image for canvas overlay. Please check the imageUrlDataUrl.");
+            // Optionally, draw a placeholder or error message
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // Red overlay
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Image Load Error', canvas.width / 2, canvas.height / 2);
+        };
+
+        // Function to resize canvas and redraw the image
+        function resizeAndDraw() {
+            canvas.width = overlayContainer.offsetWidth;
+            canvas.height = overlayContainer.offsetHeight;
+
+            if (imageLoaded) {
+                // Redraw the image after resizing
+                // Clear the canvas first to avoid drawing multiple images
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const opacity = 0.4; // Re-apply opacity
+                const scale = 0.3;   // Re-apply scale
+
+                ctx.globalAlpha = opacity;
+
+                let drawWidth = overlayImage.width * scale;
+                let drawHeight = overlayImage.height * scale;
+                const targetX = canvas.width / 2 - drawWidth / 2;
+                const targetY = canvas.height / 2 - drawHeight / 2;
+
+                ctx.drawImage(overlayImage, targetX, targetY, drawWidth, drawHeight);
+                ctx.globalAlpha = 1.0;
+            } else {
+                // If image not loaded yet, set source
+                overlayImage.src = imageUrlDataUrl;
+            }
         }
-    }
-    
-    ctx.globalAlpha = 1;
-}
 
-// Update all protection layers
-function updateProtectionLayers(time) {
-    if (!protectionActive) return;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Apply each protection layer
-    protectionLayers.forEach(layer => {
-        switch (layer.type) {
-            case 'static':
-                createStaticNoise(layer.opacity);
-                break;
-            case 'pattern':
-                createMovingPattern(layer.opacity, layer.speed, time);
-                break;
-            case 'colorShift':
-                createColorShift(layer.opacity, layer.speed, time);
-                break;
-            case 'blocks':
-                createPixelBlocks(layer.opacity, layer.blockSize, layer.frequency, time);
-                break;
-        }
-    });
-}
+        // Initial setup and event listener for window resize
+        resizeAndDraw();
+        window.addEventListener('resize', resizeAndDraw);
 
-// Function to resize canvas and redraw
-function resizeAndDraw() {
-    canvas.width = overlayContainer.offsetWidth;
-    canvas.height = overlayContainer.offsetHeight;
-}
+        // Note on "Non-Savable" and "When Right Clicked":
+        // 1. Canvas Rendering: The image is drawn onto a canvas. This means there's no direct `<img>` tag or CSS background to right-click and "Save Image As..." directly.
+        // 2. Pointer Events: The `#overlay-container` has `pointer-events: none;`. This is critical. It ensures that clicks and context menus (right-clicks) are passed through to the `<iframe>` element beneath, allowing users to interact with the embedded website. The overlay itself doesn't intercept these actions.
+        // 3. Data URL: Using a Base64 encoded Data URL for `imageUrlDataUrl` embeds the image data directly into the script. This makes it harder to find a distinct image file source to save.
+        // 4. "Static" Nature: The script draws the image once on load and redraws it on resize. It's not animated or dynamically changing, fulfilling the "static" requirement.
+        // 5. Transparency: Achieved via the `opacity` setting and the nature of the image data itself (if your original image is transparent).
 
-// Animation loop
-function animate(time) {
-    updateProtectionLayers(time);
-    requestAnimationFrame(animate);
-}
+        console.log("Page loaded as 'UnblockedGames'. Transparent, non-savable static image overlay is active, allowing interaction with the embedded website.");
 
-// URL detection and bypass
-function loadContent() {
-    let urlToLoad = targetUrl;
-    
-    // Check if URL is blocked and needs bypass
-    if (isBlocked(targetUrl)) {
-        urlToLoad = createProxyUrl(targetUrl);
-        console.log("Using proxy for blocked content");
-    }
-    
-    // Load the content
-    iframe.src = urlToLoad;
-    
-    // Wait for iframe to load
-    iframe.onload = function() {
-        // Hide loader
-        setTimeout(() => {
-            loader.style.display = 'none';
-            // Start protection after content loads
-            protectionActive = true;
-        }, 1000);
-    };
-    
-    // Handle iframe errors
-    iframe.onerror = function() {
-        console.log("Error loading content, trying alternative method");
-        // Try alternative loading method
-        tryAlternativeLoading();
-    };
-}
+    </script>
 
-// Alternative loading method for blocked content
-function tryAlternativeLoading() {
-    // Create a data URL with a simple HTML page that loads the target via script
-    const dataUrl = `data:text/html,<html><head><title>Educational Content</title></head><body style="margin:0;padding:0;overflow:hidden">
-    <iframe src="\${targetUrl}" style="width:100%;height:100%;border:none"></iframe>
-    </body></html>`;
-    
-    iframe.src = dataUrl;
-    
-    iframe.onload = function() {
-        setTimeout(() => {
-            loader.style.display = 'none';
-            protectionActive = true;
-        }, 1000);
-    };
-}
-
-// Additional URL-based protection
-function checkUrlAndAdjustProtection() {
-    // Check if we're on a blocked site
-    if (isBlocked(window.location.href)) {
-        // Increase protection levels
-        protectionLayers.forEach(layer
+</body>
+</html>
