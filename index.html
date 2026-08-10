@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fullscreen Embedded Website - Focused Evasion</title>
+<title>Fullscreen Embedded Website - Ultimate Evasion Attempt</title>
 <style>
     body, html {
         margin: 0;
@@ -9,158 +9,287 @@
         overflow: hidden;
         height: 100%;
         background-color: #000;
+        cursor: crosshair; /* Make cursor look more aggressive */
     }
 
-    #main-content-iframe {
+    /* The main content iframe - this is what we want to keep */
+    #contentFrame {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         border: none;
-        z-index: 1; /* Base layer for the content */
+        z-index: 1; /* Lower z-index to be behind overlay */
+        background-color: #000; /* Fallback if iframe fails to load */
     }
 
-    #static-overlay {
+    /* Static Overlay - makes it look broken */
+    #staticOverlay {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        pointer-events: none; /* Crucial: allows clicks to pass through to iframe */
+        pointer-events: auto; /* CHANGED: Make it interactable to possibly block or misdirect */
         background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACpDid1AAAAIElEQVQIW2P8//8/A8GkQBQoowj6gM0E4rIAAIQABGgAFJBAwAAAAABJRU5ErkJggg=='); /* Tiny repeating black dot pattern */
         background-size: 2px 2px;
-        animation: glitch 2s infinite linear alternate-reverse;
-        z-index: 100; /* Highest z-index to be on top */
-        opacity: 0.6; /* Slightly more opaque for more "glitch" effect */
-        display: none; /* Hidden by default */
+        animation: glitch 1s infinite linear alternate-reverse; /* Faster glitch */
+        z-index: 100; /* Highest z-index */
+        opacity: 0.9; /* Very opaque - hard to see through */
+        display: block; /* Always visible */
     }
 
+    /* The glitch animation */
     @keyframes glitch {
-        0% { background-position: 0 0; }
-        10% { background-position: -2px 0; }
-        20% { background-position: 0 -2px; }
-        30% { background-position: -2px -2px; }
-        40% { background-position: 0 0; }
-        50% { background-position: 2px 2px; }
-        60% { background-position: 0 2px; }
-        70% { background-position: 2px 0; }
-        80% { background-position: 2px 2px; }
+        0% { transform: translate(0); }
+        5% { transform: translate(-2px, -2px); }
+        10% { transform: translate(2px, 2px); }
+        15% { transform: translate(-2px, 2px); }
+        20% { transform: translate(2px, -2px); }
+        25% { transform: translate(0, 0); }
+        30% { background-position: -3px 0; }
+        40% { background-position: 0 -3px; }
+        50% { background-position: -3px -3px; }
+        60% { background-position: 3px 3px; }
+        70% { background-position: -3px 3px; }
+        80% { background-position: 3px -3px; }
         90% { background-position: 0 0; }
-        100% { background-position: -2px 0; }
+        100% { transform: translate(0); background-position: 0 0; }
+    }
+
+    /* Hidden content or fallback */
+    #fallbackContent {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+        color: #0f0; /* Neon green text */
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 24px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2; /* Above iframe, below static */
+        opacity: 0; /* Invisible by default */
     }
 </style>
 </head>
 <body>
 
-    <div id="static-overlay"></div>
-    <iframe id="main-content-iframe" src="https://truffled.lol" allowfullscreen title="Main Content"></iframe>
+    <div id="staticOverlay"></div>
+    <iframe id="contentFrame" src="about:blank" allowfullscreen title="Content Frame"></iframe>
+    <div id="fallbackContent">
+        <p>SYSTEM LOCKDOWN ACTIVE.</p>
+        <p>EXTERNAL ACCESS BLOCKED.</p>
+        <p>RESTORING PRIMARY FEED...</p>
+    </div>
 
     <script>
-        const targetUrl = "https://truffled.lol/";
-        let primaryIframe = document.getElementById('main-content-iframe');
-        const staticOverlay = document.getElementById('static-overlay');
+        const TARGET_URL = "https://example.com"; // <<< CHANGE THIS TO YOUR DESIRED URL
+        const FALLBACK_MSG_INTERVAL = 5000; // ms
+        const RESTORE_CHECK_INTERVAL = 1000; // ms
 
-        // Make the static overlay visible and animate it
+        let contentFrame = document.getElementById('contentFrame');
+        let staticOverlay = document.getElementById('staticOverlay');
+        let fallbackContent = document.getElementById('fallbackContent');
+
+        // --- Phase 1: Initial Setup & Aggressive Overlay ---
         staticOverlay.style.display = 'block';
+        fallbackContent.style.opacity = '1'; // Make fallback message visible initially
 
-        // Basic "Anti-Deleado" and Content Restoration
-        // This script will continuously check if the primary iframe is still there.
-        // If it's gone, it tries to recreate it.
-        const restorationInterval = setInterval(() => {
-            const currentIframe = document.getElementById('main-content-iframe');
-            if (!currentIframe) {
-                console.warn("Primary iframe not found. Attempting to restore...");
-                // Create a new iframe and set its properties
-                const newIframe = document.createElement('iframe');
-                newIframe.id = 'main-content-iframe';
-                newIframe.className = 'iframe-layer'; // Add class for styling consistency
-                newIframe.src = targetUrl;
-                newIframe.setAttribute('allowfullscreen', '');
-                newIframe.title = "Main Content";
-                newIframe.style.position = 'absolute';
-                newIframe.style.top = '0';
-                newIframe.style.left = '0';
-                newIframe.style.width = '100%';
-                newIframe.style.height = '100%';
-                newIframe.style.border = 'none';
-                newIframe.style.zIndex = '1'; // Ensure it's behind the overlay
-
-                // Re-attach the error/load listeners if you had them, or just append
-                newIframe.onerror = () => console.log(`Error loading restored iframe: ${targetUrl}`);
-                newIframe.onload = () => console.log(`Restored iframe loaded: ${targetUrl}`);
-
-                document.body.appendChild(newIframe);
-                primaryIframe = newIframe; // Update our reference
-            }
-            // Additional check: Ensure the static overlay is still visible
-            if (staticOverlay.style.display === 'none') {
-                console.warn("Static overlay not visible. Restoring...");
-                staticOverlay.style.display = 'block';
-            }
-        }, 3000); // Check every 3 seconds
-
-        // Optional: Force reload on specific browser actions (highly intrusive and often blocked)
-        // window.addEventListener('beforeunload', (e) => {
-        //     e.preventDefault();
-        //     e.returnValue = ''; // This part is largely ignored by modern browsers for security reasons
-        //     // In some very specific, older contexts, this might trigger a prompt,
-        //     // but it won't prevent navigation/closing.
-        // });
-
-        // Optional: Make it harder to right-click and inspect
+        // Attempt to block right-click and selection
         document.addEventListener('contextmenu', (e) => {
-            e.preventDefault(); // Disable right-click context menu
-            // Optionally, show a message or re-trigger the static effect
-            staticOverlay.style.opacity = 1; // Temporarily make static solid
-            setTimeout(() => { staticOverlay.style.opacity = 0.6; }, 200); // Fade back
+            e.preventDefault();
+            // Try to make overlay flicker more aggressively
+            staticOverlay.style.opacity = 1;
+            staticOverlay.style.animationDuration = '0.2s';
+            setTimeout(() => {
+                staticOverlay.style.opacity = 0.9;
+                staticOverlay.style.animationDuration = '1s';
+            }, 100);
         });
 
-        // More aggressive "anti-deleado": try to prevent deletion via DOM manipulation directly
-        // This is also easily bypassed by developers.
-        const originalAppendChild = document.body.appendChild;
-        document.body.appendChild = function(element) {
-            if (element.tagName === 'IFRAME' && element.id === 'main-content-iframe') {
-                console.log("Intercepted iframe append. Ensuring it's the main one.");
-                // If it's the main one being added, just append it normally.
-                // If it's some other iframe, we might decide to block it.
-                // For this script, we only care about the primary iframe.
-                return originalAppendChild.call(this, element);
-            } else if (element.tagName === 'IFRAME' && !element.id) {
-                 console.warn("Attempt to add an unauthorized iframe blocked.");
-                 // Optionally, show the static overlay again or trigger an alert
-                 return; // Block the addition of other iframes
-            }
-            // Append all other elements normally
-            return originalAppendChild.call(this, element);
-        };
+        // Prevent text selection that might reveal something
+        document.addEventListener('selectstart', (e) => {
+            e.preventDefault();
+        });
 
-        // If you want to try and prevent the page from being navigated away from
-        // by the user clicking links *inside* the iframe (this is tricky as it
-        // interferes with normal iframe functionality).
-        document.getElementById('main-content-iframe').addEventListener('load', function() {
+        // --- Phase 2: Force Content Loading & "Anti-Deleado" ---
+        function restoreContent() {
+            if (!contentFrame) {
+                console.warn("Content frame missing. Recreating...");
+                contentFrame = document.createElement('iframe');
+                contentFrame.id = 'contentFrame';
+                contentFrame.src = "about:blank"; // Load blank first to avoid issues
+                contentFrame.setAttribute('allowfullscreen', '');
+                contentFrame.title = "Content Frame";
+                contentFrame.style.position = 'absolute';
+                contentFrame.style.top = '0';
+                contentFrame.style.left = '0';
+                contentFrame.style.width = '100%';
+                contentFrame.style.height = '100%';
+                contentFrame.style.border = 'none';
+                contentFrame.style.zIndex = '1';
+                contentFrame.style.backgroundColor = '#000'; // Fallback
+                document.body.appendChild(contentFrame);
+            }
+
+            // Load the target URL
+            contentFrame.src = TARGET_URL;
+
+            // Make fallback message disappear after a short delay
+            fallbackContent.style.opacity = '0';
+            setTimeout(() => {
+                fallbackContent.style.display = 'none';
+            }, 1000); // Hide after 1 second once content is loading
+
+            // Make overlay slightly more transparent so content is *somewhat* visible
+            staticOverlay.style.opacity = 0.7;
+            staticOverlay.style.pointerEvents = 'none'; // Re-enable passing clicks
+            staticOverlay.style.animation = 'glitch 1s infinite linear alternate-reverse'; // Ensure animation is on
+        }
+
+        // Aggressively try to restore content if it's not there or loading fails
+        const restoreInterval = setInterval(() => {
+            let currentContentFrame = document.getElementById('contentFrame');
+            if (!currentContentFrame || currentContentFrame.src === "about:blank" || currentContentFrame.src.includes("error")) {
+                 console.log("Content frame not loaded or errored. Attempting restoration...");
+                 restoreContent();
+            }
+            // Ensure static overlay is always active
+            if (staticOverlay.style.display === 'none') {
+                staticOverlay.style.display = 'block';
+                staticOverlay.style.opacity = 0.7; // Reset opacity if it was hidden
+                staticOverlay.style.pointerEvents = 'none';
+            }
+        }, RESTORE_CHECK_INTERVAL);
+
+
+        // --- Phase 3: DOM Integrity Check (Very Aggressive) ---
+        // This is the core "anti-deleado" attempt. It monitors DOM changes.
+        // It will try to remove any element that ISN'T the content frame or the static overlay.
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                // Check added nodes
+                if (mutation.addedNodes) {
+                    mutation.addedNodes.forEach(function(node) {
+                        // If it's an element node
+                        if (node.nodeType === 1) {
+                            // If it's an iframe, and NOT our contentFrame
+                            if (node.tagName === 'IFRAME' && node.id !== 'contentFrame') {
+                                console.warn("Unauthorized iframe detected. Removing.");
+                                node.remove();
+                            }
+                            // If it's anything else that is not our overlay or fallback
+                            else if (node.id !== 'staticOverlay' && node.id !== 'fallbackContent' && node.tagName !== 'IFRAME') {
+                                console.warn("Unauthorized element detected. Removing.");
+                                node.remove();
+                            }
+                        }
+                    });
+                }
+                // Check removed nodes
+                if (mutation.removedNodes) {
+                    mutation.removedNodes.forEach(function(node) {
+                        // If our critical elements (iframe, overlay) were removed, try to restore them.
+                        if (node.id === 'contentFrame') {
+                            console.warn("Content frame was removed! Immediate restoration.");
+                            restoreContent(); // Try to bring it back immediately
+                        }
+                        if (node.id === 'staticOverlay') {
+                             console.warn("Static overlay was removed! Recreating.");
+                             // Recreate static overlay if it was removed
+                             let newOverlay = document.createElement('div');
+                             newOverlay.id = 'staticOverlay';
+                             newOverlay.className = 'glitch-element'; // Add class for styling
+                             // Copy necessary styles
+                             newOverlay.style.position = 'absolute';
+                             newOverlay.style.top = '0'; newOverlay.style.left = '0'; newOverlay.style.width = '100%'; newOverlay.style.height = '100%';
+                             newOverlay.style.pointerEvents = 'auto';
+                             newOverlay.style.background = staticOverlay.style.background;
+                             newOverlay.style.backgroundSize = staticOverlay.style.backgroundSize;
+                             newOverlay.style.animation = staticOverlay.style.animation;
+                             newOverlay.style.zIndex = '100';
+                             newOverlay.style.opacity = '0.9';
+                             newOverlay.style.display = 'block';
+                             document.body.appendChild(newOverlay);
+                             staticOverlay = newOverlay; // Update reference
+                        }
+                    });
+                }
+            });
+        });
+
+        // Start observing the document body for changes
+        observer.observe(document.body, {
+            childList: true, // Watch for added/removed children
+            subtree: true    // Watch all descendants
+        });
+
+        // --- Phase 4: Window/Tab Handling (Aggressive) ---
+        // Attempt to prevent closing or navigating away. VERY limited effectiveness.
+        let windowClosed = false;
+        window.addEventListener('beforeunload', (e) => {
+            if (windowClosed) return; // If we are intentionally closing, allow it.
+            e.preventDefault();
+            e.returnValue = 'System lockdown active. Closing this window will reset.';
+
+            // Try to force the static overlay to be more intrusive
+            staticOverlay.style.opacity = 1;
+            staticOverlay.style.animationDuration = '0.1s';
+
+            // Try to force focus back to the content frame (might not work)
+            if (contentFrame && contentFrame.contentWindow) {
+                contentFrame.contentWindow.focus();
+            } else {
+                 // If content frame is gone, try to reload it
+                 restoreContent();
+            }
+            // Return a string will show a confirmation dialog in some browsers
+            return 'System lockdown active. Closing this window will reset.';
+        });
+
+        // Attempt to detect when the tab/window IS closed by some means
+        window.addEventListener('unload', () => {
+            windowClosed = true; // Mark that we are intentionally unloading
+            console.log("Window unload event triggered. Attempting to maintain state if possible (unlikely).");
+            // In a real-world scenario, this would be where server-side
+            // persistence might kick in, but for client-side, it's game over.
+        });
+
+        // Attempt to block navigation that might occur from clicking *within* the iframe links.
+        // This is unreliable and often breaks functionality.
+        contentFrame.addEventListener('load', function() {
             try {
                 const iframeDoc = this.contentWindow.document;
                 if (iframeDoc) {
                     iframeDoc.addEventListener('click', (e) => {
-                        // If a link is clicked, this event is captured here.
-                        // It's hard to *prevent* the navigation reliably without
-                        // breaking the iframe. A common, albeit crude, trick
-                        // is to force a reload of the parent page or re-open
-                        // the iframe.
-                        // For now, we'll just log it as an interception.
-                        console.log("Link clicked inside iframe. Parent page might be reloaded.");
-                        // Example of forcing a reload (commented out as it's very aggressive)
-                        // setTimeout(() => {
-                        //     window.location.reload();
-                        // }, 100);
+                        const target = e.target;
+                        if (target.tagName === 'A') { // If a link was clicked
+                            console.log(`Link clicked inside iframe: ${target.href}`);
+                            e.preventDefault(); // Prevent default navigation
+                            e.stopPropagation(); // Stop event from bubbling further
+
+                            // Force a reload of the parent page to re-establish lockdown
+                            console.log("Forcing parent page reload to re-establish lockdown.");
+                            window.location.reload();
+                        }
                     });
                 }
             } catch (e) {
-                // Cross-origin restrictions will prevent accessing iframe document
-                // console.warn("Could not access iframe document (likely cross-origin):", e);
+                // Cross-origin errors are expected for most sites.
+                // If TARGET_URL is on the same origin, this might work.
+                // console.warn("Could not fully access iframe document for event listeners (likely cross-origin):", e);
             }
         });
+
+        // Initial restore call to make sure content is loaded and fallback disappears quickly
+        restoreContent();
 
     </script>
 
