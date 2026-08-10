@@ -43,51 +43,6 @@
             height: 100%;
         }
         
-        .control-panel {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: rgba(30, 30, 30, 0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            transition: opacity 0.3s;
-        }
-        
-        .control-button {
-            background-color: #444;
-            border: none;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .control-button:hover {
-            background-color: #555;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        
-        .status-active {
-            background-color: #4CAF50;
-        }
-        
-        .status-inactive {
-            background-color: #F44336;
-        }
-        
         /* Full screen styles */
         :fullscreen {
             background-color: #000;
@@ -107,41 +62,30 @@
     </style>
 </head>
 <body>
-    <iframe id="embedded-frame" src="about:blank" allowfullscreen></iframe>
+    <iframe id="embedded-frame" allowfullscreen></iframe>
     <div id="overlay-container">
         <canvas id="overlay-canvas"></canvas>
     </div>
-    
-    <div class="control-panel" id="controlPanel">
-        <div>
-            <span class="status-indicator status-inactive" id="bypassStatus"></span>
-            <span>Bypass Status</span>
-        </div>
-        <button class="control-button" id="toggleBypass">Enable Bypass</button>
-        <button class="control-button" id="toggleStealth">Stealth Mode</button>
-        <button class="control-button" id="clearHistory">Clear History</button>
-        <button class="control-button" id="toggleControls">Hide Controls</button>
-    </div>
 
     <script>
-        // Anti-Detection Configuration
+        // --- Anti-Detection Configuration ---
         const bypassConfig = {
-            enabled: false,
-            stealthMode: false,
+            enabled: true,
+            stealthMode: true,
             targetUrl: "https://frogiesarcade.net",
-            proxyRotation: false,
-            userAgentSpoofing: false,
-            referrerSpoofing: false,
-            cookieProtection: false,
-            canvasFingerprinting: false,
-            webglFingerprinting: false,
-            audioFingerprinting: false,
-            fontFingerprinting: false,
-            timezoneSpoofing: false,
-            languageSpoofing: false,
-            screenResolutionSpoofing: false,
-            hardwareSpoofing: false,
-            behaviorMimicry: false
+            proxyRotation: true,
+            userAgentSpoofing: true,
+            referrerSpoofing: true,
+            cookieProtection: true,
+            canvasFingerprinting: true,
+            webglFingerprinting: true,
+            audioFingerprinting: true,
+            fontFingerprinting: true,
+            timezoneSpoofing: true,
+            languageSpoofing: true,
+            screenResolutionSpoofing: true,
+            hardwareSpoofing: true,
+            behaviorMimicry: true
         };
         
         // Core Elements
@@ -149,14 +93,6 @@
         const overlayContainer = document.getElementById('overlay-container');
         const canvas = document.getElementById('overlay-canvas');
         const ctx = canvas.getContext('2d');
-        const controlPanel = document.getElementById('controlPanel');
-        const bypassStatus = document.getElementById('bypassStatus');
-        
-        // Control Elements
-        const toggleBypassBtn = document.getElementById('toggleBypass');
-        const toggleStealthBtn = document.getElementById('toggleStealth');
-        const clearHistoryBtn = document.getElementById('clearHistory');
-        const toggleControlsBtn = document.getElementById('toggleControls');
         
         // --- Anti-Detection Functions ---
         
@@ -274,4 +210,79 @@
         
         // 5. WebGL Fingerprinting Protection
         function protectWebGLFingerprinting() {
-            if (!bypassConfig.webglFingerprinting
+            if (!bypassConfig.webglFingerprinting) return;
+            
+            const originalGetParameter = WebGLRenderingContext.prototype.getParameter;
+            
+            WebGLRenderingContext.prototype.getParameter = function(parameter) {
+                // Return generic values for fingerprinting parameters
+                if (parameter === 37445 || parameter === 37446) { // UNMASKED_VENDOR_WEBGL, UNMASKED_RENDERER_WEBGL
+                    return "Generic WebGL Renderer";
+                }
+                
+                return originalGetParameter.call(this, parameter);
+            };
+        }
+        
+        // 6. Audio Fingerprinting Protection
+        function protectAudioFingerprinting() {
+            if (!bypassConfig.audioFingerprinting) return;
+            
+            // Override AudioContext API
+            const originalAudioContext = window.AudioContext || window.webkitAudioContext;
+            
+            function ProtectedAudioContext() {
+                const context = new originalAudioContext();
+                
+                // Override createOscillator to add noise
+                const originalCreateOscillator = context.createOscillator;
+                context.createOscillator = function() {
+                    const oscillator = originalCreateOscillator.call(this);
+                    
+                    // Add noise to make fingerprinting less reliable
+                    const originalStart = oscillator.start;
+                    oscillator.start = function(when) {
+                        // Add slight delay variation
+                        const modifiedWhen = when + Math.random() * 0.001;
+                        return originalStart.call(this, modifiedWhen);
+                    };
+                    
+                    return oscillator;
+                };
+                
+                return context;
+            }
+            
+            ProtectedAudioContext.prototype = originalAudioContext.prototype;
+            
+            if (window.AudioContext) {
+                window.AudioContext = ProtectedAudioContext;
+            }
+            
+            if (window.webkitAudioContext) {
+                window.webkitAudioContext = ProtectedAudioContext;
+            }
+        }
+        
+        // 7. Font Fingerprinting Protection
+        function protectFontFingerprinting() {
+            if (!bypassConfig.fontFingerprinting) return;
+            
+            // Override measureText to add slight variations
+            const originalMeasureText = CanvasRenderingContext2D.prototype.measureText;
+            
+            CanvasRenderingContext2D.prototype.measureText = function(text) {
+                const metrics = originalMeasureText.call(this, text);
+                
+                // Add slight variations to width
+                const originalWidth = metrics.width;
+                Object.defineProperty(metrics, 'width', {
+                    get: function() { return originalWidth + Math.random() * 0.01; }
+                });
+                
+                return metrics;
+            };
+        }
+        
+        // 8. Timezone Spoofing
+        function
