@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UnblockedGames</title>
+    <title>SethieUnblocked</title>
     <style>
         body {
             margin: 0;
@@ -35,9 +35,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1.2em;
-            text-align: center;
         }
         
         #overlay-canvas {
@@ -46,16 +43,49 @@
             height: 100%;
         }
         
-        .overlay-text {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 3;
-            pointer-events: none;
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.5em;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        .control-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(30, 30, 30, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: opacity 0.3s;
+        }
+        
+        .control-button {
+            background-color: #444;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .control-button:hover {
+            background-color: #555;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: #4CAF50;
+        }
+        
+        .status-inactive {
+            background-color: #F44336;
         }
         
         /* Full screen styles */
@@ -77,136 +107,171 @@
     </style>
 </head>
 <body>
-    <iframe id="embedded-frame" src="YOUR_TARGET_URL_HERE" allowfullscreen></iframe>
+    <iframe id="embedded-frame" src="about:blank" allowfullscreen></iframe>
     <div id="overlay-container">
         <canvas id="overlay-canvas"></canvas>
-        <div class="overlay-text" id="title">UnblockedGames</div>
+    </div>
+    
+    <div class="control-panel" id="controlPanel">
+        <div>
+            <span class="status-indicator status-inactive" id="bypassStatus"></span>
+            <span>Bypass Status</span>
+        </div>
+        <button class="control-button" id="toggleBypass">Enable Bypass</button>
+        <button class="control-button" id="toggleStealth">Stealth Mode</button>
+        <button class="control-button" id="clearHistory">Clear History</button>
+        <button class="control-button" id="toggleControls">Hide Controls</button>
     </div>
 
     <script>
-        // --- Core Embedding Logic ---
-        const targetUrl = "https://frogiesarcade.net";
+        // Anti-Detection Configuration
+        const bypassConfig = {
+            enabled: false,
+            stealthMode: false,
+            targetUrl: "https://frogiesarcade.net",
+            proxyRotation: false,
+            userAgentSpoofing: false,
+            referrerSpoofing: false,
+            cookieProtection: false,
+            canvasFingerprinting: false,
+            webglFingerprinting: false,
+            audioFingerprinting: false,
+            fontFingerprinting: false,
+            timezoneSpoofing: false,
+            languageSpoofing: false,
+            screenResolutionSpoofing: false,
+            hardwareSpoofing: false,
+            behaviorMimicry: false
+        };
+        
+        // Core Elements
         const iframe = document.getElementById('embedded-frame');
-        iframe.src = targetUrl;
-        
-        // --- Full Screen Support ---
-        document.addEventListener('keydown', function(e) {
-            // F11 key for fullscreen
-            if (e.key === 'F11') {
-                e.preventDefault();
-                toggleFullScreen();
-            }
-            // ESC key to exit fullscreen
-            else if (e.key === 'Escape' && document.fullscreenElement) {
-                exitFullScreen();
-            }
-        });
-        
-        // Double click to toggle fullscreen
-        document.addEventListener('dblclick', function(e) {
-            // Don't trigger if clicking on UI elements
-            if (e.target.id !== 'title') {
-                toggleFullScreen();
-            }
-        });
-        
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                enterFullScreen();
-            } else {
-                exitFullScreen();
-            }
-        }
-        
-        function enterFullScreen() {
-            const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen();
-            } else if (elem.webkitRequestFullscreen) { /* Safari */
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE11 */
-                elem.msRequestFullscreen();
-            }
-        }
-        
-        function exitFullScreen() {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) { /* Safari */
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) { /* IE11 */
-                document.msExitFullscreen();
-            }
-        }
-        
-        // Hide UI elements after a delay
-        setTimeout(() => {
-            const title = document.getElementById('title');
-            if (title) {
-                title.style.opacity = '0';
-                title.style.transition = 'opacity 1s';
-            }
-        }, 3000);
-        
-        // --- Non-Savable Transparent Static Image Overlay Logic ---
         const overlayContainer = document.getElementById('overlay-container');
         const canvas = document.getElementById('overlay-canvas');
         const ctx = canvas.getContext('2d');
+        const controlPanel = document.getElementById('controlPanel');
+        const bypassStatus = document.getElementById('bypassStatus');
         
-        // Base64 transparent image placeholder
-        const imageUrlDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-        const overlayImage = new Image();
-        let imageLoaded = false;
+        // Control Elements
+        const toggleBypassBtn = document.getElementById('toggleBypass');
+        const toggleStealthBtn = document.getElementById('toggleStealth');
+        const clearHistoryBtn = document.getElementById('clearHistory');
+        const toggleControlsBtn = document.getElementById('toggleControls');
         
-        overlayImage.onload = function() {
-            imageLoaded = true;
-            const opacity = 0.4;
-            const scale = 0.3;
-            
-            ctx.globalAlpha = opacity;
-            
-            let drawWidth = overlayImage.width * scale;
-            let drawHeight = overlayImage.height * scale;
-            
-            const targetX = canvas.width / 2 - drawWidth / 2;
-            const targetY = canvas.height / 2 - drawHeight / 2;
-            
-            ctx.drawImage(overlayImage, targetX, targetY, drawWidth, drawHeight);
-            ctx.globalAlpha = 1.0;
-        };
+        // --- Anti-Detection Functions ---
         
-        overlayImage.onerror = function() {
-            console.error("Failed to load image for canvas overlay.");
-        };
-        
-        function resizeAndDraw() {
-            canvas.width = overlayContainer.offsetWidth;
-            canvas.height = overlayContainer.offsetHeight;
+        // 1. User Agent Spoofing
+        function spoofUserAgent() {
+            if (!bypassConfig.userAgentSpoofing) return;
             
-            if (imageLoaded) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                const opacity = 0.4;
-                const scale = 0.3;
-                
-                ctx.globalAlpha = opacity;
-                
-                let drawWidth = overlayImage.width * scale;
-                let drawHeight = overlayImage.height * scale;
-                const targetX = canvas.width / 2 - drawWidth / 2;
-                const targetY = canvas.height / 2 - drawHeight / 2;
-                
-                ctx.drawImage(overlayImage, targetX, targetY, drawWidth, drawHeight);
-                ctx.globalAlpha = 1.0;
-            } else {
-                overlayImage.src = imageUrlDataUrl;
-            }
+            const userAgents = [
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/121.0",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0"
+            ];
+            
+            const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
+            
+            // Store original methods
+            const originalDescriptor = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent');
+            
+            // Override user agent getter
+            Object.defineProperty(Navigator.prototype, 'userAgent', {
+                get: function() { return randomUA; },
+                configurable: true
+            });
+            
+            // Override iframe user agent via sandbox attribute
+            iframe.sandbox = "allow-same-origin allow-scripts allow-popups allow-forms";
         }
         
-        resizeAndDraw();
-        window.addEventListener('resize', resizeAndDraw);
+        // 2. Referrer Spoofing
+        function spoofReferrer() {
+            if (!bypassConfig.referrerSpoofing) return;
+            
+            const referrers = [
+                "https://www.google.com/",
+                "https://www.bing.com/",
+                "https://duckduckgo.com/",
+                "https://www.yahoo.com/",
+                "https://www.reddit.com/"
+            ];
+            
+            const randomReferrer = referrers[Math.floor(Math.random() * referrers.length)];
+            
+            // Override document referrer
+            Object.defineProperty(document, 'referrer', {
+                get: function() { return randomReferrer; },
+                configurable: true
+            });
+        }
         
-        console.log("Page loaded as 'UnblockedGames'. Full screen support enabled with transparent overlay.");
-    </script>
-</body>
-</html>
+        // 3. Cookie Protection
+        function protectCookies() {
+            if (!bypassConfig.cookieProtection) return;
+            
+            // Clear all cookies
+            document.cookie.split(";").forEach(function(c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            
+            // Override cookie methods
+            const originalCookieDescriptor = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie');
+            
+            Object.defineProperty(document, 'cookie', {
+                get: function() { return ""; },
+                set: function() { return ""; },
+                configurable: true
+            });
+            
+            // Override localStorage and sessionStorage
+            const originalSetItem = localStorage.setItem;
+            localStorage.setItem = function(key, value) {
+                // Don't store anything
+                return;
+            };
+            
+            const originalSessionSetItem = sessionStorage.setItem;
+            sessionStorage.setItem = function(key, value) {
+                // Don't store anything
+                return;
+            };
+            
+            // Clear existing storage
+            localStorage.clear();
+            sessionStorage.clear();
+        }
+        
+        // 4. Canvas Fingerprinting Protection
+        function protectCanvasFingerprinting() {
+            if (!bypassConfig.canvasFingerprinting) return;
+            
+            const originalGetContext = HTMLCanvasElement.prototype.getContext;
+            
+            HTMLCanvasElement.prototype.getContext = function(contextType) {
+                const context = originalGetContext.call(this, contextType);
+                
+                if (contextType === '2d') {
+                    const originalGetImageData = context.getImageData;
+                    context.getImageData = function() {
+                        const imageData = originalGetImageData.apply(this, arguments);
+                        
+                        // Add noise to canvas data
+                        for (let i = 0; i < imageData.data.length; i += 4) {
+                            // Only modify alpha channel slightly to avoid visual changes
+                            imageData.data[i + 3] = imageData.data[i + 3] + Math.floor(Math.random() * 3) - 1;
+                        }
+                        
+                        return imageData;
+                    };
+                }
+                
+                return context;
+            };
+        }
+        
+        // 5. WebGL Fingerprinting Protection
+        function protectWebGLFingerprinting() {
+            if (!bypassConfig.webglFingerprinting
