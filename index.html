@@ -3,254 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UnblockedGames - Immersive Play</title>
+    <title>UnblockedGames</title>
     <style>
         body {
             margin: 0;
-            overflow: hidden; /* Hide scrollbars */
-            background-color: #000; /* Black background for immersion */
-            position: relative; /* Needed for absolute positioning of children */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
-            color: #fff; /* Default text color */
+            overflow: hidden;
+            background-color: #000;
+            position: relative;
+            font-family: Arial, sans-serif;
         }
+        
         #embedded-frame {
             width: 100vw;
             height: 100vh;
-            border: none; /* No border */
-            display: block; /* Remove extra space below the frame */
-            position: absolute; /* Position it to cover the whole viewport */
+            border: none;
+            display: block;
+            position: absolute;
             top: 0;
             left: 0;
-            z-index: 1; /* Below the overlay */
+            z-index: 1;
         }
+        
         #overlay-container {
-            position: absolute; /* Position it over everything */
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 2; /* Above the iframe */
-            pointer-events: none; /* Crucial: Allows clicks to pass through to the iframe */
-            display: flex; /* Use flexbox for centering content */
-            justify-content: center; /* Center horizontally */
-            align-items: center; /* Center vertically */
-            color: rgba(255, 255, 255, 0.8); /* Default text color for overlay */
-            font-size: 1.2em; /* Default font size */
+            z-index: 2;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2em;
             text-align: center;
         }
+        
         #overlay-canvas {
-            display: block; /* Remove extra space below canvas */
-            width: 100%; /* Make canvas fill its container */
+            display: block;
+            width: 100%;
             height: 100%;
         }
-        /* Style for any text you might want to display over the canvas */
+        
         .overlay-text {
             position: absolute;
-            top: 15px; /* Position from the top */
-            left: 15px; /* Position from the left */
-            z-index: 3; /* Ensure text is above canvas if needed */
-            pointer-events: none; /* Text should also not block clicks */
-            color: rgba(255, 255, 255, 0.9); /* White text, slightly transparent */
-            font-size: 1.8em; /* Larger font size */
-            font-weight: bold;
-            text-shadow: 2px 2px 6px rgba(0,0,0,0.7); /* Stronger shadow for readability */
-            letter-spacing: 1px; /* Slight letter spacing */
-            font-family: 'Impact', Haettenschweiler, 'Arial Narrow Bold', sans-serif; /* More impactful font */
-        }
-
-        /* Fullscreen overlay styles */
-        .fullscreen-active #overlay-container {
-            background-color: rgba(0, 0, 0, 0.7); /* Slight dark overlay when in fullscreen */
-        }
-        .fullscreen-active .overlay-text {
-            font-size: 2.5em; /* Larger text in fullscreen */
-            top: 20px;
-            left: 20px;
-        }
-        /* Minimalist controls for fullscreen */
-        .fullscreen-controls {
-            position: absolute;
             top: 10px;
-            right: 10px;
-            z-index: 4; /* Ensure controls are on top */
-            display: flex;
-            gap: 10px;
-            pointer-events: auto; /* Enable pointer events for buttons */
+            left: 10px;
+            z-index: 3;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
-        .fullscreen-controls button {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        
+        /* Full screen styles */
+        :fullscreen {
+            background-color: #000;
         }
-        .fullscreen-controls button:hover {
-            background-color: rgba(255, 255, 255, 0.4);
-            border-color: rgba(255, 255, 255, 0.8);
+        
+        :-webkit-full-screen {
+            background-color: #000;
         }
-        .fullscreen-controls button:active {
-            background-color: rgba(255, 255, 255, 0.6);
+        
+        :-moz-full-screen {
+            background-color: #000;
+        }
+        
+        :-ms-fullscreen {
+            background-color: #000;
         }
     </style>
 </head>
 <body>
-
-    <iframe id="embedded-frame" src="about:blank"></iframe>
+    <iframe id="embedded-frame" src="YOUR_TARGET_URL_HERE" allowfullscreen></iframe>
     <div id="overlay-container">
         <canvas id="overlay-canvas"></canvas>
-        <div class="overlay-text">UnblockedGames</div>
-        <div class="fullscreen-controls">
-            <button id="fullscreen-toggle-button">Fullscreen</button>
-        </div>
+        <div class="overlay-text" id="title">UnblockedGames</div>
     </div>
 
     <script>
         // --- Core Embedding Logic ---
-        const targetUrl = "https://frogiesarcade.net"; // !!! REPLACE WITH YOUR ACTUAL TARGET WEBSITE !!!
+        const targetUrl = "https://frogiesarcade.net";
         const iframe = document.getElementById('embedded-frame');
         iframe.src = targetUrl;
-
+        
+        // --- Full Screen Support ---
+        document.addEventListener('keydown', function(e) {
+            // F11 key for fullscreen
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullScreen();
+            }
+            // ESC key to exit fullscreen
+            else if (e.key === 'Escape' && document.fullscreenElement) {
+                exitFullScreen();
+            }
+        });
+        
+        // Double click to toggle fullscreen
+        document.addEventListener('dblclick', function(e) {
+            // Don't trigger if clicking on UI elements
+            if (e.target.id !== 'title') {
+                toggleFullScreen();
+            }
+        });
+        
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                enterFullScreen();
+            } else {
+                exitFullScreen();
+            }
+        }
+        
+        function enterFullScreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
+        
+        function exitFullScreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) { /* Safari */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE11 */
+                document.msExitFullscreen();
+            }
+        }
+        
+        // Hide UI elements after a delay
+        setTimeout(() => {
+            const title = document.getElementById('title');
+            if (title) {
+                title.style.opacity = '0';
+                title.style.transition = 'opacity 1s';
+            }
+        }, 3000);
+        
         // --- Non-Savable Transparent Static Image Overlay Logic ---
         const overlayContainer = document.getElementById('overlay-container');
         const canvas = document.getElementById('overlay-canvas');
         const ctx = canvas.getContext('2d');
-
-        // !!! REPLACE THIS BASE64 STRING WITH YOUR IMAGE'S BASE64 ENCODED DATA !!!
-        // This is a small, transparent 1x1 pixel image as a placeholder.
-        // For a more "static" feel, use an image that doesn't rely on dynamic generation.
-        // Example: Convert your static image (e.g., a logo) to a base64 string.
-        // You can use online converters for this.
-        // Example Data URL for a small transparent PNG:
+        
+        // Base64 transparent image placeholder
         const imageUrlDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-        // !!! IMPORTANT: Replace the above placeholder with your actual static image's Base64 Data URL !!!
-
         const overlayImage = new Image();
         let imageLoaded = false;
-
+        
         overlayImage.onload = function() {
             imageLoaded = true;
-            // --- Drawing Configuration ---
-            const opacity = 0.4; // Transparency of the image (0.0 to 1.0).
-            const scale = 0.3;   // Scale factor for the image. Adjust for desired size.
-
-            ctx.globalAlpha = opacity; // Set the transparency for the drawn image.
-
-            // Calculate dimensions to maintain aspect ratio for a single instance
+            const opacity = 0.4;
+            const scale = 0.3;
+            
+            ctx.globalAlpha = opacity;
+            
             let drawWidth = overlayImage.width * scale;
             let drawHeight = overlayImage.height * scale;
-
-            // Center the image on the canvas
+            
             const targetX = canvas.width / 2 - drawWidth / 2;
             const targetY = canvas.height / 2 - drawHeight / 2;
-
-            // Draw the image once onto the canvas.
+            
             ctx.drawImage(overlayImage, targetX, targetY, drawWidth, drawHeight);
-
-            ctx.globalAlpha = 1.0; // Reset alpha to default.
+            ctx.globalAlpha = 1.0;
         };
-
+        
         overlayImage.onerror = function() {
-            console.error("Failed to load image for canvas overlay. Please check the imageUrlDataUrl.");
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // Red overlay for error
-            ctx.font = '20px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('Image Load Error', canvas.width / 2, canvas.height / 2);
+            console.error("Failed to load image for canvas overlay.");
         };
-
-        // Function to resize canvas and redraw the image
+        
         function resizeAndDraw() {
             canvas.width = overlayContainer.offsetWidth;
             canvas.height = overlayContainer.offsetHeight;
-
+            
             if (imageLoaded) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear before redraw
-
-                const opacity = 0.4; // Re-apply opacity
-                const scale = 0.3;   // Re-apply scale
-
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const opacity = 0.4;
+                const scale = 0.3;
+                
                 ctx.globalAlpha = opacity;
-
+                
                 let drawWidth = overlayImage.width * scale;
                 let drawHeight = overlayImage.height * scale;
                 const targetX = canvas.width / 2 - drawWidth / 2;
                 const targetY = canvas.height / 2 - drawHeight / 2;
-
+                
                 ctx.drawImage(overlayImage, targetX, targetY, drawWidth, drawHeight);
                 ctx.globalAlpha = 1.0;
             } else {
-                // If image not loaded yet, set source
                 overlayImage.src = imageUrlDataUrl;
             }
         }
-
-        // --- Fullscreen Logic ---
-        const fullscreenToggleButton = document.getElementById('fullscreen-toggle-button');
-        const htmlElement = document.documentElement; // Represents the <html> element
-        const bodyElement = document.body;
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                // Request fullscreen
-                if (htmlElement.requestFullscreen) {
-                    htmlElement.requestFullscreen();
-                } else if (htmlElement.mozRequestFullScreen) { /* Firefox */
-                    htmlElement.mozRequestFullScreen();
-                } else if (htmlElement.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                    htmlElement.webkitRequestFullscreen();
-                } else if (htmlElement.msRequestFullscreen) { /* IE/Edge */
-                    htmlElement.msRequestFullscreen();
-                }
-                bodyElement.classList.add('fullscreen-active'); // Add class for styling
-                fullscreenToggleButton.textContent = 'Exit Fullscreen';
-            } else {
-                // Exit fullscreen
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.mozCancelFullScreen) { /* Firefox */
-                    document.mozCancelFullScreen();
-                } else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { /* IE/Edge */
-                    document.msExitFullscreen();
-                }
-                bodyElement.classList.remove('fullscreen-active'); // Remove class
-                fullscreenToggleButton.textContent = 'Fullscreen';
-            }
-        }
-
-        fullscreenToggleButton.addEventListener('click', toggleFullscreen);
-
-        // Handle fullscreen change events (e.g., if user presses F11)
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-        function handleFullscreenChange() {
-            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-                bodyElement.classList.add('fullscreen-active');
-                fullscreenToggleButton.textContent = 'Exit Fullscreen';
-            } else {
-                bodyElement.classList.remove('fullscreen-active');
-                fullscreenToggleButton.textContent = 'Fullscreen';
-            }
-        }
-
-
-        // --- Initialization and Event Listeners ---
-        resizeAndDraw(); // Initial draw
-        window.addEventListener('resize', resizeAndDraw); // Redraw on window resize
-
-        console.log("UnblockedGames page loaded. Immersive fullscreen mode enabled.");
-
+        
+        resizeAndDraw();
+        window.addEventListener('resize', resizeAndDraw);
+        
+        console.log("Page loaded as 'UnblockedGames'. Full screen support enabled with transparent overlay.");
     </script>
-
 </body>
 </html>
-
-
-
