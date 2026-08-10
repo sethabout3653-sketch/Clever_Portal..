@@ -9,62 +9,123 @@
             margin: 0;
             overflow: hidden; /* Hide scrollbars */
             background-color: #000; /* Black background for immersion */
+            position: relative; /* Needed for absolute positioning of children */
         }
         #embedded-frame {
             width: 100vw;
             height: 100vh;
             border: none; /* No border */
             display: block; /* Remove extra space below the frame */
+            position: relative; /* Ensure it stays behind the overlay */
+            z-index: 1; /* Below the overlay */
+        }
+        #overlay-canvas-container {
+            position: absolute; /* Position it over everything */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2; /* Above the iframe */
+            pointer-events: none; /* Crucial: Allows clicks to pass through to the iframe */
+        }
+        #overlay-canvas-container canvas {
+            display: block; /* Remove extra space below canvas */
         }
     </style>
 </head>
 <body>
 
     <iframe id="embedded-frame" src="YOUR_TARGET_URL_HERE"></iframe>
+    <div id="overlay-canvas-container">
+        <canvas id="overlay-canvas"></canvas>
+    </div>
 
     <script>
-        // This script simulates an "anti-Deledao" approach by
-        // directly embedding the content and preventing external filtering
-        // from interfering. In a real-world scenario, this would involve
-        // more complex techniques to avoid detection by sophisticated
-        // filtering systems like Deledao's InstantAI™.
-
-        // The core idea is to load the content directly into an iframe
-        // without relying on meta tags or scripts that could be intercepted
-        // by filtering software.
-
-        // The iframe itself will attempt to load the content as is.
-        // To truly be "anti-Deledao," the server hosting this HTML
-        // would need to employ advanced obfuscation and routing techniques
-        // to mask the traffic and content from being analyzed by AI
-        // filters in real-time. This is a simplified representation.
-
-        // For demonstration purposes, we'll assume 'YOUR_TARGET_URL_HERE'
-        // is the website you want to access.
-        // In a true "anti-Deledao" scenario, the target URL might also
-        // be dynamically generated or obfuscated.
-
+        // --- Core Embedding Logic ---
         const targetUrl = "https://example.com"; // Replace with the actual URL you want to embed
-
         const iframe = document.getElementById('embedded-frame');
         iframe.src = targetUrl;
 
-        // Additional simulated "anti-Deledao" measures (conceptual):
-        // - No identifiable keywords in the HTML or JavaScript that
-        //   Deledao's AI might flag.
-        // - Embedding a dynamically generated, unique URL for each session.
-        // - Using techniques to mimic legitimate user traffic patterns.
-        // - Potentially, having this HTML served from a domain not on
-        //   any known blocklists and constantly changing IP addresses.
+        // --- Non-Savable Image Overlay Logic ---
+        const canvasContainer = document.getElementById('overlay-canvas-container');
+        const canvas = document.getElementById('overlay-canvas');
+        const ctx = canvas.getContext('2d');
 
-        // Since we cannot directly implement Deledao's internal AI
-        // detection mechanisms here, this script focuses on providing
-        // direct, unadulterated access via the iframe. The "behind the scenes"
-        // aspect is that the filtering system, if present, would ideally
-        // not be able to inspect or block the content loading within this iframe.
-        // The "uncensored" aspect comes from the direct embedding.
+        // Replace 'YOUR_IMAGE_SOURCE_URL_OR_DATA_URL' with your image.
+        // For a truly non-savable image, it's best to load it dynamically
+        // and draw it onto the canvas. Direct image URLs in CSS can sometimes
+        // be saved via browser developer tools.
+        // Example: const imageUrl = 'path/to/your/image.png';
+        // Example: const imageUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='; // Small red dot
+        const imageUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='; // Default small red dot for demonstration
 
-        console.log("Attempting to load content directly. UI elements are hidden. Simulating 'anti-Deledao' by direct embedding.");
+        // Function to resize canvas to fill container
+        function resizeCanvas() {
+            canvas.width = canvasContainer.offsetWidth;
+            canvas.height = canvasContainer.offsetHeight;
+            drawImage(); // Redraw the image after resizing
+        }
+
+        // Function to draw the image onto the canvas
+        function drawImage() {
+            const img = new Image();
+            img.onload = function() {
+                // --- Drawing Configuration ---
+                // Adjust these properties for the desired effect
+
+                const opacity = 0.5; // Transparency of the image (0.0 to 1.0)
+                const repeat = true; // Set to true to tile the image, false for a single instance
+                const scale = 0.2; // Scale factor for a single instance (if repeat is false)
+                const targetX = canvas.width * 0.5; // X position for single instance (centered if repeat is false)
+                const targetY = canvas.height * 0.5; // Y position for single instance (centered if repeat is false)
+
+                ctx.globalAlpha = opacity; // Set the transparency
+
+                if (repeat) {
+                    // Tiling the image
+                    const pattern = ctx.createPattern(img, 'repeat');
+                    ctx.fillStyle = pattern;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                } else {
+                    // Drawing a single instance of the image
+                    // Calculate dimensions to maintain aspect ratio if scaling
+                    let drawWidth = img.width * scale;
+                    let drawHeight = img.height * scale;
+
+                    // Center the image
+                    const drawX = targetX - (drawWidth / 2);
+                    const drawY = targetY - (drawHeight / 2);
+
+                    ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+                }
+                ctx.globalAlpha = 1.0; // Reset alpha
+            };
+            img.onerror = function() {
+                console.error("Failed to load image for canvas overlay.");
+                // Optionally, draw a placeholder or error message
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // Red overlay
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Image Load Error', canvas.width / 2, canvas.height / 2);
+            };
+            img.src = imageUrl;
+        }
+
+        // Initial setup and resize listener
+        resizeCanvas(); // Initial resize
+        window.addEventListener('resize', resizeCanvas);
+
+        // Note on "Non-Savable":
+        // Directly saving an image from a canvas is not as straightforward as
+        // right-clicking an <img> tag. Users would typically have to:
+        // 1. Access the browser's developer tools.
+        // 2. Find the canvas element.
+        // 3. Execute JavaScript to export the canvas content (e.g., `canvas.toDataURL()`).
+        // This adds a layer of complexity that makes casual saving more difficult.
+        // For absolute security, server-side rendering or DRM would be needed,
+        // which is beyond the scope of a simple HTML/JS solution.
+
+        console.log("Content embedded. Non-savable image overlay is active, allowing interaction.");
 
     </script>
 
