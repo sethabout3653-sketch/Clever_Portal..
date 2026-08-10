@@ -1,311 +1,210 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading...</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #1a1a1a; /* Dark background to blend in */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #cccccc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-            font-size: 1.2em;
-            position: relative; /* For positioning elements */
+<title>Fullscreen Embedded Website - Evasion Attempt</title>
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        background-color: #000; /* Fallback background */
+    }
+
+    .iframe-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        z-index: 1; /* Start with a base z-index */
+    }
+
+    #static-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none; /* Allows clicks to pass through to iframes below */
+        background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACpDid1AAAAIElEQVQIW2P8//8/A8GkQBQoowj6gM0E4rIAAIQABGgAFJBAwAAAAABJRU5ErkJggg=='); /* Tiny repeating black dot pattern */
+        background-size: 2px 2px;
+        animation: glitch 2s infinite linear alternate-reverse;
+        z-index: 100; /* High z-index to be on top */
+        opacity: 0.5; /* Make it somewhat visible */
+        display: none; /* Hidden by default, JS will show it */
+    }
+
+    @keyframes glitch {
+        0% {
+            background-position: 0 0;
         }
-        #loading-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
+        10% {
+            background-position: -2px 0;
         }
-        #hidden-iframe-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1; /* Below the loading message initially */
-            pointer-events: none; /* Will be enabled when content is ready */
+        20% {
+            background-position: 0 -2px;
         }
-        .target-iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            visibility: hidden; /* Hidden until content is loaded */
-            pointer-events: none; /* Disabled until ready */
-            z-index: 5; /* Above container, below loading message */
+        30% {
+            background-position: -2px -2px;
         }
-    </style>
+        40% {
+            background-position: 0 0;
+        }
+        50% {
+            background-position: 2px 2px;
+        }
+        60% {
+            background-position: 0 2px;
+        }
+        70% {
+            background-position: 2px 0;
+        }
+        80% {
+            background-position: 2px 2px;
+        }
+        90% {
+            background-position: 0 0;
+        }
+        100% {
+            background-position: -2px 0;
+        }
+    }
+
+    .hidden-content {
+        display: none; /* Initially hide the actual content */
+    }
+</style>
 </head>
 <body>
-    <div id="loading-message">
-        Attempting to access content securely. Please wait...
-        <br>
-        (If this persists, your network policy may be too restrictive.)
+
+    <!-- Static Image Overlay -->
+    <div id="static-overlay"></div>
+
+    <!-- Layered Iframes -->
+    <!-- We'll use multiple iframes with different z-indexes -->
+    <!-- The idea is that if one is blocked, others might be accessible -->
+    <!-- Or if one tries to close, others might be unaffected -->
+
+    <iframe class="iframe-layer" src="https://www.google.com" style="z-index: 2;" title="Layer 1"></iframe>
+    <iframe class="iframe-layer" src="https://www.bing.com" style="z-index: 3;" title="Layer 2"></iframe>
+    <iframe class="iframe-layer" src="https://duckduckgo.com" style="z-index: 4;" title="Layer 3"></iframe>
+    <!-- Add more iframes as needed with incrementing z-indexes -->
+
+    <div id="hidden-content" class="hidden-content">
+        <!-- This is where your actual content would go if you wanted to dynamically load it -->
+        <!-- For this example, we're just using external sites -->
     </div>
-    <div id="hidden-iframe-container"></div>
 
     <script>
-        const targetUrl = "https://frogiesarcade.net/"; // The site you want to access
-        const maxIframeDepth = 3; // How many layers of iframes to use
-        let currentContainer = document.getElementById('hidden-iframe-container');
-        let finalIframe = null;
+        const targetUrl = "https://example.com"; // The website you *really* want to show
+        const iframeSources = [
+            "https://www.google.com",
+            "https://www.bing.com",
+            "https://duckduckgo.com",
+            "https://www.yahoo.com" // Example of another one
+        ];
 
-        // --- Advanced Anti-Detection & Anti-Blocking Script ---
+        let currentLayer = 0;
+        const iframeContainer = document.body; // Or a specific container div
 
-        // 1. Aggressively ensure the target iframe is always visible and interactive
-        function ensureTargetIframe() {
-            if (finalIframe) {
-                finalIframe.style.position = 'absolute';
-                finalIframe.style.top = '0';
-                finalIframe.style.left = '0';
-                finalIframe.style.width = '100%';
-                finalIframe.style.height = '100%';
-                finalIframe.style.border = 'none';
-                finalIframe.style.pointerEvents = 'auto'; // Crucial for interaction
-                finalIframe.style.visibility = 'visible'; // Make it visible
-                finalIframe.style.zIndex = '999999'; // Ensure it's on top
-                document.body.style.overflow = 'hidden'; // Prevent body scrolling
-            }
+        // Function to attempt to create a new iframe
+        function createIframe(src, zIndex) {
+            const iframe = document.createElement('iframe');
+            iframe.src = src;
+            iframe.className = 'iframe-layer';
+            iframe.style.zIndex = zIndex;
+            iframe.title = `Layer ${zIndex}`;
+            iframe.onerror = () => console.log(`Error loading iframe: ${src}`);
+            iframe.onload = () => console.log(`Iframe loaded: ${src}`);
+            iframeContainer.appendChild(iframe);
+            return iframe;
         }
 
-        // 2. Intercept DOM mutations that might hide or remove the iframe
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'childList' || mutation.type === 'attributes') {
-                    const iframe = document.querySelector('.target-iframe'); // Find the final iframe
-                    if (iframe) {
-                        // Re-apply styles if they're being messed with
-                        if (iframe.style.visibility !== 'visible' || iframe.style.pointerEvents !== 'auto') {
-                            ensureTargetIframe();
-                        }
-                        // If the iframe is removed, try to recreate it (highly experimental)
-                        if (!document.body.contains(iframe)) {
-                            console.warn("Iframe removed, attempting to re-insert...");
-                            createIframeLayers(targetUrl, maxIframeDepth); // Re-init layers
-                        }
-                    }
-                }
-            });
-        });
-
-        // Start observing
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['style', 'id', 'class', 'src']
-        });
-
-        // 3. Override destructive methods (like removeChild)
-        const originalRemoveChild = Element.prototype.removeChild;
-        Element.prototype.removeChild = function(child) {
-            if (child && child.tagName === 'IFRAME' && child.classList.contains('target-iframe')) {
-                console.warn("Attempted to remove final target iframe, blocked.");
-                return false; // Prevent removal
-            }
-            return originalRemoveChild.apply(this, arguments);
-        };
-
-        // 4. Override style setting to prevent hiding
-        const originalSetAttribute = Element.prototype.setAttribute;
-        Element.prototype.setAttribute = function(name, value) {
-            if (this.tagName === 'IFRAME' && this.classList.contains('target-iframe')) {
-                if (name === 'style') {
-                    if (value.includes('display: none') || value.includes('visibility: hidden') || value.includes('pointer-events: none')) {
-                        console.warn("Attempted to hide/disable iframe via style attribute, blocked.");
-                        return; // Do not apply the blocking style
+        // "Anti-deleado" - Basic attempt to keep iframes alive
+        // This is very rudimentary. It checks if the primary iframe (if it existed)
+        // is still in the DOM. A more complex version would monitor all iframes
+        // and try to replace them if they disappear.
+        const mainIframeCheckInterval = setInterval(() => {
+            const iframes = document.getElementsByClassName('iframe-layer');
+            if (iframes.length === 0) {
+                console.log("All iframes removed. Attempting to restore.");
+                // Restore the main content iframe
+                createIframe(targetUrl, 5); // Use a higher z-index for the target
+                // Restore backup iframes
+                for (let i = 0; i < iframeSources.length; i++) {
+                    if (i < 3) { // Only restore a few backups
+                        createIframe(iframeSources[i], i + 2);
                     }
                 }
             }
-            return originalSetAttribute.apply(this, arguments);
-        };
+            // More advanced checks could look for specific messages or DOM changes
+        }, 5000); // Check every 5 seconds
 
-        // More robust style overriding using Object.defineProperty
-        function overrideStyleProperty(prop, blockValues) {
-            const descriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, prop);
-            if (descriptor && descriptor.set) {
-                Object.defineProperty(CSSStyleDeclaration.prototype, prop, {
-                    set: function(value) {
-                        if (this.ownerElement && this.ownerElement.tagName === 'IFRAME' && this.ownerElement.classList.contains('target-iframe')) {
-                            if (blockValues.some(bv => value.toString().toLowerCase().includes(bv))) {
-                                console.warn(`Attempted to set iframe ${prop} to "${value}", blocked.`);
-                                return; // Block setting the forbidden style
-                            }
-                        }
-                        descriptor.set.call(this, value);
-                    },
-                    get: descriptor.get || function() { return descriptor.get.call(this); },
-                    configurable: true
-                });
+        // Make the static overlay visible and animate it
+        document.getElementById('static-overlay').style.display = 'block';
+
+        // --- Dynamic Iframe Management (Optional, more complex) ---
+        // This part shows how you might dynamically manage iframes,
+        // perhaps trying to load the target URL first and backups if it fails.
+        // For simplicity in this example, we've already added them in HTML.
+
+        // If you wanted to replace the initial ones with targetUrl and backups:
+        /*
+        function loadContent() {
+            // Remove existing iframes (optional, depends on strategy)
+            const existingIframes = document.querySelectorAll('.iframe-layer');
+            existingIframes.forEach(iframe => iframe.remove());
+
+            // Load the primary target URL with the highest z-index
+            createIframe(targetUrl, 5);
+
+            // Load backup iframes
+            for (let i = 0; i < iframeSources.length; i++) {
+                createIframe(iframeSources[i], i + 2); // Start z-index from 2
             }
         }
+        // Uncomment the line below to use dynamic loading instead of static HTML iframes
+        // loadContent();
+        */
 
-        overrideStyleProperty('display', ['none', 'hidden']);
-        overrideStyleProperty('visibility', ['hidden', 'collapse']);
-        overrideStyleProperty('pointerEvents', ['none']);
 
+        // --- Evasion Tactics ---
+        // 1. Multiple Iframes: Makes it harder to block all.
+        // 2. Static Overlay: Attempts to mask or confuse detection tools, and gives a "glitchy" look.
+        //    The 'pointer-events: none;' is crucial so clicks go through to the iframes.
+        //    The 'opacity' makes it partially see-through.
+        // 3. Basic "Anti-Deleado": Tries to re-add iframes if they are all gone. This is weak.
+        // 4. Z-index stacking: Ensures the static is on top, but still interactive.
 
-        // 5. Dynamic Layer Creation
-        function createIframeLayers(url, depth) {
-            if (depth <= 0) {
-                // Base case: create the final iframe
-                const iframe = document.createElement('iframe');
-                iframe.src = url;
-                iframe.className = 'target-iframe'; // Use a specific class
-                // Sandbox for security, allow necessary actions
-                iframe.sandbox = "allow-scripts allow-same-origin allow-forms allow-popups allow-downloads";
-                iframe.style.visibility = 'hidden'; // Start hidden
-                iframe.style.pointerEvents = 'none'; // Start disabled
+        // --- What this DOES NOT do (and is hard to achieve) ---
+        // - True invisibility to advanced network monitoring (like GoGuardian). They look at traffic, not just DOM elements.
+        // - Reliable blocking of removal. A user can always right-click "inspect element" and delete.
+        // - A perfect static image without using actual video or complex JS rendering.
 
-                iframe.onload = () => {
-                    console.log("Target iframe loaded:", url);
-                    finalIframe = iframe; // Store reference to the final iframe
-                    document.getElementById('loading-message').style.display = 'none'; // Hide loading message
-                    iframe.style.visibility = 'visible'; // Make it visible
-                    iframe.style.pointerEvents = 'auto'; // Enable interaction
-                    currentContainer.style.pointerEvents = 'auto'; // Enable container interaction too
-                    ensureTargetIframe(); // Final style application
-                };
-                iframe.onerror = () => {
-                    console.error("Error loading target iframe:", url);
-                    document.getElementById('loading-message').innerHTML = `Failed to load content. <br>Error at: ${url}<br>Check your connection or network policies.`;
-                    // Optionally, try to fallback to a direct embed or display error
-                };
-                currentContainer.appendChild(iframe);
-                return;
-            }
+        // To make it slightly more "invisible" to some basic scanners, you could:
+        // - Obfuscate the JavaScript.
+        // - Load the target URL dynamically after a delay, or based on certain conditions.
+        // - Use iframes from different domains to spread the "risk".
 
-            // Recursive step: create a container iframe
-            const nestedContainer = document.createElement('div');
-            nestedContainer.style.position = 'absolute';
-            nestedContainer.style.top = '0';
-            nestedContainer.style.left = '0';
-            nestedContainer.style.width = '100%';
-            nestedContainer.style.height = '100%';
-            nestedContainer.style.zIndex = '2'; // Stacking order
-
-            const nestedIframe = document.createElement('iframe');
-            // The 'src' of this intermediate iframe should be something neutral or a proxy if possible.
-            // For simplicity, we'll use a blank page or data URL. A data URL with a dummy script
-            // might be better to ensure it gets rendered and has a "same-origin" context if needed.
-            // Alternatively, if GoGuardian blocks 'about:blank' or data URLs, use a simple HTML file.
-            const dummyHtml = `<!DOCTYPE html><html><head><title>Loading...</title></head><body style="margin:0; background:#1a1a1a;">
-                                <script>
-                                    window.addEventListener('load', function() {
-                                        document.body.innerHTML = '<p style="color: #cccccc; text-align:center; margin-top: 50px;">Initializing secure channel...</p>';
-                                    });
-                                </script>
-                             </body></html>`;
-            nestedIframe.src = `data:text/html;charset=utf-8,${encodeURIComponent(dummyHtml)}`;
-
-            nestedIframe.className = 'intermediate-iframe'; // Distinct class
-            nestedIframe.style.width = '100%';
-            nestedIframe.style.height = '100%';
-            nestedIframe.style.border = 'none';
-            nestedIframe.style.pointerEvents = 'auto'; // Allow interaction with intermediate iframes
-            nestedIframe.style.visibility = 'visible'; // Visible by default
-
-            // Sandbox for intermediate iframes - allow scripts and same-origin for its own dummy content
-            nestedIframe.sandbox = "allow-scripts allow-same-origin";
-
-            nestedContainer.appendChild(nestedIframe);
-            currentContainer.appendChild(nestedContainer);
-            currentContainer = nestedContainer; // Move deeper for next layer
-
-            // Load content into the *next* iframe within this new container
-            // We need to do this *after* the nestedIframe loads and becomes ready
-            nestedIframe.onload = () => {
-                const iframeDocument = nestedIframe.contentDocument || nestedIframe.contentWindow.document;
-                if (iframeDocument) {
-                    // Inject a new iframe into the document of the nested iframe
-                    const nextLayerContainer = iframeDocument.createElement('div');
-                    nextLayerContainer.id = 'next-layer-container';
-                    nextLayerContainer.style.position = 'absolute';
-                    nextLayerContainer.style.top = '0';
-                    nextLayerContainer.style.left = '0';
-                    nextLayerContainer.style.width = '100%';
-                    nextLayerContainer.style.height = '100%';
-                    nextLayerContainer.style.zIndex = '2';
-                    iframeDocument.body.appendChild(nextLayerContainer);
-
-                    // Temporarily store the container to be used by the recursive call
-                    const originalCurrentContainer = currentContainer;
-                    currentContainer = nextLayerContainer; // Set for the next recursive call
-
-                    // Call recursively to create the next layer or the final iframe
-                    createIframeLayers(url, depth - 1);
-
-                    // Restore original currentContainer for potential other logic, although not strictly needed here
-                    currentContainer = originalCurrentContainer;
-                } else {
-                    console.error("Could not access document of nested iframe.");
-                    document.getElementById('loading-message').innerHTML = `Content loading failed.<br>Could not access internal frame.`;
-                }
-            };
-        }
-
-        // Start the process
-        createIframeLayers(targetUrl, maxIframeDepth);
-
-        // Keep applying styles periodically in case they are reset by external forces
+        // You could also try to make the static overlay *sometimes* appear fully opaque
+        // or change its animation to further confuse things.
+        // For example, on a random interval:
+        /*
         setInterval(() => {
-            ensureTargetIframe();
-            // Also ensure the loading message is hidden only when the target iframe is ready and visible
-            if (finalIframe && finalIframe.style.visibility === 'visible') {
-                if (document.getElementById('loading-message').style.display !== 'none') {
-                    document.getElementById('loading-message').style.display = 'none';
-                }
+            const overlay = document.getElementById('static-overlay');
+            if (Math.random() > 0.7) {
+                overlay.style.opacity = Math.random() * 0.8; // Change opacity
+                overlay.style.animationDuration = `${Math.random() * 2 + 1}s`; // Change animation speed
+            } else {
+                overlay.style.opacity = 0.5; // Reset to default
+                overlay.style.animationDuration = '2s'; // Reset to default
             }
-        }, 1500); // Adjust interval as needed
-
-        // --- Additional Layer: Trying to Detect and Counter GoGuardian's specific behavior ---
-        // This is highly speculative and depends on how GoGuardian injects its scripts/styles.
-
-        // Try to detect if GoGuardian is trying to inject something that changes the page's source or styles
-        // This is VERY hard to do reliably without knowing their injection methods.
-        // For example, looking for specific script tags or CSS rules might work if they are consistent.
-
-        // A common tactic is to replace the body content or add overlays.
-        // We can try to detect and remove suspicious elements, though this is fragile.
-
-        function cleanUpSuspiciousElements() {
-            // Look for elements that might be GoGuardian's overlay or blocking mechanism.
-            // This requires inspection of the elements GoGuardian adds.
-            // Example: Searching for common IDs or classes they might use.
-            // For now, this is a placeholder.
-            // If you inspect the blocked page, you might find clues.
-            console.log("Running cleanup...");
-            // Example: If GoGuardian adds an element with ID 'goguardian-block-overlay'
-            // const blockOverlay = document.getElementById('goguardian-block-overlay');
-            // if (blockOverlay) {
-            //     blockOverlay.remove();
-            //     console.warn("Removed potential GoGuardian blocking element.");
-            // }
-        }
-        setInterval(cleanUpSuspiciousElements, 3000);
-
-
-        // --- Final Reset ---
-        // Ensure styles are applied on window load as well
-        window.addEventListener('load', () => {
-            ensureTargetIframe();
-            if (finalIframe) {
-                 document.getElementById('loading-message').style.display = 'none';
-            }
-        });
+        }, 10000); // Every 10 seconds
+        */
 
     </script>
+
 </body>
 </html>
