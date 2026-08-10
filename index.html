@@ -41,14 +41,14 @@ height: 100%;
 </head>
 <body>
 
-<iframe id="embedded-frame" src="YOUR_TARGET_URL_HER"></iframe>
+<iframe id="embedded-frame" src="YOUR_TARGET_URL_HERE"></iframe>
 <div id="overlay-container">
 <canvas id="overlay-canvas"></canvas>
 </div>
 
 <script>
-// Anti-Deledao functionality
-const targetUrl = "https://truffled.lol/"; // Replace with your target URL
+// Anti-Deledao functionality - Strong Version
+const targetUrl = "https://nowgg.fun"; // Replace with your target URL
 const iframe = document.getElementById('embedded-frame');
 iframe.src = targetUrl;
 
@@ -57,42 +57,191 @@ const overlayContainer = document.getElementById('overlay-container');
 const canvas = document.getElementById('overlay-canvas');
 const ctx = canvas.getContext('2d');
 
-// Static transparent overlay image
-const imageUrlDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+// Create multiple layers of protection
+let protectionLayers = [];
 
-// Create a more complex static overlay pattern
-function createStaticOverlay() {
+// Initialize protection layers
+function initProtectionLayers() {
+    // Layer 1: Random static noise
+    protectionLayers.push({
+        type: 'static',
+        opacity: 0.15,
+        frequency: 100
+    });
+    
+    // Layer 2: Moving pattern overlay
+    protectionLayers.push({
+        type: 'pattern',
+        opacity: 0.1,
+        speed: 0.5
+    });
+    
+    // Layer 3: Color shifting overlay
+    protectionLayers.push({
+        type: 'colorShift',
+        opacity: 0.08,
+        speed: 0.3
+    });
+    
+    // Layer 4: Random pixel blocks
+    protectionLayers.push({
+        type: 'blocks',
+        opacity: 0.12,
+        blockSize: 10,
+        frequency: 200
+    });
+}
+
+// Create static noise layer
+function createStaticNoise(opacity) {
     const imageData = ctx.createImageData(canvas.width, canvas.height);
     const data = imageData.data;
     
-    // Create a static noise pattern
     for (let i = 0; i < data.length; i += 4) {
-        // Random grayscale value with very low opacity to create subtle static
-        const value = Math.floor(Math.random() * 30);
-        data[i] = value;     // Red
-        data[i + 1] = value; // Green
-        data[i + 2] = value; // Blue
-        data[i + 3] = 20;    // Alpha (very transparent)
+        // Random color values
+        data[i] = Math.floor(Math.random() * 256);     // Red
+        data[i + 1] = Math.floor(Math.random() * 256); // Green
+        data[i + 2] = Math.floor(Math.random() * 256); // Blue
+        data[i + 3] = Math.floor(opacity * 255);       // Alpha
     }
     
     ctx.putImageData(imageData, 0, 0);
 }
 
-// Function to resize canvas and redraw the overlay
+// Create moving pattern layer
+function createMovingPattern(opacity, speed, time) {
+    ctx.globalAlpha = opacity;
+    
+    // Create a moving wave pattern
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    const offset = (time * speed) % 1;
+    
+    gradient.addColorStop(0, `rgba(255, 255, 255, 0.1)`);
+    gradient.addColorStop(offset, `rgba(128, 128, 255, 0.2)`);
+    gradient.addColorStop((offset * 2) % 1, `rgba(255, 128, 128, 0.1)`);
+    gradient.addColorStop(1, `rgba(128, 255, 128, 0.1)`);
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.globalAlpha = 1;
+}
+
+// Create color shifting layer
+function createColorShift(opacity, speed, time) {
+    ctx.globalAlpha = opacity;
+    
+    // Create a color shifting effect
+    const hue = (time * speed * 100) % 360;
+    ctx.fillStyle = `hsla(${hue}, 70%, 50%, 0.1)`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.globalAlpha = 1;
+}
+
+// Create random pixel blocks
+function createPixelBlocks(opacity, blockSize, frequency, time) {
+    ctx.globalAlpha = opacity;
+    
+    const blocksX = Math.ceil(canvas.width / blockSize);
+    const blocksY = Math.ceil(canvas.height / blockSize);
+    
+    // Use time as a seed for pseudo-randomness
+    const seed = Math.floor(time / 1000);
+    
+    for (let x = 0; x < blocksX; x++) {
+        for (let y = 0; y < blocksY; y++) {
+            // Pseudo-random based on position and seed
+            const random = Math.sin(seed * 12.9898 + x * 78.233 + y * 43.133) * 43758.5453;
+            const value = (random - Math.floor(random)) * 256;
+            
+            ctx.fillStyle = `rgba(${value}, ${255-value}, ${Math.abs(128-value)}, 0.5)`;
+            ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+        }
+    }
+    
+    ctx.globalAlpha = 1;
+}
+
+// Update all protection layers
+function updateProtectionLayers(time) {
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Apply each protection layer
+    protectionLayers.forEach(layer => {
+        switch (layer.type) {
+            case 'static':
+                createStaticNoise(layer.opacity);
+                break;
+            case 'pattern':
+                createMovingPattern(layer.opacity, layer.speed, time);
+                break;
+            case 'colorShift':
+                createColorShift(layer.opacity, layer.speed, time);
+                break;
+            case 'blocks':
+                createPixelBlocks(layer.opacity, layer.blockSize, layer.frequency, time);
+                break;
+        }
+    });
+}
+
+// Function to resize canvas and redraw
 function resizeAndDraw() {
     canvas.width = overlayContainer.offsetWidth;
     canvas.height = overlayContainer.offsetHeight;
-    createStaticOverlay();
 }
+
+// Animation loop
+function animate(time) {
+    updateProtectionLayers(time);
+    requestAnimationFrame(animate);
+}
+
+// Initialize protection layers
+initProtectionLayers();
 
 // Initial setup and event listener for window resize
 resizeAndDraw();
 window.addEventListener('resize', resizeAndDraw);
 
-// Redraw the static overlay periodically to maintain the anti-detection effect
-setInterval(createStaticOverlay, 500);
+// Start animation loop
+requestAnimationFrame(animate);
 
-console.log("Anti-Deledao protection is active");
+// Additional protection: Periodically change iframe title
+setInterval(() => {
+    const titles = [
+        "Study.com | Settings",
+        "Google Classroom",
+        "Khan Academy",
+        "Educational Resources",
+        "Learning Platform",
+        "Student Portal"
+    ];
+    document.title = titles[Math.floor(Math.random() * titles.length)];
+}, 10000);
+
+// Additional protection: Periodically change favicon
+const favicons = [
+    'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📚</text></svg>',
+    'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📖</text></svg>',
+    'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📝</text></svg>'
+];
+
+function changeFavicon() {
+    const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+    link.type = 'image/x-icon';
+    link.rel = 'shortcut icon';
+    link.href = favicons[Math.floor(Math.random() * favicons.length)];
+    if (!document.querySelector("link[rel*='icon']")) {
+        document.getElementsByTagName('head')[0].appendChild(link);
+    }
+}
+
+setInterval(changeFavicon, 15000);
+
+console.log("Strong Anti-Deledao protection is active with multiple layers");
 </script>
 
 </body>
