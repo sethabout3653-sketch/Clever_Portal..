@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Fullscreen Embedded Website - Evasion Attempt</title>
+<title>Fullscreen Embedded Website - Focused Evasion</title>
 <style>
     body, html {
         margin: 0;
         padding: 0;
         overflow: hidden;
         height: 100%;
-        background-color: #000; /* Fallback background */
+        background-color: #000;
     }
 
-    .iframe-layer {
+    #main-content-iframe {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         border: none;
-        z-index: 1; /* Start with a base z-index */
+        z-index: 1; /* Base layer for the content */
     }
 
     #static-overlay {
@@ -27,182 +27,140 @@
         left: 0;
         width: 100%;
         height: 100%;
-        pointer-events: none; /* Allows clicks to pass through to iframes below */
+        pointer-events: none; /* Crucial: allows clicks to pass through to iframe */
         background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACpDid1AAAAIElEQVQIW2P8//8/A8GkQBQoowj6gM0E4rIAAIQABGgAFJBAwAAAAABJRU5ErkJggg=='); /* Tiny repeating black dot pattern */
         background-size: 2px 2px;
         animation: glitch 2s infinite linear alternate-reverse;
-        z-index: 100; /* High z-index to be on top */
-        opacity: 0.5; /* Make it somewhat visible */
-        display: none; /* Hidden by default, JS will show it */
+        z-index: 100; /* Highest z-index to be on top */
+        opacity: 0.6; /* Slightly more opaque for more "glitch" effect */
+        display: none; /* Hidden by default */
     }
 
     @keyframes glitch {
-        0% {
-            background-position: 0 0;
-        }
-        10% {
-            background-position: -2px 0;
-        }
-        20% {
-            background-position: 0 -2px;
-        }
-        30% {
-            background-position: -2px -2px;
-        }
-        40% {
-            background-position: 0 0;
-        }
-        50% {
-            background-position: 2px 2px;
-        }
-        60% {
-            background-position: 0 2px;
-        }
-        70% {
-            background-position: 2px 0;
-        }
-        80% {
-            background-position: 2px 2px;
-        }
-        90% {
-            background-position: 0 0;
-        }
-        100% {
-            background-position: -2px 0;
-        }
-    }
-
-    .hidden-content {
-        display: none; /* Initially hide the actual content */
+        0% { background-position: 0 0; }
+        10% { background-position: -2px 0; }
+        20% { background-position: 0 -2px; }
+        30% { background-position: -2px -2px; }
+        40% { background-position: 0 0; }
+        50% { background-position: 2px 2px; }
+        60% { background-position: 0 2px; }
+        70% { background-position: 2px 0; }
+        80% { background-position: 2px 2px; }
+        90% { background-position: 0 0; }
+        100% { background-position: -2px 0; }
     }
 </style>
 </head>
 <body>
 
-    <!-- Static Image Overlay -->
     <div id="static-overlay"></div>
-
-    <!-- Layered Iframes -->
-    <!-- We'll use multiple iframes with different z-indexes -->
-    <!-- The idea is that if one is blocked, others might be accessible -->
-    <!-- Or if one tries to close, others might be unaffected -->
-
-    <iframe class="iframe-layer" src="https://www.google.com" style="z-index: 2;" title="Layer 1"></iframe>
-    <iframe class="iframe-layer" src="https://www.bing.com" style="z-index: 3;" title="Layer 2"></iframe>
-    <iframe class="iframe-layer" src="https://duckduckgo.com" style="z-index: 4;" title="Layer 3"></iframe>
-    <!-- Add more iframes as needed with incrementing z-indexes -->
-
-    <div id="hidden-content" class="hidden-content">
-        <!-- This is where your actual content would go if you wanted to dynamically load it -->
-        <!-- For this example, we're just using external sites -->
-    </div>
+    <iframe id="main-content-iframe" src="https://example.com" allowfullscreen title="Main Content"></iframe>
 
     <script>
-        const targetUrl = "https://example.com"; // The website you *really* want to show
-        const iframeSources = [
-            "https://www.google.com",
-            "https://www.bing.com",
-            "https://duckduckgo.com",
-            "https://www.yahoo.com" // Example of another one
-        ];
-
-        let currentLayer = 0;
-        const iframeContainer = document.body; // Or a specific container div
-
-        // Function to attempt to create a new iframe
-        function createIframe(src, zIndex) {
-            const iframe = document.createElement('iframe');
-            iframe.src = src;
-            iframe.className = 'iframe-layer';
-            iframe.style.zIndex = zIndex;
-            iframe.title = `Layer ${zIndex}`;
-            iframe.onerror = () => console.log(`Error loading iframe: ${src}`);
-            iframe.onload = () => console.log(`Iframe loaded: ${src}`);
-            iframeContainer.appendChild(iframe);
-            return iframe;
-        }
-
-        // "Anti-deleado" - Basic attempt to keep iframes alive
-        // This is very rudimentary. It checks if the primary iframe (if it existed)
-        // is still in the DOM. A more complex version would monitor all iframes
-        // and try to replace them if they disappear.
-        const mainIframeCheckInterval = setInterval(() => {
-            const iframes = document.getElementsByClassName('iframe-layer');
-            if (iframes.length === 0) {
-                console.log("All iframes removed. Attempting to restore.");
-                // Restore the main content iframe
-                createIframe(targetUrl, 5); // Use a higher z-index for the target
-                // Restore backup iframes
-                for (let i = 0; i < iframeSources.length; i++) {
-                    if (i < 3) { // Only restore a few backups
-                        createIframe(iframeSources[i], i + 2);
-                    }
-                }
-            }
-            // More advanced checks could look for specific messages or DOM changes
-        }, 5000); // Check every 5 seconds
+        const targetUrl = "https://example.com";
+        let primaryIframe = document.getElementById('main-content-iframe');
+        const staticOverlay = document.getElementById('static-overlay');
 
         // Make the static overlay visible and animate it
-        document.getElementById('static-overlay').style.display = 'block';
+        staticOverlay.style.display = 'block';
 
-        // --- Dynamic Iframe Management (Optional, more complex) ---
-        // This part shows how you might dynamically manage iframes,
-        // perhaps trying to load the target URL first and backups if it fails.
-        // For simplicity in this example, we've already added them in HTML.
+        // Basic "Anti-Deleado" and Content Restoration
+        // This script will continuously check if the primary iframe is still there.
+        // If it's gone, it tries to recreate it.
+        const restorationInterval = setInterval(() => {
+            const currentIframe = document.getElementById('main-content-iframe');
+            if (!currentIframe) {
+                console.warn("Primary iframe not found. Attempting to restore...");
+                // Create a new iframe and set its properties
+                const newIframe = document.createElement('iframe');
+                newIframe.id = 'main-content-iframe';
+                newIframe.className = 'iframe-layer'; // Add class for styling consistency
+                newIframe.src = targetUrl;
+                newIframe.setAttribute('allowfullscreen', '');
+                newIframe.title = "Main Content";
+                newIframe.style.position = 'absolute';
+                newIframe.style.top = '0';
+                newIframe.style.left = '0';
+                newIframe.style.width = '100%';
+                newIframe.style.height = '100%';
+                newIframe.style.border = 'none';
+                newIframe.style.zIndex = '1'; // Ensure it's behind the overlay
 
-        // If you wanted to replace the initial ones with targetUrl and backups:
-        /*
-        function loadContent() {
-            // Remove existing iframes (optional, depends on strategy)
-            const existingIframes = document.querySelectorAll('.iframe-layer');
-            existingIframes.forEach(iframe => iframe.remove());
+                // Re-attach the error/load listeners if you had them, or just append
+                newIframe.onerror = () => console.log(`Error loading restored iframe: ${targetUrl}`);
+                newIframe.onload = () => console.log(`Restored iframe loaded: ${targetUrl}`);
 
-            // Load the primary target URL with the highest z-index
-            createIframe(targetUrl, 5);
-
-            // Load backup iframes
-            for (let i = 0; i < iframeSources.length; i++) {
-                createIframe(iframeSources[i], i + 2); // Start z-index from 2
+                document.body.appendChild(newIframe);
+                primaryIframe = newIframe; // Update our reference
             }
-        }
-        // Uncomment the line below to use dynamic loading instead of static HTML iframes
-        // loadContent();
-        */
-
-
-        // --- Evasion Tactics ---
-        // 1. Multiple Iframes: Makes it harder to block all.
-        // 2. Static Overlay: Attempts to mask or confuse detection tools, and gives a "glitchy" look.
-        //    The 'pointer-events: none;' is crucial so clicks go through to the iframes.
-        //    The 'opacity' makes it partially see-through.
-        // 3. Basic "Anti-Deleado": Tries to re-add iframes if they are all gone. This is weak.
-        // 4. Z-index stacking: Ensures the static is on top, but still interactive.
-
-        // --- What this DOES NOT do (and is hard to achieve) ---
-        // - True invisibility to advanced network monitoring (like GoGuardian). They look at traffic, not just DOM elements.
-        // - Reliable blocking of removal. A user can always right-click "inspect element" and delete.
-        // - A perfect static image without using actual video or complex JS rendering.
-
-        // To make it slightly more "invisible" to some basic scanners, you could:
-        // - Obfuscate the JavaScript.
-        // - Load the target URL dynamically after a delay, or based on certain conditions.
-        // - Use iframes from different domains to spread the "risk".
-
-        // You could also try to make the static overlay *sometimes* appear fully opaque
-        // or change its animation to further confuse things.
-        // For example, on a random interval:
-        /*
-        setInterval(() => {
-            const overlay = document.getElementById('static-overlay');
-            if (Math.random() > 0.7) {
-                overlay.style.opacity = Math.random() * 0.8; // Change opacity
-                overlay.style.animationDuration = `${Math.random() * 2 + 1}s`; // Change animation speed
-            } else {
-                overlay.style.opacity = 0.5; // Reset to default
-                overlay.style.animationDuration = '2s'; // Reset to default
+            // Additional check: Ensure the static overlay is still visible
+            if (staticOverlay.style.display === 'none') {
+                console.warn("Static overlay not visible. Restoring...");
+                staticOverlay.style.display = 'block';
             }
-        }, 10000); // Every 10 seconds
-        */
+        }, 3000); // Check every 3 seconds
+
+        // Optional: Force reload on specific browser actions (highly intrusive and often blocked)
+        // window.addEventListener('beforeunload', (e) => {
+        //     e.preventDefault();
+        //     e.returnValue = ''; // This part is largely ignored by modern browsers for security reasons
+        //     // In some very specific, older contexts, this might trigger a prompt,
+        //     // but it won't prevent navigation/closing.
+        // });
+
+        // Optional: Make it harder to right-click and inspect
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); // Disable right-click context menu
+            // Optionally, show a message or re-trigger the static effect
+            staticOverlay.style.opacity = 1; // Temporarily make static solid
+            setTimeout(() => { staticOverlay.style.opacity = 0.6; }, 200); // Fade back
+        });
+
+        // More aggressive "anti-deleado": try to prevent deletion via DOM manipulation directly
+        // This is also easily bypassed by developers.
+        const originalAppendChild = document.body.appendChild;
+        document.body.appendChild = function(element) {
+            if (element.tagName === 'IFRAME' && element.id === 'main-content-iframe') {
+                console.log("Intercepted iframe append. Ensuring it's the main one.");
+                // If it's the main one being added, just append it normally.
+                // If it's some other iframe, we might decide to block it.
+                // For this script, we only care about the primary iframe.
+                return originalAppendChild.call(this, element);
+            } else if (element.tagName === 'IFRAME' && !element.id) {
+                 console.warn("Attempt to add an unauthorized iframe blocked.");
+                 // Optionally, show the static overlay again or trigger an alert
+                 return; // Block the addition of other iframes
+            }
+            // Append all other elements normally
+            return originalAppendChild.call(this, element);
+        };
+
+        // If you want to try and prevent the page from being navigated away from
+        // by the user clicking links *inside* the iframe (this is tricky as it
+        // interferes with normal iframe functionality).
+        document.getElementById('main-content-iframe').addEventListener('load', function() {
+            try {
+                const iframeDoc = this.contentWindow.document;
+                if (iframeDoc) {
+                    iframeDoc.addEventListener('click', (e) => {
+                        // If a link is clicked, this event is captured here.
+                        // It's hard to *prevent* the navigation reliably without
+                        // breaking the iframe. A common, albeit crude, trick
+                        // is to force a reload of the parent page or re-open
+                        // the iframe.
+                        // For now, we'll just log it as an interception.
+                        console.log("Link clicked inside iframe. Parent page might be reloaded.");
+                        // Example of forcing a reload (commented out as it's very aggressive)
+                        // setTimeout(() => {
+                        //     window.location.reload();
+                        // }, 100);
+                    });
+                }
+            } catch (e) {
+                // Cross-origin restrictions will prevent accessing iframe document
+                // console.warn("Could not access iframe document (likely cross-origin):", e);
+            }
+        });
 
     </script>
 
