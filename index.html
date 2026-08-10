@@ -3,262 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SethieUnblocked_Core</title>
+    <title>UnblockedGames</title>
     <style>
-        body, html {
+        body {
             margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            background-color: #1a1a1a;
-            color: #00e600;
-            font-family: 'Arial', sans-serif;
-            cursor: default;
+            overflow: hidden; /* Hide scrollbars */
+            background-color: #000; /* Black background for immersion */
         }
-        #site-frame {
-            width: 100%;
+        #embedded-frame {
+            width: 100vw;
             height: 100vh;
-            border: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            background-color: transparent;
+            border: none; /* No border */
+            display: block; /* Remove extra space below the frame */
         }
-        #overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.9) 100%);
-            opacity: 0.0;
-            z-index: 2;
-            pointer-events: none;
-            transition: opacity 0.5s ease-in-out;
-        }
-        .overlay-visible { opacity: 0.5; pointer-events: none; }
-        .overlay-hidden { opacity: 0.0; pointer-events: none; }
-        #notification {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            background: rgba(26, 26, 26, 0.9);
-            color: #00e600;
-            padding: 10px 20px;
-            border-radius: 5px;
-            border: 1px solid #00e600;
-            display: none;
-            z-index: 10000;
-            font-size: 0.9em;
-            font-family: 'Arial', sans-serif;
-            opacity: 0;
-            transition: opacity 0.6s ease-out;
-        }
-        .notification-show { display: block !important; opacity: 1; }
     </style>
 </head>
 <body>
-    <div id="notification">Initializing Core Bypass...</div>
-    <iframe id="site-frame" src="about:blank"></iframe>
-    <div id="overlay"></div>
+
+    <iframe id="embedded-frame" src="YOUR_TARGET_URL_HERE"></iframe>
 
     <script>
-        (function() {
-            // --- Configuration ---
-            const TARGET_URL = "https://bakery.bakeryos.net/"; // Primary target
-            const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
-            const MAX_INIT_DELAY = 5000;
-            const RECHECK_INTERVAL = 8000;
-            const OVERLAY_FADE_DURATION = 600;
+        // This script simulates an "anti-Deledao" approach by
+        // directly embedding the content and preventing external filtering
+        // from interfering. In a real-world scenario, this would involve
+        // more complex techniques to avoid detection by sophisticated
+        // filtering systems like Deledao's InstantAI™.
 
-            // --- DOM Elements ---
-            const notificationElement = document.getElementById('notification');
-            const overlayElement = document.getElementById('overlay');
-            const iframeElement = document.getElementById('site-frame');
+        // The core idea is to load the content directly into an iframe
+        // without relying on meta tags or scripts that could be intercepted
+        // by filtering software.
 
-            // --- Utility Functions ---
-            const showNotification = (message, duration = 3000) => {
-                if (!notificationElement) return;
-                notificationElement.textContent = message;
-                notificationElement.classList.add('notification-show');
-                setTimeout(() => {
-                    notificationElement.classList.remove('notification-show');
-                }, duration);
-            };
+        // The iframe itself will attempt to load the content as is.
+        // To truly be "anti-Deledao," the server hosting this HTML
+        // would need to employ advanced obfuscation and routing techniques
+        // to mask the traffic and content from being analyzed by AI
+        // filters in real-time. This is a simplified representation.
 
-            const getRandomDelay = (max = MAX_INIT_DELAY) => {
-                return Math.random() * max;
-            };
+        // For demonstration purposes, we'll assume 'YOUR_TARGET_URL_HERE'
+        // is the website you want to access.
+        // In a true "anti-Deledao" scenario, the target URL might also
+        // be dynamically generated or obfuscated.
 
-            const setIframeSource = (src) => {
-                if (iframeElement) {
-                    iframeElement.src = `${src}?_=${Date.now()}`;
-                }
-            };
+        const targetUrl = "https://example.com"; // Replace with the actual URL you want to embed
 
-            // --- Stealth Measures ---
-            const applyGlobalMocks = () => {
-                try {
-                    // User Agent Spoofing
-                    Object.defineProperty(navigator, 'userAgent', {
-                        value: USER_AGENT,
-                        configurable: true,
-                        writable: true
-                    });
-                    // Platform Spoofing
-                    Object.defineProperty(navigator, 'platform', {
-                        value: 'Win32',
-                        configurable: true,
-                        writable: true
-                    });
-                    // WebDriver Detection Bypass
-                    Object.defineProperty(navigator, 'webdriver', {
-                        value: false,
-                        configurable: true,
-                        writable: true
-                    });
-                    // Language Spoofing
-                    Object.defineProperty(navigator, 'languages', {
-                        value: ['en-US', 'en'],
-                        configurable: true,
-                        writable: true
-                    });
-                    // Plugin/MimeType Spoofing (empty lists)
-                    Object.defineProperty(navigator, 'plugins', { get: () => [], configurable: true });
-                    Object.defineProperty(navigator, 'mimeTypes', { get: () => [], configurable: true });
+        const iframe = document.getElementById('embedded-frame');
+        iframe.src = targetUrl;
 
-                    // Document Properties Spoofing
-                    Object.defineProperty(document, 'referrer', {
-                        value: '',
-                        configurable: true,
-                        writable: true
-                    });
-                    Object.defineProperty(document, 'domain', {
-                        value: 'local', // A common spoofed value
-                        configurable: true,
-                        writable: true
-                    });
-                    Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
-                    Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+        // Additional simulated "anti-Deledao" measures (conceptual):
+        // - No identifiable keywords in the HTML or JavaScript that
+        //   Deledao's AI might flag.
+        // - Embedding a dynamically generated, unique URL for each session.
+        // - Using techniques to mimic legitimate user traffic patterns.
+        // - Potentially, having this HTML served from a domain not on
+        //   any known blocklists and constantly changing IP addresses.
 
-                    // Mocking specific detection-related JavaScript APIs
-                    window.chrome = {}; // Mock chrome object if it exists
+        // Since we cannot directly implement Deledao's internal AI
+        // detection mechanisms here, this script focuses on providing
+        // direct, unadulterated access via the iframe. The "behind the scenes"
+        // aspect is that the filtering system, if present, would ideally
+        // not be able to inspect or block the content loading within this iframe.
+        // The "uncensored" aspect comes from the direct embedding.
 
-                    // Prevent dynamic iframe injection attempts by detection scripts
-                    const observer = new MutationObserver(mutations => {
-                        mutations.forEach(mutation => {
-                            mutation.addedNodes.forEach(node => {
-                                if (node.nodeType === 1 && node.tagName === 'IFRAME') {
-                                    const iframeSrc = node.src;
-                                    if (!iframeSrc || !iframeSrc.startsWith('data:')) {
-                                        node.src = 'about:blank'; // Block external iframes
-                                    }
-                                }
-                            });
-                        });
-                    });
-                    // Observe changes in the body or document element
-                    observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+        console.log("Attempting to load content directly. UI elements are hidden. Simulating 'anti-Deledao' by direct embedding.");
 
-                } catch (e) { /* Ignore errors during mocking */ }
-            };
-
-            // Console Mocking
-            const mockConsole = () => {
-                try {
-                    const originalConsole = Object.assign({}, window.console);
-                    window.console = {};
-                    const methods = ['log', 'warn', 'error', 'info', 'debug', 'table', 'dir', 'dirxml', 'trace', 'assert', 'count', 'countReset', 'group', 'groupCollapsed', 'groupEnd', 'time', 'timeEnd', 'profile', 'profileEnd'];
-                    methods.forEach(method => {
-                        window.console[method] = function() {
-                            // Optionally, you could still log to the original console for debugging purposes
-                            // if (originalConsole[method]) {
-                            //     originalConsole[method].apply(originalConsole, arguments);
-                            // }
-                        };
-                    });
-                } catch (e) { /* Ignore errors */ }
-            };
-
-            // Event Listeners for Stealth
-            const attachStealthListeners = () => {
-                // Prevent right-click context menu
-                window.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }, { capture: true });
-
-                // Minimal listeners that don't leak much info
-                window.addEventListener('resize', () => {}, { passive: true, capture: true });
-                window.addEventListener('scroll', () => {}, { passive: true, capture: true });
-
-                // Re-apply mocks on window blur to counteract potential re-enabling of detection
-                window.addEventListener('blur', () => {
-                    setTimeout(applyGlobalMocks, 100);
-                    mockConsole(); // Re-mock console
-                }, { capture: true });
-            };
-
-            // Overlay Management - brief flash then hidden
-            const manageOverlay = () => {
-                if (!overlayElement) return;
-                overlayElement.style.opacity = '0.0';
-                overlayElement.style.pointerEvents = 'none';
-                overlayElement.classList.remove('overlay-visible');
-                overlayElement.classList.add('overlay-hidden');
-
-                setTimeout(() => {
-                    if (overlayElement) {
-                        overlayElement.classList.add('overlay-visible');
-                        overlayElement.style.pointerEvents = 'none';
-                    }
-                    setTimeout(() => {
-                        if (overlayElement) {
-                            overlayElement.classList.add('overlay-hidden');
-                            overlayElement.classList.remove('overlay-visible');
-                            overlayElement.style.pointerEvents = 'none';
-                        }
-                    }, OVERLAY_FADE_DURATION);
-                }, getRandomDelay(MAX_INIT_DELAY / 2));
-            };
-
-            // Periodic Re-application
-            const reapplyStealthPeriodically = () => {
-                setInterval(() => {
-                    applyGlobalMocks();
-                    mockConsole();
-                }, RECHECK_INTERVAL);
-            };
-
-            // --- Initialization ---
-            const initialize = () => {
-                showNotification('Initializing Core Bypass...', 5000);
-                applyGlobalMocks();
-                mockConsole();
-                attachStealthListeners();
-                manageOverlay();
-                setIframeSource(TARGET_URL);
-
-                reapplyStealthPeriodically();
-
-                setTimeout(() => {
-                    showNotification(`Bypass active. Targeting: ${TARGET_URL.split('//')[1].split('/')[0]}`, 4000);
-                }, getRandomDelay(MAX_INIT_DELAY));
-            };
-
-            const checkReadyState = () => {
-                if (document.readyState === 'loading' || document.hidden) {
-                    setTimeout(checkReadyState, 200);
-                } else {
-                    if (iframeElement) iframeElement.src = "about:blank";
-                    setTimeout(initialize, getRandomDelay(1000));
-                }
-            };
-
-            checkReadyState();
-
-        })();
     </script>
+
 </body>
 </html>
