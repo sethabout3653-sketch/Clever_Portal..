@@ -3,196 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embedded Content</title>
+    <title>Loading...</title>
     <style>
-        body { margin: 0; overflow: hidden; }
-        iframe {
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1a1a; /* Dark background to blend in */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #cccccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            font-size: 1.2em;
+            position: relative; /* For positioning elements */
+        }
+        #loading-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        #hidden-iframe-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Below the loading message initially */
+            pointer-events: none; /* Will be enabled when content is ready */
+        }
+        .target-iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             border: none;
-            pointer-events: auto; /* Ensure iframe content is interactive */
+            visibility: hidden; /* Hidden until content is loaded */
+            pointer-events: none; /* Disabled until ready */
+            z-index: 5; /* Above container, below loading message */
         }
-        /* Attempt to make it difficult for external scripts to interfere */
-        :root {
-            --deledao-bypass: 1;
-        }
-        iframe::before, iframe::after {
-            content: none;
-            display: none;
-        }
-        /* More aggressive styling to hide potential UI overlays */
-        iframe * {
-            visibility: visible !important;
-        }
-        /* Disable any CSS that might be injected to hide content */
-        iframe {
-            all: unset !important;
-            display: block !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            border: none !important;
-            pointer-events: auto !important;
-            visibility: visible !important;
-            z-index: 999999 !important; /* Ensure it's on top */
-        }
-        /* Injecting some styles directly into the iframe content if possible (limited by sandbox/X-Frame-Options) */
-        /* This is highly dependent on the target website's security and CSP. */
     </style>
 </head>
 <body>
-    <iframe src="https://frogiesarcade.net" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
+    <div id="loading-message">
+        Attempting to access content securely. Please wait...
+        <br>
+        (If this persists, your network policy may be too restrictive.)
+    </div>
+    <div id="hidden-iframe-container"></div>
 
     <script>
-        // Full script to ensure interactivity and attempt to bypass interference
+        const targetUrl = "https://frogiesarcade.net/"; // The site you want to access
+        const maxIframeDepth = 3; // How many layers of iframes to use
+        let currentContainer = document.getElementById('hidden-iframe-container');
+        let finalIframe = null;
 
-        // Function to keep the iframe interactive and on top
-        function ensureIframe() {
-            const iframe = document.querySelector('iframe');
-            if (iframe) {
-                iframe.style.position = 'absolute';
-                iframe.style.top = '0';
-                iframe.style.left = '0';
-                iframe.style.width = '100%';
-                iframe.style.height = '100%';
-                iframe.style.border = 'none';
-                iframe.style.pointerEvents = 'auto';
-                iframe.style.zIndex = '999999';
-                iframe.style.visibility = 'visible';
+        // --- Advanced Anti-Detection & Anti-Blocking Script ---
+
+        // 1. Aggressively ensure the target iframe is always visible and interactive
+        function ensureTargetIframe() {
+            if (finalIframe) {
+                finalIframe.style.position = 'absolute';
+                finalIframe.style.top = '0';
+                finalIframe.style.left = '0';
+                finalIframe.style.width = '100%';
+                finalIframe.style.height = '100%';
+                finalIframe.style.border = 'none';
+                finalIframe.style.pointerEvents = 'auto'; // Crucial for interaction
+                finalIframe.style.visibility = 'visible'; // Make it visible
+                finalIframe.style.zIndex = '999999'; // Ensure it's on top
+                document.body.style.overflow = 'hidden'; // Prevent body scrolling
             }
         }
 
-        // Execute immediately and at intervals
-        ensureIframe();
-        setInterval(ensureIframe, 1000); // Re-apply styles every second
-
-        // Attempt to block any external attempts to modify the iframe or its content
-        // This is largely theoretical and depends heavily on the browser's security model
-        // and the target website's X-Frame-Options and CSP.
-
-        // Try to intercept and ignore mutations that might affect the iframe
+        // 2. Intercept DOM mutations that might hide or remove the iframe
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === 'childList' || mutation.type === 'attributes') {
-                    // Check if any of the added nodes or attribute changes affect the iframe
-                    const iframe = document.querySelector('iframe');
+                    const iframe = document.querySelector('.target-iframe'); // Find the final iframe
                     if (iframe) {
-                        // If styles are being reset or attributes changed, try to re-apply
-                        // This is a very basic attempt and might be bypassed.
-                        if (iframe.style.zIndex !== '999999') {
-                            ensureIframe();
+                        // Re-apply styles if they're being messed with
+                        if (iframe.style.visibility !== 'visible' || iframe.style.pointerEvents !== 'auto') {
+                            ensureTargetIframe();
                         }
-                        if (iframe.style.pointerEvents !== 'auto') {
-                            iframe.style.pointerEvents = 'auto';
+                        // If the iframe is removed, try to recreate it (highly experimental)
+                        if (!document.body.contains(iframe)) {
+                            console.warn("Iframe removed, attempting to re-insert...");
+                            createIframeLayers(targetUrl, maxIframeDepth); // Re-init layers
                         }
                     }
                 }
             });
         });
 
+        // Start observing
         observer.observe(document.body, {
             childList: true,
             subtree: true,
             attributes: true,
-            attributeFilter: ['style', 'id', 'class'] // Watch for style changes etc.
+            attributeFilter: ['style', 'id', 'class', 'src']
         });
 
-        // Prevent any scripts from trying to remove or hide the iframe
-        // This is difficult to do robustly without full control of the page context
-        // For example, trying to override document.body.removeChild or similar
+        // 3. Override destructive methods (like removeChild)
         const originalRemoveChild = Element.prototype.removeChild;
         Element.prototype.removeChild = function(child) {
-            if (child && child.tagName === 'IFRAME') {
-                console.warn("Attempted to remove iframe, blocked.");
-                return false; // Or return nothing, depending on how it's handled
+            if (child && child.tagName === 'IFRAME' && child.classList.contains('target-iframe')) {
+                console.warn("Attempted to remove final target iframe, blocked.");
+                return false; // Prevent removal
             }
             return originalRemoveChild.apply(this, arguments);
         };
 
-        // Prevent scripts from setting display: none or visibility: hidden on the iframe
+        // 4. Override style setting to prevent hiding
         const originalSetAttribute = Element.prototype.setAttribute;
         Element.prototype.setAttribute = function(name, value) {
-            if (this.tagName === 'IFRAME') {
+            if (this.tagName === 'IFRAME' && this.classList.contains('target-iframe')) {
                 if (name === 'style') {
-                    if (value.includes('display: none') || value.includes('visibility: hidden')) {
-                        console.warn("Attempted to hide iframe via style attribute, blocked.");
-                        return; // Do not apply the style
+                    if (value.includes('display: none') || value.includes('visibility: hidden') || value.includes('pointer-events: none')) {
+                        console.warn("Attempted to hide/disable iframe via style attribute, blocked.");
+                        return; // Do not apply the blocking style
                     }
                 }
             }
             return originalSetAttribute.apply(this, arguments);
         };
 
-        // Additional checks for styles that might be applied directly
-        const originalSetStyle = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'display') || {};
-        if (originalSetStyle.set) {
-            Object.defineProperty(CSSStyleDeclaration.prototype, 'display', {
-                set: function(value) {
-                    if (this.ownerElement && this.ownerElement.tagName === 'IFRAME' && (value === 'none' || value === 'hidden')) {
-                        console.warn("Attempted to set iframe display/visibility to none/hidden, blocked.");
-                        // Do not allow setting to 'none' or 'hidden'
-                        return;
-                    }
-                    originalSetStyle.set.call(this, value);
-                },
-                get: originalSetStyle.get || function() { return originalSetStyle.get.call(this); } // Include getter if available
-            });
+        // More robust style overriding using Object.defineProperty
+        function overrideStyleProperty(prop, blockValues) {
+            const descriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, prop);
+            if (descriptor && descriptor.set) {
+                Object.defineProperty(CSSStyleDeclaration.prototype, prop, {
+                    set: function(value) {
+                        if (this.ownerElement && this.ownerElement.tagName === 'IFRAME' && this.ownerElement.classList.contains('target-iframe')) {
+                            if (blockValues.some(bv => value.toString().toLowerCase().includes(bv))) {
+                                console.warn(`Attempted to set iframe ${prop} to "${value}", blocked.`);
+                                return; // Block setting the forbidden style
+                            }
+                        }
+                        descriptor.set.call(this, value);
+                    },
+                    get: descriptor.get || function() { return descriptor.get.call(this); },
+                    configurable: true
+                });
+            }
         }
-         const originalSetVisibility = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'visibility') || {};
-         if (originalSetVisibility.set) {
-             Object.defineProperty(CSSStyleDeclaration.prototype, 'visibility', {
-                 set: function(value) {
-                     if (this.ownerElement && this.ownerElement.tagName === 'IFRAME' && (value === 'none' || value === 'hidden')) {
-                         console.warn("Attempted to set iframe visibility to none/hidden, blocked.");
-                         return; // Do not allow setting to 'none' or 'hidden'
-                     }
-                     originalSetVisibility.set.call(this, value);
-                 },
-                 get: originalSetVisibility.get || function() { return originalSetVisibility.get.call(this); }
-             });
-         }
+
+        overrideStyleProperty('display', ['none', 'hidden']);
+        overrideStyleProperty('visibility', ['hidden', 'collapse']);
+        overrideStyleProperty('pointerEvents', ['none']);
 
 
-        // To counter "anti-deleado" which analyzes content in real-time, we need to make
-        // the iframe's content as opaque as possible to external inspection and ensure
-        // the content itself is not easily manipulated or blocked by the browser/extensions.
-        // The `sandbox` attribute is crucial here, but also needs careful configuration.
-        // `allow-scripts` is needed for the embedded site to function.
-        // `allow-same-origin` is often required for the embedded site to load its resources correctly,
-        // but it weakens security. Use with caution and only if necessary.
-        // `allow-forms`, `allow-popups`, `allow-downloads` are for general functionality.
+        // 5. Dynamic Layer Creation
+        function createIframeLayers(url, depth) {
+            if (depth <= 0) {
+                // Base case: create the final iframe
+                const iframe = document.createElement('iframe');
+                iframe.src = url;
+                iframe.className = 'target-iframe'; // Use a specific class
+                // Sandbox for security, allow necessary actions
+                iframe.sandbox = "allow-scripts allow-same-origin allow-forms allow-popups allow-downloads";
+                iframe.style.visibility = 'hidden'; // Start hidden
+                iframe.style.pointerEvents = 'none'; // Start disabled
 
-        // The `pointer-events: auto` on the iframe itself is important so that clicks and scrolls
-        // within the iframe are registered correctly by the embedded page.
+                iframe.onload = () => {
+                    console.log("Target iframe loaded:", url);
+                    finalIframe = iframe; // Store reference to the final iframe
+                    document.getElementById('loading-message').style.display = 'none'; // Hide loading message
+                    iframe.style.visibility = 'visible'; // Make it visible
+                    iframe.style.pointerEvents = 'auto'; // Enable interaction
+                    currentContainer.style.pointerEvents = 'auto'; // Enable container interaction too
+                    ensureTargetIframe(); // Final style application
+                };
+                iframe.onerror = () => {
+                    console.error("Error loading target iframe:", url);
+                    document.getElementById('loading-message').innerHTML = `Failed to load content. <br>Error at: ${url}<br>Check your connection or network policies.`;
+                    // Optionally, try to fallback to a direct embed or display error
+                };
+                currentContainer.appendChild(iframe);
+                return;
+            }
 
-        // Regarding "full script" and "anti-deleado":
-        // Deledao works by analyzing rendered content. This HTML/JS tries to:
-        // 1. Ensure the iframe is always visible, full-screen, and interactive (`pointer-events: auto`).
-        // 2. Use CSS to make it hard for external selectors to target or hide the iframe.
-        // 3. Use JavaScript to:
-        //    - Re-apply styles constantly.
-        //    - Intercept and block attempts to remove or hide the iframe.
-        //    - Potentially intercept DOM mutations that might alter the iframe.
-        //
-        // Limitations:
-        // - Deledao, if sophisticated, might run its analysis *within* the iframe's context
-        //   (if it's a browser extension) or use browser APIs that are hard to block.
-        // - `X-Frame-Options` and `Content-Security-Policy` headers set by the target website
-        //   can prevent embedding altogether or limit what the iframe can do. The `sandbox`
-        //   attribute can override some of these, but it's a complex interaction.
-        // - JavaScript execution in the parent page can be blocked by the browser if the
-        //   embedded site is malicious, or if security extensions are active.
-        // - If Deledao analyzes network traffic, this HTML won't stop that. It's designed
-        //   to counter DOM/content analysis.
-        // - Truly "unblockable" embedding is practically impossible due to browser security models.
-        //   This is an attempt to make it *difficult*.
+            // Recursive step: create a container iframe
+            const nestedContainer = document.createElement('div');
+            nestedContainer.style.position = 'absolute';
+            nestedContainer.style.top = '0';
+            nestedContainer.style.left = '0';
+            nestedContainer.style.width = '100%';
+            nestedContainer.style.height = '100%';
+            nestedContainer.style.zIndex = '2'; // Stacking order
 
-        // Important: Replace "YOUR_WEBSITE_URL_HERE" with the actual URL.
+            const nestedIframe = document.createElement('iframe');
+            // The 'src' of this intermediate iframe should be something neutral or a proxy if possible.
+            // For simplicity, we'll use a blank page or data URL. A data URL with a dummy script
+            // might be better to ensure it gets rendered and has a "same-origin" context if needed.
+            // Alternatively, if GoGuardian blocks 'about:blank' or data URLs, use a simple HTML file.
+            const dummyHtml = `<!DOCTYPE html><html><head><title>Loading...</title></head><body style="margin:0; background:#1a1a1a;">
+                                <script>
+                                    window.addEventListener('load', function() {
+                                        document.body.innerHTML = '<p style="color: #cccccc; text-align:center; margin-top: 50px;">Initializing secure channel...</p>';
+                                    });
+                                </script>
+                             </body></html>`;
+            nestedIframe.src = `data:text/html;charset=utf-8,${encodeURIComponent(dummyHtml)}`;
+
+            nestedIframe.className = 'intermediate-iframe'; // Distinct class
+            nestedIframe.style.width = '100%';
+            nestedIframe.style.height = '100%';
+            nestedIframe.style.border = 'none';
+            nestedIframe.style.pointerEvents = 'auto'; // Allow interaction with intermediate iframes
+            nestedIframe.style.visibility = 'visible'; // Visible by default
+
+            // Sandbox for intermediate iframes - allow scripts and same-origin for its own dummy content
+            nestedIframe.sandbox = "allow-scripts allow-same-origin";
+
+            nestedContainer.appendChild(nestedIframe);
+            currentContainer.appendChild(nestedContainer);
+            currentContainer = nestedContainer; // Move deeper for next layer
+
+            // Load content into the *next* iframe within this new container
+            // We need to do this *after* the nestedIframe loads and becomes ready
+            nestedIframe.onload = () => {
+                const iframeDocument = nestedIframe.contentDocument || nestedIframe.contentWindow.document;
+                if (iframeDocument) {
+                    // Inject a new iframe into the document of the nested iframe
+                    const nextLayerContainer = iframeDocument.createElement('div');
+                    nextLayerContainer.id = 'next-layer-container';
+                    nextLayerContainer.style.position = 'absolute';
+                    nextLayerContainer.style.top = '0';
+                    nextLayerContainer.style.left = '0';
+                    nextLayerContainer.style.width = '100%';
+                    nextLayerContainer.style.height = '100%';
+                    nextLayerContainer.style.zIndex = '2';
+                    iframeDocument.body.appendChild(nextLayerContainer);
+
+                    // Temporarily store the container to be used by the recursive call
+                    const originalCurrentContainer = currentContainer;
+                    currentContainer = nextLayerContainer; // Set for the next recursive call
+
+                    // Call recursively to create the next layer or the final iframe
+                    createIframeLayers(url, depth - 1);
+
+                    // Restore original currentContainer for potential other logic, although not strictly needed here
+                    currentContainer = originalCurrentContainer;
+                } else {
+                    console.error("Could not access document of nested iframe.");
+                    document.getElementById('loading-message').innerHTML = `Content loading failed.<br>Could not access internal frame.`;
+                }
+            };
+        }
+
+        // Start the process
+        createIframeLayers(targetUrl, maxIframeDepth);
+
+        // Keep applying styles periodically in case they are reset by external forces
+        setInterval(() => {
+            ensureTargetIframe();
+            // Also ensure the loading message is hidden only when the target iframe is ready and visible
+            if (finalIframe && finalIframe.style.visibility === 'visible') {
+                if (document.getElementById('loading-message').style.display !== 'none') {
+                    document.getElementById('loading-message').style.display = 'none';
+                }
+            }
+        }, 1500); // Adjust interval as needed
+
+        // --- Additional Layer: Trying to Detect and Counter GoGuardian's specific behavior ---
+        // This is highly speculative and depends on how GoGuardian injects its scripts/styles.
+
+        // Try to detect if GoGuardian is trying to inject something that changes the page's source or styles
+        // This is VERY hard to do reliably without knowing their injection methods.
+        // For example, looking for specific script tags or CSS rules might work if they are consistent.
+
+        // A common tactic is to replace the body content or add overlays.
+        // We can try to detect and remove suspicious elements, though this is fragile.
+
+        function cleanUpSuspiciousElements() {
+            // Look for elements that might be GoGuardian's overlay or blocking mechanism.
+            // This requires inspection of the elements GoGuardian adds.
+            // Example: Searching for common IDs or classes they might use.
+            // For now, this is a placeholder.
+            // If you inspect the blocked page, you might find clues.
+            console.log("Running cleanup...");
+            // Example: If GoGuardian adds an element with ID 'goguardian-block-overlay'
+            // const blockOverlay = document.getElementById('goguardian-block-overlay');
+            // if (blockOverlay) {
+            //     blockOverlay.remove();
+            //     console.warn("Removed potential GoGuardian blocking element.");
+            // }
+        }
+        setInterval(cleanUpSuspiciousElements, 3000);
+
+
+        // --- Final Reset ---
+        // Ensure styles are applied on window load as well
+        window.addEventListener('load', () => {
+            ensureTargetIframe();
+            if (finalIframe) {
+                 document.getElementById('loading-message').style.display = 'none';
+            }
+        });
+
     </script>
 </body>
 </html>
