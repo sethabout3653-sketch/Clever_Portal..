@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>lucide</title>
+  <title>Lucide</title>
   <style>
-    /* Reset margins and overflow */
+    /* Reset margins and layout */
     html, body {
       margin: 0;
       padding: 0;
@@ -13,7 +13,14 @@
       height: 100%;
       overflow: hidden;
       background-color: #000;
-      cursor: none; /* Hide standard system cursor */
+      cursor: none; /* Hide default browser cursor across entire page */
+    }
+
+    /* Container for layout positioning */
+    .app-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
     }
 
     iframe {
@@ -22,110 +29,89 @@
       border: none;
     }
 
-    /* Custom Cursor Styles */
+    /* Transparent Overlay: Captures continuous mousemove over cross-origin iframe */
+    .iframe-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      background: transparent;
+    }
+
+    /* Custom Cursor */
     .custom-cursor {
       position: fixed;
       top: 0;
       left: 0;
-      width: 20px;
-      height: 20px;
-      background-color: rgba(255, 255, 255, 0.8);
-      border: 2px solid #000;
+      width: 16px;
+      height: 16px;
+      background-color: #ffffff;
       border-radius: 50%;
-      pointer-events: none; /* Allows clicks to pass through to underlying elements */
+      pointer-events: none; /* Allows cursor element itself to be transparent to clicks */
       transform: translate(-50%, -50%);
-      transition: transform 0.1s ease-out, background-color 0.2s;
+      transition: transform 0.05s ease-out, background-color 0.2s, width 0.2s, height 0.2s;
       z-index: 999999;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
-    /* Hover effect state */
+    /* Click Active State */
     .custom-cursor.active {
-      transform: translate(-50%, -50%) scale(1.5);
-      background-color: rgba(0, 255, 200, 0.9);
+      transform: translate(-50%, -50%) scale(0.75);
+      background-color: #a855f7;
     }
   </style>
 </head>
 <body>
 
+  <div class="app-container">
+    <!-- Transparent capturing overlay -->
+    <div id="overlay" class="iframe-overlay"></div>
+
+    <!-- Main Content Frame -->
+    <iframe 
+      id="content-frame"
+      src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
+      allow="fullscreen; microphone; camera; display-capture; autoplay; clipboard-write; web-share"
+      allowfullscreen
+      sandbox="allow-scripts allow-same-origin allow-forms"
+    >
+    </iframe>
+  </div>
+
   <!-- Custom Cursor Element -->
   <div id="cursor" class="custom-cursor"></div>
 
-  <!-- Main Content Frame -->
-  <iframe 
-    id="content-iframe"
-    src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
-    allow="fullscreen; microphone; camera; display-capture; autoplay; clipboard-write; web-share"
-    allowfullscreen
-    sandbox="allow-scripts allow-same-origin allow-forms"
-  >
-  </iframe>
-
-  <!-- Script 1: Parent Window Cursor Tracking & Controller -->
   <script>
-    (function () {
-      const cursor = document.getElementById('cursor');
+    const cursor = document.getElementById('cursor');
+    const overlay = document.getElementById('overlay');
+    const iframe = document.getElementById('content-frame');
 
-      // Update custom cursor coordinates
-      function moveCursor(x, y) {
-        cursor.style.left = `${x}px`;
-        cursor.style.top = `${y}px`;
+    // Move custom cursor continuously
+    window.addEventListener('mousemove', (e) => {
+      cursor.style.left = `${e.clientX}px`;
+      cursor.style.top = `${e.clientY}px`;
+    });
+
+    // Cursor click effect
+    window.addEventListener('mousedown', () => cursor.classList.add('active'));
+    window.addEventListener('mouseup', () => cursor.classList.remove('active'));
+
+    // Enable interaction with the search bar inside the iframe on click
+    overlay.addEventListener('click', (e) => {
+      // Temporarily pass click through to iframe element beneath
+      overlay.style.pointerEvents = 'none';
+      
+      const clickTarget = document.elementFromPoint(e.clientX, e.clientY);
+      if (clickTarget === iframe) {
+        iframe.focus();
       }
 
-      // Track mouse in top-level window
-      window.addEventListener('mousemove', (e) => {
-        moveCursor(e.clientX, e.clientY);
-      });
-
-      // Handle click feedback animations
-      window.addEventListener('mousedown', () => cursor.classList.add('active'));
-      window.addEventListener('mouseup', () => cursor.classList.remove('active'));
-
-      // Listen for iframe mouse forwarding events
-      window.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'IFRAME_MOUSE_MOVE') {
-          const iframe = document.getElementById('content-iframe');
-          const rect = iframe.getBoundingClientRect();
-          
-          // Calculate global coordinates from iframe relative position
-          const globalX = rect.left + event.data.x;
-          const globalY = rect.top + event.data.y;
-          
-          moveCursor(globalX, globalY);
-        }
-      });
-    })();
-  </script>
-
-  <!-- Script 2: Sub-frame Cross-boundary Mouse Bridge (For embedded pages/GitHub hosting) -->
-  <script>
-    /**
-     * Note: For cross-origin pages inside an iframe, browsers restrict direct 
-     * DOM script injection due to Same-Origin Policy. 
-     * 
-     * If hosting the child frame on GitHub Pages under the same domain, insert 
-     * the code below directly inside the iframe source code to maintain seamless tracking.
-     */
-    const childFrameScript = `
-      document.addEventListener('mousemove', (e) => {
-        window.parent.postMessage({
-          type: 'IFRAME_MOUSE_MOVE',
-          x: e.clientX,
-          y: e.clientY
-        }, '*');
-      });
-    `;
-
-    // Attempting same-origin sync if allowed by frame sandbox constraints
-    const iframe = document.getElementById('content-iframe');
-    iframe.addEventListener('load', () => {
-      try {
-        const frameDoc = iframe.contentDocument || iframe.contentWindow.document;
-        const scriptEl = frameDoc.createElement('script');
-        scriptEl.textContent = childFrameScript;
-        frameDoc.body.appendChild(scriptEl);
-      } catch (e) {
-        console.warn('Cross-origin restriction: Mouse tracking across iframe boundary requires Script 2 embedded inside the iframe content source directly.');
-      }
+      // Re-enable overlay to preserve smooth cursor movement
+      setTimeout(() => {
+        overlay.style.pointerEvents = 'auto';
+      }, 50);
     });
   </script>
 
