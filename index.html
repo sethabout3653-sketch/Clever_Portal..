@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>lucide</title>
   <style>
+    /* Reset margins and make the body fill the viewport */
     html, body {
       margin: 0;
       padding: 0;
@@ -12,101 +13,64 @@
       height: 100%;
       overflow: hidden;
       background-color: #000;
-      cursor: none;
-    }
-
-    .app-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
+      /* Apply custom cursor to the document (hotspot set at top-left 0 0) */
+      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto;
     }
 
     iframe {
       width: 100%;
       height: 100%;
       border: none;
+      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto;
     }
 
-    /* Invisible overlay used strictly to recapture tracking */
-    .tracker-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 10;
-      pointer-events: none; /* Default to pass-through for hover/clicks */
-    }
-
-    /* Custom Cursor */
-    .custom-cursor {
+    /* Floating custom cursor tracker for cross-iframe visibility */
+    #custom-cursor-follower {
       position: fixed;
       top: 0;
       left: 0;
-      width: 16px;
-      height: 16px;
-      background-color: #ffffff;
-      border-radius: 50%;
-      pointer-events: none; /* Prevents cursor from blocking clicks */
-      transform: translate(-50%, -50%);
-      transition: transform 0.05s ease-out, background-color 0.2s, width 0.2s, height 0.2s;
+      width: 32px;
+      height: 32px;
+      pointer-events: none; /* Allows clicks to pass through directly to the iframe */
+      background-image: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png');
+      background-size: contain;
+      background-repeat: no-repeat;
       z-index: 999999;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    }
-
-    .custom-cursor.active {
-      transform: translate(-50%, -50%) scale(0.75);
-      background-color: #a855f7;
+      transform: translate(0, 0);
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <div id="overlay" class="tracker-overlay"></div>
-    <iframe 
-      id="content-frame"
-      src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
-      allow="fullscreen; microphone; camera; display-capture; autoplay; clipboard-write; web-share"
-      allowfullscreen
-      sandbox="allow-scripts allow-same-origin allow-forms"
-    >
-    </iframe>
-  </div>
+  <!-- Custom Cursor Overlay Image -->
+  <div id="custom-cursor-follower"></div>
 
-  <div id="cursor" class="custom-cursor"></div>
+  <iframe 
+    src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
+    
+    <!-- Feature Policy / Permissions -->
+    allow="fullscreen; microphone; camera; display-capture; autoplay; clipboard-write; web-share"
+    allowfullscreen
+    
+    <!-- Security Sandbox Constraints -->
+    sandbox="allow-scripts allow-same-origin allow-forms"
+  >
+  </iframe>
 
   <script>
-    const cursor = document.getElementById('cursor');
-    const overlay = document.getElementById('overlay');
-    let isInsideIframe = false;
+    const follower = document.getElementById('custom-cursor-follower');
 
-    // Track mouse on main document
-    document.addEventListener('mousemove', (e) => {
-      cursor.style.left = `${e.clientX}px`;
-      cursor.style.top = `${e.clientY}px`;
+    // Track mouse movement across the document
+    window.addEventListener('mousemove', (e) => {
+      follower.style.display = 'block';
+      follower.style.left = `${e.clientX}px`;
+      follower.style.top = `${e.clientY}px`;
     });
 
-    // Handle clicks and active states
-    document.addEventListener('mousedown', () => cursor.classList.add('active'));
-    document.addEventListener('mouseup', () => cursor.classList.remove('active'));
-
-    // Detect when mouse enters the iframe region
-    window.addEventListener('blur', () => {
-      if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
-        isInsideIframe = true;
-      }
-    });
-
-    // Detect when mouse moves back to top parent window
-    window.addEventListener('focus', () => {
-      isInsideIframe = false;
-      overlay.style.pointerEvents = 'none';
-    });
-
-    // Re-engage mouse capture briefly when cursor leaves iframe bounds
+    // Hide custom follower if the pointer leaves the screen
     document.addEventListener('mouseleave', () => {
-      overlay.style.pointerEvents = 'auto';
+      follower.style.display = 'none';
     });
   </script>
 
