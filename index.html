@@ -20,8 +20,7 @@
             background: #000;
             /* 
                Native CSS cursor fallback: 
-               Ensures the green Win11 cursor still appears when hovering the iframe 
-               since JS mousemove events don't track inside cross-origin iframes.
+               Ensures the green Win11 cursor still appears when hovering the iframe.
             */
             cursor: url("data:image/svg+xml;utf8,<svg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'><path d='M 2 2 L 2 22 L 8 16 L 12 24 L 16 22 L 12 15 L 20 15 Z' fill='%2300FF00' stroke='%23000000' stroke-width='1.5' stroke-linejoin='round'/></svg>") 2 2, auto !important;
         }
@@ -57,10 +56,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            
-            /* FIX: This allows clicks to pass through to the iframe */
-            pointer-events: none; 
-
+            pointer-events: none; /* Clicks pass through to the iframe */
             background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACpDid1AAAAIElEQVQIW2P8//8/A8GkQBQoowj6gM0E4rIAAIQABGgAFJBAwAAAAABJRU5ErkJggg==");
             background-size: 2px 2px;
             animation: glitch 1s infinite linear alternate-reverse;
@@ -111,7 +107,6 @@
             top: 0;
             width: 28px;
             height: 28px;
-            /* Green fill, black outline SVG arrow */
             background-image: url("data:image/svg+xml;utf8,<svg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'><path d='M 2 2 L 2 22 L 8 16 L 12 24 L 16 22 L 12 15 L 20 15 Z' fill='%2300FF00' stroke='%23000000' stroke-width='1.5' stroke-linejoin='round'/></svg>");
             background-size: contain;
             background-repeat: no-repeat;
@@ -131,7 +126,7 @@
 
         .click-ring {
             position: absolute;
-            left: 2px; /* Offset to match the tip of the arrow */
+            left: 2px;
             top: 2px;
             width: 12px;
             height: 12px;
@@ -147,16 +142,8 @@
         }
 
         @keyframes clickExpand {
-            0% {
-                width: 12px;
-                height: 12px;
-                opacity: 1;
-            }
-            100% {
-                width: 46px;
-                height: 46px;
-                opacity: 0;
-            }
+            0% { width: 12px; height: 12px; opacity: 1; }
+            100% { width: 46px; height: 46px; opacity: 0; }
         }
 
         /* =========================================================
@@ -164,15 +151,8 @@
         ========================================================= */
 
         @media (hover: none) and (pointer: coarse) {
-            html,
-            body,
-            body * {
-                cursor: auto !important;
-            }
-
-            #customCursor {
-                display: none;
-            }
+            html, body, body * { cursor: auto !important; }
+            #customCursor { display: none; }
         }
     </style>
 </head>
@@ -192,9 +172,7 @@
     ========================================================= -->
 
     <div id="customCursor">
-        <!-- Main cursor shape (Green Win11 Arrow) -->
         <div class="cursor-main"></div>
-        <!-- Click expanding ring -->
         <div class="click-ring"></div>
     </div>
 
@@ -221,27 +199,29 @@
                 cursorX += (mouseX - cursorX) * SMOOTHNESS;
                 cursorY += (mouseY - cursorY) * SMOOTHNESS;
 
-                // Adjusting the transform to align the top-left point of the arrow with the mouse
                 cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
-
                 requestAnimationFrame(updateCursor);
             }
 
             updateCursor();
 
             /* =====================================================
-               MOUSE TRACKING
+               MOUSE TRACKING & BOUNDARY DETECTION
             ===================================================== */
 
             document.addEventListener("mousemove", (event) => {
                 mouseX = event.clientX;
                 mouseY = event.clientY;
 
-                if (!mouseActive) {
-                    mouseActive = true;
-                    cursorX = mouseX;
-                    cursorY = mouseY;
-                    cursor.style.opacity = "1";
+                // Fix: Hide cursor when it gets too close to the window edges to prevent it from getting stuck
+                if (mouseX <= 5 || mouseY <= 5 || mouseX >= window.innerWidth - 5 || mouseY >= window.innerHeight - 5) {
+                    mouseActive = false;
+                    cursor.style.opacity = "0";
+                } else {
+                    if (!mouseActive) {
+                        mouseActive = true;
+                        cursor.style.opacity = "1";
+                    }
                 }
             });
 
@@ -250,11 +230,18 @@
                 cursor.style.opacity = "1";
             });
 
+            // Extra safety catch for when the mouse leaves the browser window entirely
+            document.addEventListener("mouseout", (event) => {
+                if (!event.relatedTarget) {
+                    mouseActive = false;
+                    cursor.style.opacity = "0";
+                }
+            });
+
             document.addEventListener("mouseleave", () => {
                 mouseActive = false;
                 cursor.style.opacity = "0";
-                cursor.classList.remove("hover");
-                cursor.classList.remove("click");
+                cursor.classList.remove("hover", "click");
             });
 
             /* =====================================================
@@ -297,7 +284,6 @@
 
             document.addEventListener("mousedown", (event) => {
                 if (event.button !== 0) return;
-
                 cursor.classList.add("click");
 
                 const ring = cursor.querySelector(".click-ring");
@@ -319,21 +305,20 @@
 
             document.addEventListener("blur", () => {
                 cursor.classList.remove("click", "hover");
+                cursor.style.opacity = "0";
+                mouseActive = false;
             });
 
             window.addEventListener("blur", () => {
                 cursor.classList.remove("click", "hover");
+                cursor.style.opacity = "0";
+                mouseActive = false;
             });
 
             document.addEventListener("keydown", (event) => {
                 if (event.key === "Tab") {
                     cursor.style.opacity = "0";
-                }
-            });
-
-            document.addEventListener("mousemove", () => {
-                if (mouseActive) {
-                    cursor.style.opacity = "1";
+                    mouseActive = false;
                 }
             });
 
