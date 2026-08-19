@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lucide</title>
+  <title>lucide</title>
   <style>
-    /* Reset margins and layout */
     html, body {
       margin: 0;
       padding: 0;
@@ -13,10 +12,9 @@
       height: 100%;
       overflow: hidden;
       background-color: #000;
-      cursor: none; /* Hide default browser cursor across entire page */
+      cursor: none;
     }
 
-    /* Container for layout positioning */
     .app-container {
       position: relative;
       width: 100%;
@@ -29,15 +27,15 @@
       border: none;
     }
 
-    /* Transparent Overlay: Captures continuous mousemove over cross-origin iframe */
-    .iframe-overlay {
+    /* Invisible overlay used strictly to recapture tracking */
+    .tracker-overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       z-index: 10;
-      background: transparent;
+      pointer-events: none; /* Default to pass-through for hover/clicks */
     }
 
     /* Custom Cursor */
@@ -49,14 +47,13 @@
       height: 16px;
       background-color: #ffffff;
       border-radius: 50%;
-      pointer-events: none; /* Allows cursor element itself to be transparent to clicks */
+      pointer-events: none; /* Prevents cursor from blocking clicks */
       transform: translate(-50%, -50%);
       transition: transform 0.05s ease-out, background-color 0.2s, width 0.2s, height 0.2s;
       z-index: 999999;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
-    /* Click Active State */
     .custom-cursor.active {
       transform: translate(-50%, -50%) scale(0.75);
       background-color: #a855f7;
@@ -66,10 +63,7 @@
 <body>
 
   <div class="app-container">
-    <!-- Transparent capturing overlay -->
-    <div id="overlay" class="iframe-overlay"></div>
-
-    <!-- Main Content Frame -->
+    <div id="overlay" class="tracker-overlay"></div>
     <iframe 
       id="content-frame"
       src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
@@ -80,38 +74,39 @@
     </iframe>
   </div>
 
-  <!-- Custom Cursor Element -->
   <div id="cursor" class="custom-cursor"></div>
 
   <script>
     const cursor = document.getElementById('cursor');
     const overlay = document.getElementById('overlay');
-    const iframe = document.getElementById('content-frame');
+    let isInsideIframe = false;
 
-    // Move custom cursor continuously
-    window.addEventListener('mousemove', (e) => {
+    // Track mouse on main document
+    document.addEventListener('mousemove', (e) => {
       cursor.style.left = `${e.clientX}px`;
       cursor.style.top = `${e.clientY}px`;
     });
 
-    // Cursor click effect
-    window.addEventListener('mousedown', () => cursor.classList.add('active'));
-    window.addEventListener('mouseup', () => cursor.classList.remove('active'));
+    // Handle clicks and active states
+    document.addEventListener('mousedown', () => cursor.classList.add('active'));
+    document.addEventListener('mouseup', () => cursor.classList.remove('active'));
 
-    // Enable interaction with the search bar inside the iframe on click
-    overlay.addEventListener('click', (e) => {
-      // Temporarily pass click through to iframe element beneath
-      overlay.style.pointerEvents = 'none';
-      
-      const clickTarget = document.elementFromPoint(e.clientX, e.clientY);
-      if (clickTarget === iframe) {
-        iframe.focus();
+    // Detect when mouse enters the iframe region
+    window.addEventListener('blur', () => {
+      if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
+        isInsideIframe = true;
       }
+    });
 
-      // Re-enable overlay to preserve smooth cursor movement
-      setTimeout(() => {
-        overlay.style.pointerEvents = 'auto';
-      }, 50);
+    // Detect when mouse moves back to top parent window
+    window.addEventListener('focus', () => {
+      isInsideIframe = false;
+      overlay.style.pointerEvents = 'none';
+    });
+
+    // Re-engage mouse capture briefly when cursor leaves iframe bounds
+    document.addEventListener('mouseleave', () => {
+      overlay.style.pointerEvents = 'auto';
     });
   </script>
 
