@@ -3,153 +3,131 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lucide</title>
-
+  <title>lucide</title>
   <style>
-    html,
-    body {
+    /* Reset margins and overflow */
+    html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
-      cursor: none;
+      background-color: #000;
+      cursor: none; /* Hide standard system cursor */
     }
 
     iframe {
       width: 100%;
       height: 100%;
       border: none;
-      display: block;
     }
 
-    .cursor-dot,
-    .cursor-ring {
+    /* Custom Cursor Styles */
+    .custom-cursor {
       position: fixed;
       top: 0;
       left: 0;
-      pointer-events: none;
-      z-index: 999999;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      mix-blend-mode: difference;
-    }
-
-    .cursor-dot {
-      width: 7px;
-      height: 7px;
-      background: white;
-    }
-
-    .cursor-ring {
-      width: 32px;
-      height: 32px;
-      border: 2px solid white;
-      transition:
-        width 0.18s ease,
-        height 0.18s ease,
-        border-color 0.18s ease,
-        background-color 0.18s ease;
-    }
-
-    body.cursor-clicking .cursor-ring {
       width: 20px;
       height: 20px;
-      background: rgba(255, 255, 255, 0.25);
+      background-color: rgba(255, 255, 255, 0.8);
+      border: 2px solid #000;
+      border-radius: 50%;
+      pointer-events: none; /* Allows clicks to pass through to underlying elements */
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease-out, background-color 0.2s;
+      z-index: 999999;
     }
 
-    body.cursor-hidden .cursor-dot,
-    body.cursor-hidden .cursor-ring {
-      opacity: 0;
-    }
-
-    @media (pointer: coarse) {
-      .cursor-dot,
-      .cursor-ring {
-        display: none;
-      }
-
-      html,
-      body {
-        cursor: auto;
-      }
+    /* Hover effect state */
+    .custom-cursor.active {
+      transform: translate(-50%, -50%) scale(1.5);
+      background-color: rgba(0, 255, 200, 0.9);
     }
   </style>
 </head>
-
 <body>
-  <iframe
-    id="mainFrame"
+
+  <!-- Custom Cursor Element -->
+  <div id="cursor" class="custom-cursor"></div>
+
+  <!-- Main Content Frame -->
+  <iframe 
+    id="content-iframe"
     src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
     allow="fullscreen; microphone; camera; display-capture; autoplay; clipboard-write; web-share"
     allowfullscreen
     sandbox="allow-scripts allow-same-origin allow-forms"
-  ></iframe>
+  >
+  </iframe>
 
-  <div class="cursor-dot" id="cursorDot"></div>
-  <div class="cursor-ring" id="cursorRing"></div>
-
+  <!-- Script 1: Parent Window Cursor Tracking & Controller -->
   <script>
-    const cursorDot = document.getElementById("cursorDot");
-    const cursorRing = document.getElementById("cursorRing");
+    (function () {
+      const cursor = document.getElementById('cursor');
 
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
+      // Update custom cursor coordinates
+      function moveCursor(x, y) {
+        cursor.style.left = `${x}px`;
+        cursor.style.top = `${y}px`;
+      }
 
-    let ringX = mouseX;
-    let ringY = mouseY;
+      // Track mouse in top-level window
+      window.addEventListener('mousemove', (e) => {
+        moveCursor(e.clientX, e.clientY);
+      });
 
-    function setCursorPosition(x, y) {
-      mouseX = x;
-      mouseY = y;
+      // Handle click feedback animations
+      window.addEventListener('mousedown', () => cursor.classList.add('active'));
+      window.addEventListener('mouseup', () => cursor.classList.remove('active'));
 
-      cursorDot.style.left = `${mouseX}px`;
-      cursorDot.style.top = `${mouseY}px`;
-    }
-
-    function animateCursor() {
-      const smoothness = 0.18;
-
-      ringX += (mouseX - ringX) * smoothness;
-      ringY += (mouseY - ringY) * smoothness;
-
-      cursorRing.style.left = `${ringX}px`;
-      cursorRing.style.top = `${ringY}px`;
-
-      requestAnimationFrame(animateCursor);
-    }
-
-    window.addEventListener("mousemove", (event) => {
-      document.body.classList.remove("cursor-hidden");
-      setCursorPosition(event.clientX, event.clientY);
-    });
-
-    window.addEventListener("mousedown", () => {
-      document.body.classList.add("cursor-clicking");
-    });
-
-    window.addEventListener("mouseup", () => {
-      document.body.classList.remove("cursor-clicking");
-    });
-
-    window.addEventListener("mouseleave", () => {
-      document.body.classList.add("cursor-hidden");
-    });
-
-    window.addEventListener("mouseenter", () => {
-      document.body.classList.remove("cursor-hidden");
-    });
-
-    window.addEventListener("blur", () => {
-      document.body.classList.add("cursor-hidden");
-    });
-
-    window.addEventListener("focus", () => {
-      document.body.classList.remove("cursor-hidden");
-    });
-
-    animateCursor();
+      // Listen for iframe mouse forwarding events
+      window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'IFRAME_MOUSE_MOVE') {
+          const iframe = document.getElementById('content-iframe');
+          const rect = iframe.getBoundingClientRect();
+          
+          // Calculate global coordinates from iframe relative position
+          const globalX = rect.left + event.data.x;
+          const globalY = rect.top + event.data.y;
+          
+          moveCursor(globalX, globalY);
+        }
+      });
+    })();
   </script>
+
+  <!-- Script 2: Sub-frame Cross-boundary Mouse Bridge (For embedded pages/GitHub hosting) -->
+  <script>
+    /**
+     * Note: For cross-origin pages inside an iframe, browsers restrict direct 
+     * DOM script injection due to Same-Origin Policy. 
+     * 
+     * If hosting the child frame on GitHub Pages under the same domain, insert 
+     * the code below directly inside the iframe source code to maintain seamless tracking.
+     */
+    const childFrameScript = `
+      document.addEventListener('mousemove', (e) => {
+        window.parent.postMessage({
+          type: 'IFRAME_MOUSE_MOVE',
+          x: e.clientX,
+          y: e.clientY
+        }, '*');
+      });
+    `;
+
+    // Attempting same-origin sync if allowed by frame sandbox constraints
+    const iframe = document.getElementById('content-iframe');
+    iframe.addEventListener('load', () => {
+      try {
+        const frameDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const scriptEl = frameDoc.createElement('script');
+        scriptEl.textContent = childFrameScript;
+        frameDoc.body.appendChild(scriptEl);
+      } catch (e) {
+        console.warn('Cross-origin restriction: Mouse tracking across iframe boundary requires Script 2 embedded inside the iframe content source directly.');
+      }
+    });
+  </script>
+
 </body>
 </html>
