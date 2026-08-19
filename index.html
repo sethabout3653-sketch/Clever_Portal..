@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Gamesfr</title>
 
     <style>
@@ -19,13 +18,18 @@
             height: 100%;
             overflow: hidden;
             background: #000;
-            cursor: none !important;
+            /* 
+               Native CSS cursor fallback: 
+               Ensures the green Win11 cursor still appears when hovering the iframe 
+               since JS mousemove events don't track inside cross-origin iframes.
+            */
+            cursor: url("data:image/svg+xml;utf8,<svg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'><path d='M 2 2 L 2 22 L 8 16 L 12 24 L 16 22 L 12 15 L 20 15 Z' fill='%2300FF00' stroke='%23000000' stroke-width='1.5' stroke-linejoin='round'/></svg>") 2 2, auto !important;
         }
 
         body *,
         body *::before,
         body *::after {
-            cursor: none !important;
+            cursor: inherit !important;
         }
 
         /* =========================================================
@@ -34,277 +38,129 @@
 
         #contentFrame {
             position: absolute;
-            inset: 0;
-
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-
             border: none;
             background: #000;
-
             z-index: 1;
-            pointer-events: auto;
         }
 
         /* =========================================================
            GLITCH OVERLAY
-           DOES NOT BLOCK THE SITE
         ========================================================= */
 
         #staticOverlay {
             position: absolute;
-            inset: 0;
-
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-
-            pointer-events: none;
+            
+            /* FIX: This allows clicks to pass through to the iframe */
+            pointer-events: none; 
 
             background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACpDid1AAAAIElEQVQIW2P8//8/A8GkQBQoowj6gM0E4rIAAIQABGgAFJBAwAAAAABJRU5ErkJggg==");
             background-size: 2px 2px;
-
             animation: glitch 1s infinite linear alternate-reverse;
-
             z-index: 100;
             opacity: 0.9;
+            display: block;
         }
 
         @keyframes glitch {
-            0% {
-                transform: translate(0, 0);
-            }
-
-            5% {
-                transform: translate(-2px, -2px);
-            }
-
-            10% {
-                transform: translate(2px, 2px);
-            }
-
-            15% {
-                transform: translate(-2px, 2px);
-            }
-
-            20% {
-                transform: translate(2px, -2px);
-            }
-
-            25% {
-                transform: translate(0, 0);
-            }
-
-            30% {
-                background-position: -3px 0;
-            }
-
-            40% {
-                background-position: 0 -3px;
-            }
-
-            50% {
-                background-position: -3px -3px;
-            }
-
-            60% {
-                background-position: 3px 3px;
-            }
-
-            70% {
-                background-position: -3px 3px;
-            }
-
-            80% {
-                background-position: 3px -3px;
-            }
-
-            90% {
-                background-position: 0 0;
-            }
-
-            100% {
-                transform: translate(0, 0);
-                background-position: 0 0;
-            }
+            0% { transform: translate(0, 0); }
+            5% { transform: translate(-2px, -2px); }
+            10% { transform: translate(2px, 2px); }
+            15% { transform: translate(-2px, 2px); }
+            20% { transform: translate(2px, -2px); }
+            25% { transform: translate(0, 0); }
+            30% { background-position: -3px 0; }
+            40% { background-position: 0 -3px; }
+            50% { background-position: -3px -3px; }
+            60% { background-position: 3px 3px; }
+            70% { background-position: -3px 3px; }
+            80% { background-position: 3px -3px; }
+            90% { background-position: 0 0; }
+            100% { transform: translate(0, 0); background-position: 0 0; }
         }
 
         /* =========================================================
-           CUSTOM CURSOR
+           CUSTOM JS CURSOR
         ========================================================= */
 
         #customCursor {
             position: fixed;
-
             left: 0;
             top: 0;
-
-            width: 36px;
-            height: 42px;
-
+            width: 28px;
+            height: 28px;
             pointer-events: none;
-
             z-index: 999999;
-
-            opacity: 0;
-
             transform: translate3d(-100px, -100px, 0);
-
+            opacity: 0;
             will-change: transform;
-
-            transition: opacity 0.1s ease;
+            transition: opacity 0.15s ease;
         }
 
-        /* =========================================================
-           WINDOWS 11 STYLE CURSOR OUTLINE
-        ========================================================= */
-
-        .cursor-outline,
-        .cursor-fill {
+        /* Windows 11 Arrow Design */
+        .cursor-main {
             position: absolute;
-
             left: 0;
             top: 0;
-
-            width: 30px;
-            height: 38px;
-
-            transform-origin: 0 0;
-
-            clip-path: polygon(
-                0 0,
-                0 30px,
-                8px 24px,
-                14px 38px,
-                20px 35px,
-                14px 22px,
-                28px 22px
-            );
-
-            transition:
-                transform 0.08s ease,
-                filter 0.08s ease;
+            width: 28px;
+            height: 28px;
+            /* Green fill, black outline SVG arrow */
+            background-image: url("data:image/svg+xml;utf8,<svg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'><path d='M 2 2 L 2 22 L 8 16 L 12 24 L 16 22 L 12 15 L 20 15 Z' fill='%2300FF00' stroke='%23000000' stroke-width='1.5' stroke-linejoin='round'/></svg>");
+            background-size: contain;
+            background-repeat: no-repeat;
+            transform-origin: top left;
+            filter: drop-shadow(0 2px 5px rgba(0, 255, 0, 0.3));
+            transition: transform 0.15s ease, filter 0.15s ease;
         }
 
         /* =========================================================
-           BLACK OUTLINE
+           HOVER & CLICK ANIMATIONS
         ========================================================= */
 
-        .cursor-outline {
-            background: #000;
-
-            transform:
-                translate(0, 0)
-                scale(1.14);
-
-            filter:
-                drop-shadow(0 1px 2px rgba(0, 0, 0, 1))
-                drop-shadow(0 0 2px rgba(0, 0, 0, 1));
+        #customCursor.hover .cursor-main {
+            transform: scale(1.1);
+            filter: drop-shadow(0 4px 8px rgba(0, 255, 0, 0.6));
         }
-
-        /* =========================================================
-           GREEN FILL
-        ========================================================= */
-
-        .cursor-fill {
-            background: #39ff14;
-
-            transform:
-                translate(1px, 1px)
-                scale(1);
-
-            filter:
-                drop-shadow(0 0 4px rgba(57, 255, 20, 0.35));
-        }
-
-        /* =========================================================
-           HOVER
-        ========================================================= */
-
-        #customCursor.hover .cursor-outline {
-            transform:
-                translate(0, 0)
-                scale(1.18);
-
-            filter:
-                drop-shadow(0 1px 3px rgba(0, 0, 0, 1))
-                drop-shadow(0 0 5px rgba(0, 0, 0, 1));
-        }
-
-        #customCursor.hover .cursor-fill {
-            transform:
-                translate(1px, 1px)
-                scale(1.04);
-
-            filter:
-                drop-shadow(0 0 8px rgba(57, 255, 20, 0.7));
-        }
-
-        /* =========================================================
-           CLICK
-        ========================================================= */
-
-        #customCursor.click .cursor-outline {
-            transform:
-                translate(1px, 1px)
-                scale(0.9);
-        }
-
-        #customCursor.click .cursor-fill {
-            transform:
-                translate(2px, 2px)
-                scale(0.82);
-        }
-
-        /* =========================================================
-           CLICK RING
-        ========================================================= */
 
         .click-ring {
             position: absolute;
-
-            left: 7px;
-            top: 7px;
-
-            width: 13px;
-            height: 13px;
-
-            border: 2px solid #39ff14;
-
+            left: 2px; /* Offset to match the tip of the arrow */
+            top: 2px;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(0, 255, 0, 0.9);
             border-radius: 50%;
-
+            transform: translate(-50%, -50%) scale(1);
             opacity: 0;
-
             pointer-events: none;
-
-            transform: scale(1);
         }
 
         #customCursor.click .click-ring {
-            animation: clickExpand 0.3s ease-out;
+            animation: clickExpand 0.28s ease-out;
         }
 
         @keyframes clickExpand {
             0% {
-                width: 13px;
-                height: 13px;
-
-                opacity: 0.95;
-
-                transform: scale(1);
+                width: 12px;
+                height: 12px;
+                opacity: 1;
             }
-
             100% {
-                width: 48px;
-                height: 48px;
-
+                width: 46px;
+                height: 46px;
                 opacity: 0;
-
-                transform: scale(1.2);
             }
         }
 
         /* =========================================================
-           TOUCH DEVICES
+           TOUCH DEVICES (Disable custom cursor)
         ========================================================= */
 
         @media (hover: none) and (pointer: coarse) {
@@ -317,39 +173,28 @@
             #customCursor {
                 display: none;
             }
-
-            #staticOverlay {
-                pointer-events: none;
-            }
         }
     </style>
 </head>
-
 <body>
-
-    <!-- =========================================================
-         MAIN SITE
-    ========================================================= -->
-
+    <!-- MAIN CONTENT -->
     <iframe
         id="contentFrame"
         src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
         allowfullscreen>
     </iframe>
 
-    <!-- =========================================================
-         GLITCH OVERLAY
-    ========================================================= -->
-
+    <!-- STATIC OVERLAY -->
     <div id="staticOverlay"></div>
 
     <!-- =========================================================
-         WINDOWS 11 STYLE CURSOR
+         CUSTOM CURSOR ELEMENTS
     ========================================================= -->
 
     <div id="customCursor">
-        <div class="cursor-outline"></div>
-        <div class="cursor-fill"></div>
+        <!-- Main cursor shape (Green Win11 Arrow) -->
+        <div class="cursor-main"></div>
+        <!-- Click expanding ring -->
         <div class="click-ring"></div>
     </div>
 
@@ -359,102 +204,76 @@
 
             const cursor = document.getElementById("customCursor");
 
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight / 2;
+            let cursorX = mouseX;
+            let cursorY = mouseY;
             let mouseActive = false;
             let hoverState = false;
+            
+            const SMOOTHNESS = 0.24;
 
             /* =====================================================
-               DIRECT MOUSE FOLLOW
-               EXACT MOUSE POSITION - NO SMOOTHING
+               SMOOTH CURSOR MOVEMENT
+            ===================================================== */
+
+            function updateCursor() {
+                cursorX += (mouseX - cursorX) * SMOOTHNESS;
+                cursorY += (mouseY - cursorY) * SMOOTHNESS;
+
+                // Adjusting the transform to align the top-left point of the arrow with the mouse
+                cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+
+                requestAnimationFrame(updateCursor);
+            }
+
+            updateCursor();
+
+            /* =====================================================
+               MOUSE TRACKING
             ===================================================== */
 
             document.addEventListener("mousemove", (event) => {
-                const x = event.clientX;
-                const y = event.clientY;
-
-                cursor.style.transform =
-                    `translate3d(${x}px, ${y}px, 0)`;
+                mouseX = event.clientX;
+                mouseY = event.clientY;
 
                 if (!mouseActive) {
                     mouseActive = true;
+                    cursorX = mouseX;
+                    cursorY = mouseY;
                     cursor.style.opacity = "1";
                 }
             });
-
-            /* =====================================================
-               MOUSE ENTER
-            ===================================================== */
 
             document.addEventListener("mouseenter", () => {
                 mouseActive = true;
                 cursor.style.opacity = "1";
             });
 
-            /* =====================================================
-               MOUSE LEAVE
-            ===================================================== */
-
             document.addEventListener("mouseleave", () => {
                 mouseActive = false;
-
                 cursor.style.opacity = "0";
-
                 cursor.classList.remove("hover");
                 cursor.classList.remove("click");
-
-                hoverState = false;
             });
 
             /* =====================================================
-               CLICKABLE ELEMENT DETECTION
+               HOVER DETECTION
             ===================================================== */
 
             function isClickable(element) {
-                if (!(element instanceof HTMLElement)) {
-                    return false;
-                }
-
-                if (
-                    element.tagName === "A" ||
-                    element.tagName === "BUTTON" ||
-                    element.tagName === "INPUT" ||
-                    element.tagName === "TEXTAREA" ||
-                    element.tagName === "SELECT" ||
-                    element.tagName === "OPTION"
-                ) {
-                    return true;
-                }
-
-                if (element.hasAttribute("onclick")) {
-                    return true;
-                }
-
-                if (element.closest("a")) {
-                    return true;
-                }
-
-                if (element.closest("button")) {
-                    return true;
-                }
-
-                if (element.closest("[role='button']")) {
-                    return true;
-                }
-
-                if (element.closest("[data-clickable]")) {
-                    return true;
-                }
+                if (!(element instanceof HTMLElement)) return false;
+                
+                const tags = ["A", "BUTTON", "INPUT", "TEXTAREA", "SELECT", "OPTION"];
+                if (tags.includes(element.tagName)) return true;
+                if (element.hasAttribute("onclick")) return true;
+                if (element.closest("a") || element.closest("button") || element.closest("[role='button']") || element.closest("[data-clickable]")) return true;
 
                 return false;
             }
 
-            /* =====================================================
-               HOVER ON
-            ===================================================== */
-
             document.addEventListener("mouseover", (event) => {
-                const target = event.target;
-
-                if (isClickable(target)) {
+                if (isClickable(event.target)) {
                     if (!hoverState) {
                         hoverState = true;
                         cursor.classList.add("hover");
@@ -462,20 +281,10 @@
                 }
             });
 
-            /* =====================================================
-               HOVER OFF
-            ===================================================== */
-
             document.addEventListener("mouseout", (event) => {
-                const target = event.target;
                 const related = event.relatedTarget;
-
-                if (
-                    !related ||
-                    !(related instanceof HTMLElement) ||
-                    !isClickable(related)
-                ) {
-                    if (isClickable(target)) {
+                if (!related || !isClickable(related)) {
+                    if (isClickable(event.target)) {
                         hoverState = false;
                         cursor.classList.remove("hover");
                     }
@@ -483,69 +292,44 @@
             });
 
             /* =====================================================
-               LEFT MOUSE DOWN
+               CLICK CURSOR
             ===================================================== */
 
             document.addEventListener("mousedown", (event) => {
-                if (event.button !== 0) {
-                    return;
-                }
+                if (event.button !== 0) return;
 
                 cursor.classList.add("click");
 
                 const ring = cursor.querySelector(".click-ring");
-
                 if (ring) {
                     ring.style.animation = "none";
-
-                    void ring.offsetWidth;
-
-                    ring.style.animation =
-                        "clickExpand 0.3s ease-out";
+                    void ring.offsetWidth; // Trigger reflow to restart animation
+                    ring.style.animation = "clickExpand 0.28s ease-out";
                 }
             });
-
-            /* =====================================================
-               LEFT MOUSE UP
-            ===================================================== */
 
             document.addEventListener("mouseup", (event) => {
-                if (event.button !== 0) {
-                    return;
-                }
-
+                if (event.button !== 0) return;
                 cursor.classList.remove("click");
             });
 
             /* =====================================================
-               CANCEL CLICK STATE
+               FOCUS AND TAB HANDLING
             ===================================================== */
-
-            window.addEventListener("blur", () => {
-                cursor.classList.remove("click");
-                cursor.classList.remove("hover");
-                hoverState = false;
-            });
 
             document.addEventListener("blur", () => {
-                cursor.classList.remove("click");
-                cursor.classList.remove("hover");
-                hoverState = false;
+                cursor.classList.remove("click", "hover");
             });
 
-            /* =====================================================
-               TAB KEY
-            ===================================================== */
+            window.addEventListener("blur", () => {
+                cursor.classList.remove("click", "hover");
+            });
 
             document.addEventListener("keydown", (event) => {
                 if (event.key === "Tab") {
                     cursor.style.opacity = "0";
                 }
             });
-
-            /* =====================================================
-               SHOW CURSOR AGAIN AFTER MOUSE MOVES
-            ===================================================== */
 
             document.addEventListener("mousemove", () => {
                 if (mouseActive) {
@@ -555,6 +339,5 @@
 
         })();
     </script>
-
-</body>
+</body> 
 </html>
