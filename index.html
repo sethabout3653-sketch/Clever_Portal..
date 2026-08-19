@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>lucide</title>
   <style>
-    /* Reset layout margins */
+    /* Reset margins and set cursor styling across parent and elements */
     html, body {
       margin: 0;
       padding: 0;
@@ -13,10 +13,10 @@
       height: 100%;
       overflow: hidden;
       background-color: #000;
-      cursor: none; /* Hide default browser cursor */
+      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto !important;
     }
 
-    .container {
+    .app-wrapper {
       position: relative;
       width: 100%;
       height: 100%;
@@ -27,28 +27,45 @@
       height: 100%;
       border: none;
       display: block;
+      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto !important;
     }
 
-    /* JavaScript Cursor Canvas/Image Element */
-    #js-custom-cursor {
+    /* Invisible overlay layer to capture mouse movements over cross-origin iframe */
+    #cursor-tracker-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 99999;
+      background: rgba(0, 0, 0, 0);
+      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto !important;
+    }
+
+    /* JavaScript Visual Cursor Element */
+    #js-cursor {
       position: fixed;
       top: 0;
       left: 0;
       width: 32px;
       height: 32px;
-      pointer-events: none; /* Allows direct interaction with iframe elements underneath */
-      z-index: 999999;
+      pointer-events: none; /* Allows pointer pass-through */
+      z-index: 1000000;
       display: none;
-      transform: translate(-0px, -0px); /* Custom cursor offset alignment */
-      will-change: transform;
+      background-image: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png');
+      background-size: contain;
+      background-repeat: no-repeat;
     }
   </style>
 </head>
 <body>
 
-  <div class="container" id="app-container">
+  <div class="app-wrapper">
+    <!-- Active pointer tracking layer -->
+    <div id="cursor-tracker-overlay"></div>
+
     <iframe 
-      id="main-iframe"
+      id="content-frame"
       src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
       allow="fullscreen; microphone; camera; display-capture; autoplay; clipboard-write; web-share"
       allowfullscreen
@@ -57,49 +74,48 @@
     </iframe>
   </div>
 
-  <!-- Dynamic JS-rendered Cursor Image -->
-  <img id="js-custom-cursor" src="https://pngimg.com/uploads/cursor/cursor_PNG50.png" alt="Custom Cursor" />
+  <!-- JS Custom Cursor Object -->
+  <div id="js-cursor"></div>
 
-  <script>
+  <!-- Inline JavaScript Execution -->
+  <script type="text/javascript">
     (function () {
-      const cursorImg = document.getElementById('js-custom-cursor');
-      const container = document.getElementById('app-container');
-      const iframe = document.getElementById('main-iframe');
+      const customCursor = document.getElementById('js-cursor');
+      const overlay = document.getElementById('cursor-tracker-overlay');
+      const iframe = document.getElementById('content-frame');
 
-      let mouseX = 0;
-      let mouseY = 0;
-      let isVisible = false;
+      let isInteracting = false;
 
-      // Update cursor position directly via JS transform
-      function updateCursorPosition() {
-        if (isVisible) {
-          cursorImg.style.display = 'block';
-          cursorImg.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-        } else {
-          cursorImg.style.display = 'none';
-        }
+      // Update cursor position directly via JS DOM transform
+      function moveCursor(e) {
+        customCursor.style.display = 'block';
+        customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       }
 
-      // Track pointer movement across window context
-      window.addEventListener('pointermove', (event) => {
-        mouseX = event.clientX;
-        mouseY = event.clientY;
-        isVisible = true;
-        requestAnimationFrame(updateCursorPosition);
+      // Track pointer across the overlay
+      overlay.addEventListener('mousemove', moveCursor);
+      overlay.addEventListener('pointermove', moveCursor);
+
+      // Handle clicks: pass pointer focus through overlay to iframe
+      overlay.addEventListener('mousedown', function (e) {
+        // Temporarily disable overlay so click reaches the iframe target
+        overlay.style.pointerEvents = 'none';
+        customCursor.style.display = 'block';
+
+        // Re-enable tracking overlay immediately after click event registers
+        setTimeout(function () {
+          overlay.style.pointerEvents = 'auto';
+        }, 150);
       });
 
-      // Handle pointer leaving the document boundaries
-      document.addEventListener('mouseleave', () => {
-        isVisible = false;
-        updateCursorPosition();
+      // Hide cursor element when mouse exits browser viewport
+      document.addEventListener('mouseleave', function () {
+        customCursor.style.display = 'none';
       });
 
-      // Maintain hover coordinates when moving towards iframe edge
-      container.addEventListener('pointerover', (event) => {
-        mouseX = event.clientX;
-        mouseY = event.clientY;
-        isVisible = true;
-        requestAnimationFrame(updateCursorPosition);
+      // Maintain mouse tracker when window regains focus
+      window.addEventListener('focus', function () {
+        overlay.style.pointerEvents = 'auto';
       });
     })();
   </script>
