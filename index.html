@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>lucide</title>
   <style>
-    /* Reset margins and set cursor styling across parent and elements */
+    /* Reset screen margins and globally hide default cursor */
     html, body {
       margin: 0;
       padding: 0;
@@ -13,13 +13,14 @@
       height: 100%;
       overflow: hidden;
       background-color: #000;
-      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto !important;
+      cursor: none !important; /* Forces system cursor invisible */
     }
 
-    .app-wrapper {
+    .app-container {
       position: relative;
       width: 100%;
       height: 100%;
+      cursor: none !important;
     }
 
     iframe {
@@ -27,42 +28,43 @@
       height: 100%;
       border: none;
       display: block;
-      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto !important;
+      cursor: none !important;
     }
 
-    /* Invisible overlay layer to capture mouse movements over cross-origin iframe */
-    #cursor-tracker-overlay {
+    /* Invisible click and movement tracker layer */
+    #cursor-tracker {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       z-index: 99999;
-      background: rgba(0, 0, 0, 0);
-      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto !important;
+      background: transparent;
+      cursor: none !important;
     }
 
-    /* JavaScript Visual Cursor Element */
-    #js-cursor {
+    /* Non-interactable custom cursor graphic */
+    #custom-cursor-img {
       position: fixed;
       top: 0;
       left: 0;
       width: 32px;
       height: 32px;
-      pointer-events: none; /* Allows pointer pass-through */
+      pointer-events: none !important; /* Ensures cursor graphic never intercepts clicks */
       z-index: 1000000;
       display: none;
       background-image: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png');
       background-size: contain;
       background-repeat: no-repeat;
+      user-select: none;
     }
   </style>
 </head>
 <body>
 
-  <div class="app-wrapper">
-    <!-- Active pointer tracking layer -->
-    <div id="cursor-tracker-overlay"></div>
+  <div class="app-container">
+    <!-- Active pointer event tracker layer -->
+    <div id="cursor-tracker"></div>
 
     <iframe 
       id="content-frame"
@@ -74,48 +76,43 @@
     </iframe>
   </div>
 
-  <!-- JS Custom Cursor Object -->
-  <div id="js-cursor"></div>
+  <!-- Pure visual image cursor (No direct interaction) -->
+  <div id="custom-cursor-img"></div>
 
-  <!-- Inline JavaScript Execution -->
   <script type="text/javascript">
     (function () {
-      const customCursor = document.getElementById('js-cursor');
-      const overlay = document.getElementById('cursor-tracker-overlay');
-      const iframe = document.getElementById('content-frame');
+      const cursorImg = document.getElementById('custom-cursor-img');
+      const tracker = document.getElementById('cursor-tracker');
 
-      let isInteracting = false;
-
-      // Update cursor position directly via JS DOM transform
-      function moveCursor(e) {
-        customCursor.style.display = 'block';
-        customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+      // Update position of visual cursor via hardware acceleration
+      function updateCursorPosition(e) {
+        cursorImg.style.display = 'block';
+        cursorImg.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       }
 
-      // Track pointer across the overlay
-      overlay.addEventListener('mousemove', moveCursor);
-      overlay.addEventListener('pointermove', moveCursor);
+      // Track movement continuously over the frame container
+      window.addEventListener('mousemove', updateCursorPosition, { passive: true });
+      tracker.addEventListener('mousemove', updateCursorPosition, { passive: true });
 
-      // Handle clicks: pass pointer focus through overlay to iframe
-      overlay.addEventListener('mousedown', function (e) {
-        // Temporarily disable overlay so click reaches the iframe target
-        overlay.style.pointerEvents = 'none';
-        customCursor.style.display = 'block';
+      // Pass click actions straight to the iframe target below while keeping real cursor hidden
+      tracker.addEventListener('mousedown', function (e) {
+        // Momentarily disable tracker collision to let click penetrate to iframe element
+        tracker.style.pointerEvents = 'none';
 
-        // Re-enable tracking overlay immediately after click event registers
+        // Re-enable pointer tracking right after click passes through
         setTimeout(function () {
-          overlay.style.pointerEvents = 'auto';
-        }, 150);
+          tracker.style.pointerEvents = 'auto';
+        }, 50);
       });
 
-      // Hide cursor element when mouse exits browser viewport
+      // Hide custom graphic when mouse leaves window
       document.addEventListener('mouseleave', function () {
-        customCursor.style.display = 'none';
+        cursorImg.style.display = 'none';
       });
 
-      // Maintain mouse tracker when window regains focus
-      window.addEventListener('focus', function () {
-        overlay.style.pointerEvents = 'auto';
+      // Show cursor when window is focused
+      window.addEventListener('mouseenter', function () {
+        cursorImg.style.display = 'block';
       });
     })();
   </script>
