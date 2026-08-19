@@ -34,14 +34,12 @@
 
         #contentFrame {
             position: absolute;
-            top: 0;
-            left: 0;
+            inset: 0;
 
             width: 100%;
             height: 100%;
 
             border: none;
-
             background: #000;
 
             z-index: 1;
@@ -49,17 +47,20 @@
 
         /* =========================================================
            GLITCH OVERLAY
+           
+           IMPORTANT:
+           pointer-events: none prevents this overlay from
+           blocking the iframe underneath it.
         ========================================================= */
 
         #staticOverlay {
             position: absolute;
-            top: 0;
-            left: 0;
+            inset: 0;
 
             width: 100%;
             height: 100%;
 
-            pointer-events: auto;
+            pointer-events: none;
 
             background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACpDid1AAAAIElEQVQIW2P8//8/A8GkQBQoowj6gM0E4rIAAIQABGgAFJBAwAAAAABJRU5ErkJggg==");
             background-size: 2px 2px;
@@ -142,245 +143,166 @@
             left: 0;
             top: 0;
 
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 42px;
 
             pointer-events: none;
 
             z-index: 999999;
 
             transform:
-                translate3d(-100px, -100px, 0)
-                translate(-50%, -50%);
+                translate3d(-100px, -100px, 0);
 
             opacity: 0;
 
             will-change: transform;
 
             transition:
-                opacity 0.15s ease;
+                opacity 0.12s ease;
         }
 
         /* =========================================================
-           NORMAL CURSOR
+           WINDOWS 11 STYLE ARROW
         ========================================================= */
 
-        .cursor-main {
+        .cursor-outline,
+        .cursor-fill {
             position: absolute;
 
-            left: 50%;
-            top: 50%;
+            left: 0;
+            top: 0;
 
-            width: 20px;
-            height: 20px;
-
-            border: 2px solid rgba(255, 255, 255, 0.95);
-
-            transform:
-                translate(-50%, -50%)
-                rotate(45deg);
-
-            transition:
-                width 0.15s ease,
-                height 0.15s ease,
-                border 0.15s ease,
-                transform 0.15s ease,
-                opacity 0.15s ease;
-
-            box-shadow:
-                0 0 5px rgba(255, 255, 255, 0.8),
-                0 0 12px rgba(255, 255, 255, 0.25);
-        }
-
-        .cursor-center {
-            position: absolute;
-
-            left: 50%;
-            top: 50%;
-
-            width: 4px;
-            height: 4px;
-
-            background: #fff;
-
-            border-radius: 50%;
-
-            transform: translate(-50%, -50%);
-
-            box-shadow:
-                0 0 4px rgba(255, 255, 255, 1),
-                0 0 10px rgba(255, 255, 255, 0.7);
-
-            transition:
-                width 0.15s ease,
-                height 0.15s ease;
-        }
-
-        /* =========================================================
-           HOVER CURSOR
-        ========================================================= */
-
-        #customCursor.hover .cursor-main {
             width: 30px;
-            height: 30px;
+            height: 38px;
 
-            border-radius: 50%;
+            transform-origin: 0 0;
 
-            transform:
-                translate(-50%, -50%)
-                rotate(0deg);
-
-            border-width: 2px;
-
-            box-shadow:
-                0 0 6px rgba(255, 255, 255, 0.9),
-                0 0 16px rgba(255, 255, 255, 0.4);
-        }
-
-        #customCursor.hover .cursor-center {
-            width: 7px;
-            height: 7px;
-        }
-
-        /* Four hover lines */
-
-        .hover-line {
-            position: absolute;
-
-            left: 50%;
-            top: 50%;
-
-            width: 9px;
-            height: 2px;
-
-            background: #fff;
-
-            border-radius: 2px;
-
-            opacity: 0;
-
-            transform-origin: left center;
+            clip-path: polygon(
+                0 0,
+                0 30px,
+                8px 24px,
+                14px 38px,
+                20px 35px,
+                14px 22px,
+                28px 22px
+            );
 
             transition:
-                opacity 0.12s ease,
-                width 0.12s ease;
+                transform 0.12s ease,
+                filter 0.12s ease;
         }
 
-        #customCursor.hover .hover-line {
-            opacity: 1;
-            width: 11px;
-        }
+        /* Black outside silhouette */
 
-        .hover-line.top {
+        .cursor-outline {
+            background: #000;
+
             transform:
-                translate(0, -50%)
-                rotate(-90deg);
+                translate(0, 0)
+                scale(1.14);
+
+            filter:
+                drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9))
+                drop-shadow(0 0 2px rgba(0, 0, 0, 0.9));
         }
 
-        .hover-line.right {
-            transform:
-                translate(0, -50%)
-                rotate(0deg);
-        }
+        /* Green inside */
 
-        .hover-line.bottom {
-            transform:
-                translate(0, -50%)
-                rotate(90deg);
-        }
+        .cursor-fill {
+            background: #39ff14;
 
-        .hover-line.left {
             transform:
-                translate(0, -50%)
-                rotate(180deg);
+                translate(1px, 1px)
+                scale(1);
+
+            filter:
+                drop-shadow(0 0 4px rgba(57, 255, 20, 0.35));
         }
 
         /* =========================================================
-           CLICK CURSOR
+           HOVER STATE
         ========================================================= */
 
-        #customCursor.click .cursor-main {
-            width: 13px;
-            height: 13px;
-
-            border-radius: 50%;
-
-            border-width: 3px;
-
+        #customCursor.hover .cursor-outline {
             transform:
-                translate(-50%, -50%)
-                rotate(0deg);
+                translate(0, 0)
+                scale(1.2);
 
-            box-shadow:
-                0 0 8px rgba(255, 255, 255, 1),
-                0 0 18px rgba(255, 255, 255, 0.6);
+            filter:
+                drop-shadow(0 1px 3px rgba(0, 0, 0, 1))
+                drop-shadow(0 0 5px rgba(0, 0, 0, 0.95));
         }
 
-        #customCursor.click .cursor-center {
-            width: 3px;
-            height: 3px;
+        #customCursor.hover .cursor-fill {
+            transform:
+                translate(1px, 1px)
+                scale(1.05);
+
+            filter:
+                drop-shadow(0 0 7px rgba(57, 255, 20, 0.65));
         }
 
-        /* Click expanding ring */
+        /* =========================================================
+           CLICK STATE
+        ========================================================= */
+
+        #customCursor.click .cursor-outline {
+            transform:
+                translate(1px, 1px)
+                scale(0.9);
+        }
+
+        #customCursor.click .cursor-fill {
+            transform:
+                translate(2px, 2px)
+                scale(0.82);
+        }
+
+        /* =========================================================
+           CLICK RING
+        ========================================================= */
 
         .click-ring {
             position: absolute;
 
-            left: 50%;
-            top: 50%;
+            left: 7px;
+            top: 7px;
 
-            width: 12px;
-            height: 12px;
+            width: 13px;
+            height: 13px;
 
-            border: 2px solid rgba(255, 255, 255, 0.9);
+            border: 2px solid #39ff14;
 
             border-radius: 50%;
-
-            transform:
-                translate(-50%, -50%)
-                scale(1);
 
             opacity: 0;
 
             pointer-events: none;
+
+            transform: scale(1);
         }
 
         #customCursor.click .click-ring {
-            animation: clickExpand 0.28s ease-out;
+            animation: clickExpand 0.3s ease-out;
         }
 
         @keyframes clickExpand {
             0% {
-                width: 12px;
-                height: 12px;
+                width: 13px;
+                height: 13px;
 
-                opacity: 1;
+                opacity: 0.95;
+
+                transform: scale(1);
             }
 
             100% {
-                width: 46px;
-                height: 46px;
+                width: 48px;
+                height: 48px;
 
                 opacity: 0;
-            }
-        }
 
-        /* =========================================================
-           EXTRA HOVER PULSE
-        ========================================================= */
-
-        #customCursor.hover .cursor-center {
-            animation: hoverPulse 0.8s ease-in-out infinite;
-        }
-
-        @keyframes hoverPulse {
-            0%,
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-            }
-
-            50% {
-                transform: translate(-50%, -50%) scale(1.25);
+                transform: scale(1.2);
             }
         }
 
@@ -398,41 +320,43 @@
             #customCursor {
                 display: none;
             }
+
+            #staticOverlay {
+                pointer-events: none;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- MAIN CONTENT -->
+    <!-- =========================================================
+         MAIN SITE
+    ========================================================= -->
+
     <iframe
         id="contentFrame"
         src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
         allowfullscreen>
     </iframe>
 
-    <!-- STATIC OVERLAY -->
+    <!-- =========================================================
+         VISUAL OVERLAY
+         DOES NOT BLOCK THE SITE
+    ========================================================= -->
+
     <div id="staticOverlay"></div>
 
     <!-- =========================================================
-         CUSTOM CURSOR
+         CUSTOM WINDOWS 11 STYLE CURSOR
     ========================================================= -->
 
     <div id="customCursor">
 
-        <!-- Main cursor shape -->
-        <div class="cursor-main"></div>
+        <div class="cursor-outline"></div>
 
-        <!-- Center point -->
-        <div class="cursor-center"></div>
+        <div class="cursor-fill"></div>
 
-        <!-- Hover crosshair lines -->
-        <div class="hover-line top"></div>
-        <div class="hover-line right"></div>
-        <div class="hover-line bottom"></div>
-        <div class="hover-line left"></div>
-
-        <!-- Click expanding ring -->
         <div class="click-ring"></div>
 
     </div>
@@ -442,6 +366,7 @@
             "use strict";
 
             const cursor = document.getElementById("customCursor");
+            const iframe = document.getElementById("contentFrame");
 
             let mouseX = window.innerWidth / 2;
             let mouseY = window.innerHeight / 2;
@@ -450,19 +375,12 @@
             let cursorY = mouseY;
 
             let mouseActive = false;
-
-            /*
-             * Smoothness
-             */
-            const SMOOTHNESS = 0.24;
-
-            /*
-             * Current cursor state
-             */
             let hoverState = false;
 
+            const SMOOTHNESS = 0.28;
+
             /* =====================================================
-               SMOOTH CURSOR MOVEMENT
+               CURSOR ANIMATION
             ===================================================== */
 
             function updateCursor() {
@@ -470,7 +388,7 @@
                 cursorY += (mouseY - cursorY) * SMOOTHNESS;
 
                 cursor.style.transform =
-                    `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+                    `translate3d(${cursorX}px, ${cursorY}px, 0)`;
 
                 requestAnimationFrame(updateCursor);
             }
@@ -510,14 +428,17 @@
 
             document.addEventListener("mouseleave", () => {
                 mouseActive = false;
+
                 cursor.style.opacity = "0";
 
                 cursor.classList.remove("hover");
                 cursor.classList.remove("click");
+
+                hoverState = false;
             });
 
             /* =====================================================
-               CHECK IF ELEMENT IS CLICKABLE
+               CLICKABLE DETECTION
             ===================================================== */
 
             function isClickable(element) {
@@ -578,7 +499,11 @@
                 const target = event.target;
                 const related = event.relatedTarget;
 
-                if (!related || !isClickable(related)) {
+                if (
+                    !related ||
+                    !(related instanceof HTMLElement) ||
+                    !isClickable(related)
+                ) {
                     if (isClickable(target)) {
                         hoverState = false;
                         cursor.classList.remove("hover");
@@ -587,7 +512,7 @@
             });
 
             /* =====================================================
-               CLICK CURSOR
+               LEFT CLICK
             ===================================================== */
 
             document.addEventListener("mousedown", (event) => {
@@ -597,9 +522,6 @@
 
                 cursor.classList.add("click");
 
-                /*
-                 * Restart click ring animation every click.
-                 */
                 const ring = cursor.querySelector(".click-ring");
 
                 if (ring) {
@@ -608,12 +530,12 @@
                     void ring.offsetWidth;
 
                     ring.style.animation =
-                        "clickExpand 0.28s ease-out";
+                        "clickExpand 0.3s ease-out";
                 }
             });
 
             /* =====================================================
-               RELEASE CLICK CURSOR
+               RELEASE CLICK
             ===================================================== */
 
             document.addEventListener("mouseup", (event) => {
@@ -625,21 +547,23 @@
             });
 
             /* =====================================================
-               CANCEL CLICK STATE
+               CANCEL CLICK
             ===================================================== */
 
             document.addEventListener("blur", () => {
                 cursor.classList.remove("click");
                 cursor.classList.remove("hover");
+                hoverState = false;
             });
 
             window.addEventListener("blur", () => {
                 cursor.classList.remove("click");
                 cursor.classList.remove("hover");
+                hoverState = false;
             });
 
             /* =====================================================
-               KEYBOARD FOCUS
+               TAB FOCUS
             ===================================================== */
 
             document.addEventListener("keydown", (event) => {
@@ -648,10 +572,25 @@
                 }
             });
 
+            /* =====================================================
+               SHOW AGAIN AFTER MOUSE MOVES
+            ===================================================== */
+
             document.addEventListener("mousemove", () => {
                 if (mouseActive) {
                     cursor.style.opacity = "1";
                 }
+            });
+
+            /* =====================================================
+               IFRAME SAFETY
+               
+               Keep the iframe fully interactive.
+               The overlay never receives pointer events.
+            ===================================================== */
+
+            iframe.addEventListener("load", () => {
+                iframe.style.pointerEvents = "auto";
             });
 
         })();
