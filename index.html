@@ -43,14 +43,12 @@
             background: #000;
 
             z-index: 1;
+            pointer-events: auto;
         }
 
         /* =========================================================
            GLITCH OVERLAY
-           
-           IMPORTANT:
-           pointer-events: none prevents this overlay from
-           blocking the iframe underneath it.
+           DOES NOT BLOCK THE SITE
         ========================================================= */
 
         #staticOverlay {
@@ -68,10 +66,7 @@
             animation: glitch 1s infinite linear alternate-reverse;
 
             z-index: 100;
-
             opacity: 0.9;
-
-            display: block;
         }
 
         @keyframes glitch {
@@ -150,19 +145,17 @@
 
             z-index: 999999;
 
-            transform:
-                translate3d(-100px, -100px, 0);
-
             opacity: 0;
+
+            transform: translate3d(-100px, -100px, 0);
 
             will-change: transform;
 
-            transition:
-                opacity 0.12s ease;
+            transition: opacity 0.1s ease;
         }
 
         /* =========================================================
-           WINDOWS 11 STYLE ARROW
+           WINDOWS 11 STYLE CURSOR OUTLINE
         ========================================================= */
 
         .cursor-outline,
@@ -188,11 +181,13 @@
             );
 
             transition:
-                transform 0.12s ease,
-                filter 0.12s ease;
+                transform 0.08s ease,
+                filter 0.08s ease;
         }
 
-        /* Black outside silhouette */
+        /* =========================================================
+           BLACK OUTLINE
+        ========================================================= */
 
         .cursor-outline {
             background: #000;
@@ -202,11 +197,13 @@
                 scale(1.14);
 
             filter:
-                drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9))
-                drop-shadow(0 0 2px rgba(0, 0, 0, 0.9));
+                drop-shadow(0 1px 2px rgba(0, 0, 0, 1))
+                drop-shadow(0 0 2px rgba(0, 0, 0, 1));
         }
 
-        /* Green inside */
+        /* =========================================================
+           GREEN FILL
+        ========================================================= */
 
         .cursor-fill {
             background: #39ff14;
@@ -220,30 +217,30 @@
         }
 
         /* =========================================================
-           HOVER STATE
+           HOVER
         ========================================================= */
 
         #customCursor.hover .cursor-outline {
             transform:
                 translate(0, 0)
-                scale(1.2);
+                scale(1.18);
 
             filter:
                 drop-shadow(0 1px 3px rgba(0, 0, 0, 1))
-                drop-shadow(0 0 5px rgba(0, 0, 0, 0.95));
+                drop-shadow(0 0 5px rgba(0, 0, 0, 1));
         }
 
         #customCursor.hover .cursor-fill {
             transform:
                 translate(1px, 1px)
-                scale(1.05);
+                scale(1.04);
 
             filter:
-                drop-shadow(0 0 7px rgba(57, 255, 20, 0.65));
+                drop-shadow(0 0 8px rgba(57, 255, 20, 0.7));
         }
 
         /* =========================================================
-           CLICK STATE
+           CLICK
         ========================================================= */
 
         #customCursor.click .cursor-outline {
@@ -341,24 +338,19 @@
     </iframe>
 
     <!-- =========================================================
-         VISUAL OVERLAY
-         DOES NOT BLOCK THE SITE
+         GLITCH OVERLAY
     ========================================================= -->
 
     <div id="staticOverlay"></div>
 
     <!-- =========================================================
-         CUSTOM WINDOWS 11 STYLE CURSOR
+         WINDOWS 11 STYLE CURSOR
     ========================================================= -->
 
     <div id="customCursor">
-
         <div class="cursor-outline"></div>
-
         <div class="cursor-fill"></div>
-
         <div class="click-ring"></div>
-
     </div>
 
     <script>
@@ -366,49 +358,24 @@
             "use strict";
 
             const cursor = document.getElementById("customCursor");
-            const iframe = document.getElementById("contentFrame");
-
-            let mouseX = window.innerWidth / 2;
-            let mouseY = window.innerHeight / 2;
-
-            let cursorX = mouseX;
-            let cursorY = mouseY;
 
             let mouseActive = false;
             let hoverState = false;
 
-            const SMOOTHNESS = 0.28;
-
             /* =====================================================
-               CURSOR ANIMATION
-            ===================================================== */
-
-            function updateCursor() {
-                cursorX += (mouseX - cursorX) * SMOOTHNESS;
-                cursorY += (mouseY - cursorY) * SMOOTHNESS;
-
-                cursor.style.transform =
-                    `translate3d(${cursorX}px, ${cursorY}px, 0)`;
-
-                requestAnimationFrame(updateCursor);
-            }
-
-            updateCursor();
-
-            /* =====================================================
-               MOUSE MOVE
+               DIRECT MOUSE FOLLOW
+               EXACT MOUSE POSITION - NO SMOOTHING
             ===================================================== */
 
             document.addEventListener("mousemove", (event) => {
-                mouseX = event.clientX;
-                mouseY = event.clientY;
+                const x = event.clientX;
+                const y = event.clientY;
+
+                cursor.style.transform =
+                    `translate3d(${x}px, ${y}px, 0)`;
 
                 if (!mouseActive) {
                     mouseActive = true;
-
-                    cursorX = mouseX;
-                    cursorY = mouseY;
-
                     cursor.style.opacity = "1";
                 }
             });
@@ -438,7 +405,7 @@
             });
 
             /* =====================================================
-               CLICKABLE DETECTION
+               CLICKABLE ELEMENT DETECTION
             ===================================================== */
 
             function isClickable(element) {
@@ -481,7 +448,7 @@
             }
 
             /* =====================================================
-               HOVER DETECTION
+               HOVER ON
             ===================================================== */
 
             document.addEventListener("mouseover", (event) => {
@@ -494,6 +461,10 @@
                     }
                 }
             });
+
+            /* =====================================================
+               HOVER OFF
+            ===================================================== */
 
             document.addEventListener("mouseout", (event) => {
                 const target = event.target;
@@ -512,7 +483,7 @@
             });
 
             /* =====================================================
-               LEFT CLICK
+               LEFT MOUSE DOWN
             ===================================================== */
 
             document.addEventListener("mousedown", (event) => {
@@ -535,7 +506,7 @@
             });
 
             /* =====================================================
-               RELEASE CLICK
+               LEFT MOUSE UP
             ===================================================== */
 
             document.addEventListener("mouseup", (event) => {
@@ -547,14 +518,8 @@
             });
 
             /* =====================================================
-               CANCEL CLICK
+               CANCEL CLICK STATE
             ===================================================== */
-
-            document.addEventListener("blur", () => {
-                cursor.classList.remove("click");
-                cursor.classList.remove("hover");
-                hoverState = false;
-            });
 
             window.addEventListener("blur", () => {
                 cursor.classList.remove("click");
@@ -562,8 +527,14 @@
                 hoverState = false;
             });
 
+            document.addEventListener("blur", () => {
+                cursor.classList.remove("click");
+                cursor.classList.remove("hover");
+                hoverState = false;
+            });
+
             /* =====================================================
-               TAB FOCUS
+               TAB KEY
             ===================================================== */
 
             document.addEventListener("keydown", (event) => {
@@ -573,24 +544,13 @@
             });
 
             /* =====================================================
-               SHOW AGAIN AFTER MOUSE MOVES
+               SHOW CURSOR AGAIN AFTER MOUSE MOVES
             ===================================================== */
 
             document.addEventListener("mousemove", () => {
                 if (mouseActive) {
                     cursor.style.opacity = "1";
                 }
-            });
-
-            /* =====================================================
-               IFRAME SAFETY
-               
-               Keep the iframe fully interactive.
-               The overlay never receives pointer events.
-            ===================================================== */
-
-            iframe.addEventListener("load", () => {
-                iframe.style.pointerEvents = "auto";
             });
 
         })();
