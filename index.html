@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>lucide</title>
   <style>
-    /* Reset margins and make the body fill the viewport */
+    /* Reset margins and disable browser default cursor */
     html, body {
       margin: 0;
       padding: 0;
@@ -13,64 +13,98 @@
       height: 100%;
       overflow: hidden;
       background-color: #000;
-      /* Apply custom cursor to the document (hotspot set at top-left 0 0) */
-      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto;
+      cursor: none; /* Hide default system cursor */
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100%;
     }
 
     iframe {
       width: 100%;
       height: 100%;
       border: none;
-      cursor: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png'), auto;
+      display: block;
     }
 
-    /* Floating custom cursor tracker for cross-iframe visibility */
-    #custom-cursor-follower {
+    /* Transparent click-catcher layer over iframe */
+    .mouse-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      background: transparent;
+      cursor: none;
+    }
+
+    /* Custom image cursor element */
+    #custom-cursor {
       position: fixed;
       top: 0;
       left: 0;
       width: 32px;
       height: 32px;
-      pointer-events: none; /* Allows clicks to pass through directly to the iframe */
+      pointer-events: none; /* Allows click events to pass through */
       background-image: url('https://pngimg.com/uploads/cursor/cursor_PNG50.png');
       background-size: contain;
       background-repeat: no-repeat;
       z-index: 999999;
-      transform: translate(0, 0);
       display: none;
     }
   </style>
 </head>
 <body>
 
-  <!-- Custom Cursor Overlay Image -->
-  <div id="custom-cursor-follower"></div>
+  <div class="container">
+    <!-- Click/hover trap overlay -->
+    <div class="mouse-overlay" id="overlay"></div>
 
-  <iframe 
-    src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
-    
-    <!-- Feature Policy / Permissions -->
-    allow="fullscreen; microphone; camera; display-capture; autoplay; clipboard-write; web-share"
-    allowfullscreen
-    
-    <!-- Security Sandbox Constraints -->
-    sandbox="allow-scripts allow-same-origin allow-forms"
-  >
-  </iframe>
+    <iframe 
+      src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
+      
+      <!-- Feature Policy / Permissions -->
+      allow="fullscreen; microphone; camera; display-capture; autoplay; clipboard-write; web-share"
+      allowfullscreen
+      
+      <!-- Security Sandbox Constraints -->
+      sandbox="allow-scripts allow-same-origin allow-forms"
+    >
+    </iframe>
+  </div>
+
+  <!-- Custom Cursor Image -->
+  <div id="custom-cursor"></div>
 
   <script>
-    const follower = document.getElementById('custom-cursor-follower');
+    const cursor = document.getElementById('custom-cursor');
+    const overlay = document.getElementById('overlay');
 
-    // Track mouse movement across the document
-    window.addEventListener('mousemove', (e) => {
-      follower.style.display = 'block';
-      follower.style.left = `${e.clientX}px`;
-      follower.style.top = `${e.clientY}px`;
+    // Follow pointer coordinates across the overlay
+    overlay.addEventListener('mousemove', (e) => {
+      cursor.style.display = 'block';
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
     });
 
-    // Hide custom follower if the pointer leaves the screen
+    // Pass clicks through the overlay down into the iframe elements
+    overlay.addEventListener('click', (e) => {
+      overlay.style.pointerEvents = 'none';
+      const targetElement = document.elementFromPoint(e.clientX, e.clientY);
+      
+      if (targetElement) {
+        targetElement.click();
+      }
+      
+      overlay.style.pointerEvents = 'auto';
+    });
+
+    // Hide custom cursor when exiting the screen
     document.addEventListener('mouseleave', () => {
-      follower.style.display = 'none';
+      cursor.style.display = 'none';
     });
   </script>
 
