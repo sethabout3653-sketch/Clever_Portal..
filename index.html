@@ -3,46 +3,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>lucide</title>
-  <style>
-    /* Custom Windows 11 Green Cursor encoded directly in CSS SVG */
-    :root {
-      --custom-cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 28 38" fill="none"><path d="M2.5 2.5L25.5 20.5H14.5L21.5 35.5L16.5 37.5L9.5 22.5L2.5 28.5V2.5Z" fill="%2300FF66" stroke="%23000000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg>') 0 0, auto;
-    }
+  <title>Lucide</title>
 
-    /* Apply cursor to entire window */
-    html, body {
+  <style>
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #000;
-      cursor: var(--custom-cursor) !important;
+      background: #000;
+      cursor: none;
     }
 
-    /* Apply cursor to iframe and all underlying child elements */
     iframe {
       width: 100%;
       height: 100%;
       border: none;
-      cursor: var(--custom-cursor) !important;
+      display: block;
+    }
+
+    .cursor-dot,
+    .cursor-ring {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 999999;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      mix-blend-mode: difference;
+    }
+
+    .cursor-dot {
+      width: 7px;
+      height: 7px;
+      background: white;
+    }
+
+    .cursor-ring {
+      width: 32px;
+      height: 32px;
+      border: 2px solid white;
+      transition:
+        width 0.18s ease,
+        height 0.18s ease,
+        border-color 0.18s ease,
+        background-color 0.18s ease;
+    }
+
+    body.cursor-clicking .cursor-ring {
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    body.cursor-hidden .cursor-dot,
+    body.cursor-hidden .cursor-ring {
+      opacity: 0;
+    }
+
+    @media (pointer: coarse) {
+      .cursor-dot,
+      .cursor-ring {
+        display: none;
+      }
+
+      html,
+      body {
+        cursor: auto;
+      }
     }
   </style>
 </head>
-<body>
 
-  <iframe 
+<body>
+  <iframe
+    id="mainFrame"
     src="https://cdn.jsdelivr.net/gh/lucideproxy/svg@latest/logo.svg#/"
-    
-    <!-- Permissions for Fullscreen, Microphone, Camera -->
     allow="fullscreen; microphone; camera; display-capture; autoplay; clipboard-write; web-share"
     allowfullscreen
-    
-    <!-- Sandbox Settings preventing URL changes or extra tabs -->
     sandbox="allow-scripts allow-same-origin allow-forms"
-  >
-  </iframe>
+  ></iframe>
 
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <script>
+    const cursorDot = document.getElementById("cursorDot");
+    const cursorRing = document.getElementById("cursorRing");
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+
+    let ringX = mouseX;
+    let ringY = mouseY;
+
+    function setCursorPosition(x, y) {
+      mouseX = x;
+      mouseY = y;
+
+      cursorDot.style.left = `${mouseX}px`;
+      cursorDot.style.top = `${mouseY}px`;
+    }
+
+    function animateCursor() {
+      const smoothness = 0.18;
+
+      ringX += (mouseX - ringX) * smoothness;
+      ringY += (mouseY - ringY) * smoothness;
+
+      cursorRing.style.left = `${ringX}px`;
+      cursorRing.style.top = `${ringY}px`;
+
+      requestAnimationFrame(animateCursor);
+    }
+
+    window.addEventListener("mousemove", (event) => {
+      document.body.classList.remove("cursor-hidden");
+      setCursorPosition(event.clientX, event.clientY);
+    });
+
+    window.addEventListener("mousedown", () => {
+      document.body.classList.add("cursor-clicking");
+    });
+
+    window.addEventListener("mouseup", () => {
+      document.body.classList.remove("cursor-clicking");
+    });
+
+    window.addEventListener("mouseleave", () => {
+      document.body.classList.add("cursor-hidden");
+    });
+
+    window.addEventListener("mouseenter", () => {
+      document.body.classList.remove("cursor-hidden");
+    });
+
+    window.addEventListener("blur", () => {
+      document.body.classList.add("cursor-hidden");
+    });
+
+    window.addEventListener("focus", () => {
+      document.body.classList.remove("cursor-hidden");
+    });
+
+    animateCursor();
+  </script>
 </body>
 </html>
