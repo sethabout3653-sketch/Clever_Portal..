@@ -20,6 +20,7 @@
       height: 100%;
       overflow: hidden;
       background-color: #000;
+      position: relative; /* Needed for absolute positioning of the overlay */
     }
 
     .container {
@@ -32,6 +33,20 @@
       height: 100%;
       border: none;
       display: block;
+    }
+
+    /* Style for the invisible overlay image */
+    .invisible-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none; /* Makes the image non-interactive */
+      z-index: 9999; /* Ensures it's on top of most other content */
+      opacity: 0; /* Makes it completely transparent */
+      /* You can add a data attribute for extensions to target, e.g.: */
+      /* data-extension-target="true" */
     }
   </style>
 </head>
@@ -48,6 +63,14 @@
     </iframe>
   </div>
 
+  <!-- The static image overlay -->
+  <img 
+    src="your-transparent-image.png" /* Replace with the path to your transparent PNG */
+    alt="Invisible Overlay" 
+    class="invisible-overlay"
+    data-overlay-id="unique-overlay-marker" /* A custom attribute for extensions to find */
+  >
+
   <script type="text/javascript">
     (function () {
       // Injected Data URI cursor enforcing zero-lag rendering
@@ -59,6 +82,17 @@
         const frame = document.getElementById('content-frame');
         if (frame) {
           frame.style.cursor = `url("${svgCursor}") 0 0, auto`;
+        }
+
+        // Script to ensure the overlay image is correctly set up (optional but good practice)
+        const overlayImage = document.querySelector('.invisible-overlay');
+        if (overlayImage) {
+          // Since the image is intended to be invisible and non-interactive,
+          // its main purpose here is for an extension to detect its presence.
+          // The CSS handles its positioning and invisibility.
+          // You could potentially add more JS logic here if needed by the extension,
+          // but for simply being there, the HTML and CSS are sufficient.
+          console.log("Invisible overlay image added and configured.");
         }
       });
     })();
