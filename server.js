@@ -14,6 +14,25 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Endpoint that never closes, forcing an infinite browser loading indicator
+app.get('/infinite-load', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('Transfer-Encoding', 'chunked');
+  res.write('<!-- loading forever -->\n');
+
+  const interval = setInterval(() => {
+    if (!res.writableEnded) {
+      res.write(' ');
+    } else {
+      clearInterval(interval);
+    }
+  }, 5000);
+
+  req.on('close', () => {
+    clearInterval(interval);
+  });
+});
+
 app.get('/Clever.svg', (req, res) => {
   res.sendFile(path.join(__dirname, 'Clever.svg'));
 });
