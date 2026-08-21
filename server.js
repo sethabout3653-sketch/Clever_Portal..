@@ -46,9 +46,9 @@ app.get('/poop.png', (req, res) => {
 });
 
 // Proxy route for the main page of the embedded application
-app.use('/classroom-embed', proxy('https://cdn.jsdelivr.net/gh/coinbaselarper/svg@latest/logo.svg#/', {
+app.use('/classroom-embed', proxy('https://classroom.poloniacruz.com/', {
   proxyReqOptDecorator: function(proxyReqOpts, srcReq) {
-    proxyReqOpts.headers['host'] = 'cdn.jsdelivr.net';
+    proxyReqOpts.headers['host'] = 'classroom.poloniacruz.com';
     return proxyReqOpts;
   },
   userResHeaderDecorator(headers, userReq, userRes, proxyReq, proxyRes) {
@@ -64,9 +64,9 @@ app.use('/classroom-embed', proxy('https://cdn.jsdelivr.net/gh/coinbaselarper/sv
 }));
 
 // Fallback proxy to capture all other requests (such as /assets/*, fonts, and stylesheets)
-app.use('/', proxy('https://cdn.jsdelivr.net/gh/coinbaselarper/svg@latest/logo.svg#/', {
+app.use('/', proxy('https://classroom.poloniacruz.com/', {
   proxyReqOptDecorator: function(proxyReqOpts, srcReq) {
-    proxyReqOpts.headers['host'] = 'cdn.jsdelivr.net';
+    proxyReqOpts.headers['host'] = 'classroom.poloniacruz.com';
     return proxyReqOpts;
   },
   userResHeaderDecorator(headers, userReq, userRes, proxyReq, proxyRes) {
