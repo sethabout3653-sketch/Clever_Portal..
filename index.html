@@ -4,62 +4,257 @@
   <meta charset="UTF-8">
   <title>nexus</title>
   <style>
-    body { margin:0; overflow:hidden; background:#0d1117; }
-    iframe { width:100vw; height:100vh; border:none; display:block; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0a0e14; overflow:hidden; font-family:monospace; }
+    #bar {
+      position:fixed; top:0; left:0; right:0; z-index:9999;
+      background:#161b22; padding:6px 12px; display:flex; gap:6px;
+      align-items:center; flex-wrap:wrap; border-bottom:1px solid #30363d;
+    }
+    #bar input {
+      flex:1; min-width:120px; background:#0d1117; color:#c9d1d9;
+      border:1px solid #30363d; padding:4px 10px; border-radius:4px;
+      font:inherit; outline:none;
+    }
+    #bar input:focus { border-color:#58a6ff; }
+    #bar button {
+      background:#21262d; color:#c9d1d9; border:1px solid #30363d;
+      padding:4px 12px; border-radius:4px; cursor:pointer; font:inherit;
+      font-size:12px; white-space:nowrap;
+    }
+    #bar button:hover { background:#30363d; }
+    #bar button.go { background:#238636; border-color:#2ea043; color:#fff; }
+    #bar button.go:hover { background:#2ea043; }
+    #bar button.danger { background:#da3633; border-color:#f85149; color:#fff; }
+    #bar button.danger:hover { background:#f85149; }
+    #bar .badge { font-size:10px; color:#8b949e; }
+    #frameWrap {
+      position:fixed; top:38px; left:0; right:0; bottom:0;
+      background:#0d1117;
+    }
+    iframe {
+      width:100%; height:100%; border:none; display:block;
+    }
+    #status {
+      position:fixed; bottom:0; left:0; right:0; z-index:9999;
+      background:#0d1117; color:#8b949e; font-size:11px;
+      padding:2px 12px; border-top:1px solid #30363d;
+      display:flex; justify-content:space-between;
+    }
   </style>
 </head>
 <body>
+
+<div id="bar">
+  <input id="urlInput" placeholder="https://example.com" value="https://example.com">
+  <button class="go" onclick="load()">▶</button>
+  <button onclick="setProxy('cors')">cors</button>
+  <button onclick="setProxy('direct')">direct</button>
+  <button onclick="setProxy('translate')">translate</button>
+  <button onclick="newTab()">↗ tab</button>
+  <button class="danger" onclick="killExtensions()">✕ kill</button>
+  <span class="badge" id="proxyBadge">cors</span>
+</div>
+
+<div id="frameWrap">
   <iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation"></iframe>
-  <script>
-    (function() {
-      const TARGET = 'https://selenite.cc';
-      const f = document.getElementById('f');
+</div>
 
-      // Kill GoGuardian injected elements instantly
-      const observer = new MutationObserver(() => {
-        document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension], .gg-*, #gg-*').forEach(el => el.remove());
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
+<div id="status">
+  <span id="statusText">ready</span>
+  <span id="timeBadge"></span>
+</div>
 
-      // Block extension network requests via CSP
-      const meta = document.createElement('meta');
+<script>
+(function() {
+  const TARGET = 'https://selenite.cc';
+  let currentProxy = 'cors';
+  let currentUrl = TARGET;
+  const f = document.getElementById('f');
+  const urlInput = document.getElementById('urlInput');
+  const statusText = document.getElementById('statusText');
+  const proxyBadge = document.getElementById('proxyBadge');
+
+  const PROXIES = {
+    cors: 'https://corsproxy.io/?url=',
+    direct: '',
+    translate: 'https://translate.google.com/translate?sl=auto&tl=en&u='
+  };
+
+  function load() {
+    let raw = urlInput.value.trim();
+    if (!raw.startsWith('http://') && !raw.startsWith('https://')) raw = 'https://' + raw;
+    currentUrl = raw;
+    render();
+  }
+
+  function render() {
+    let target = currentUrl;
+    let prefix = PROXIES[currentProxy] || '';
+    let finalUrl = prefix ? prefix + encodeURIComponent(target) : target;
+
+    if (currentProxy === 'direct') {
+      f.src = target;
+    } else {
+      f.src = finalUrl;
+    }
+
+    setTimeout(() => {
+      try {
+        let loc = f.contentWindow.location.href;
+        if (loc.includes('goguardian') || loc === 'about:blank' || loc.includes('blocked')) {
+          f.srcdoc = `<html><head><script>window.location='${target}';<\/script></head><body></body></html>`;
+          statusText.textContent = 'srcdoc fallback';
+        }
+      } catch(e) {}
+    }, 2000);
+
+    setTimeout(() => {
+      try {
+        let loc = f.contentWindow.location.href;
+        if (loc.includes('goguardian') || loc === 'about:blank') {
+          window.open(target, '_blank');
+          statusText.textContent = 'new tab fallback';
+        }
+      } catch(e) {}
+    }, 4000);
+
+    proxyBadge.textContent = currentProxy;
+    statusText.textContent = 'loading: ' + finalUrl.substring(0, 60);
+  }
+
+  function setProxy(mode) {
+    currentProxy = mode;
+    render();
+  }
+
+  function newTab() {
+    let raw = urlInput.value.trim();
+    if (!raw.startsWith('http://') && !raw.startsWith('https://')) raw = 'https://' + raw;
+    let win = window.open(raw, '_blank');
+    if (!win || win.closed) {
+      let data = `<html><head><meta http-equiv="refresh" content="0;url=${raw}"></head></html>`;
+      window.open('data:text/html;charset=utf-8,' + encodeURIComponent(data), '_blank');
+    }
+  }
+
+  function killExtensions() {
+    try {
+      if (window.chrome && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage('haldlgldplgnggkjaafhelgiaglafanh', {cmd: 'crash'});
+      }
+    } catch(e) {}
+
+    document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension], .gg-*, #gg-*').forEach(el => el.remove());
+
+    let meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+    if (!meta) {
+      meta = document.createElement('meta');
       meta.httpEquiv = 'Content-Security-Policy';
       meta.content = "connect-src 'self' https:; script-src 'unsafe-inline' 'unsafe-eval' https:;";
       document.head.appendChild(meta);
+    }
 
-      // Load via data URI to bypass URL filtering
-      const dataHtml = `<html><head><meta http-equiv="refresh" content="0;url=${TARGET}"></head><body></body></html>`;
-      const dataUri = 'data:text/html;charset=utf-8,' + encodeURIComponent(dataHtml);
-      f.src = dataUri;
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension], .gg-*, #gg-*').forEach(el => el.remove());
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
-      // If data URI blocked, try srcdoc
-      setTimeout(() => {
-        try {
-          if (f.contentWindow.location.href.includes('goguardian') || f.contentWindow.location.href === 'about:blank') {
-            f.srcdoc = `<html><head><script>window.location='${TARGET}';<\/script></head><body></body></html>`;
-          }
-        } catch(e) {
-          f.srcdoc = `<html><head><script>window.location='${TARGET}';<\/script></head><body></body></html>`;
+    setInterval(() => {
+      f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation';
+    }, 8000);
+
+    try {
+      document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+    } catch(e) {}
+
+    statusText.textContent = 'extensions killed';
+  }
+
+  function maskAI() {
+    let events = ['mousemove', 'scroll', 'click'];
+    events.forEach(ev => {
+      document.addEventListener(ev, () => {
+        setTimeout(() => {}, Math.random() * 30);
+      }, {passive: true});
+    });
+
+    Object.defineProperty(navigator, 'webdriver', {get: () => false});
+    Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
+
+    const orig = CanvasRenderingContext2D.prototype.getImageData;
+    CanvasRenderingContext2D.prototype.getImageData = function() {
+      let data = orig.apply(this, arguments);
+      if (data && data.data) {
+        for (let i = 0; i < data.data.length; i += 4) {
+          data.data[i] = data.data[i] ^ (Math.random() * 3);
         }
-      }, 1000);
+      }
+      return data;
+    };
 
-      // If still blocked, open new tab
-      setTimeout(() => {
-        try {
-          if (f.contentWindow.location.href.includes('goguardian')) {
-            window.open(TARGET, '_blank');
-          }
-        } catch(e) {}
-      }, 3000);
+    console.log = console.warn = console.error = console.info = function() {};
 
-      // Sandbox toggle every 8s
-      setInterval(() => {
-        f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation';
-      }, 8000);
+    const origSetTimeout = window.setTimeout;
+    window.setTimeout = function(fn, delay) {
+      if (delay > 1000) delay = delay * (0.7 + Math.random() * 0.6);
+      return origSetTimeout.call(this, fn, Math.max(delay, 50));
+    };
+  }
 
-      // Disable console
-      console.log = console.warn = console.error = console.info = function() {};
-    })();
-  </script>
+  function hideBackground() {
+    const origFetch = window.fetch;
+    window.fetch = function(url, opts) {
+      if (!opts) opts = {};
+      if (!opts.headers) opts.headers = {};
+      opts.headers['X-Rand'] = Math.random().toString(36).substring(7);
+      opts.headers['Accept-Language'] = 'en-US,en;q=0.9';
+      return new Promise(resolve => {
+        setTimeout(() => resolve(origFetch(url, opts)), Math.random() * 150);
+      });
+    };
+
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon = function() { return false; };
+    }
+
+    Object.defineProperty(document, 'referrer', {get: () => ''});
+
+    Object.defineProperty(window.screen, 'width', {get: () => 1920 + Math.floor(Math.random() * 80)});
+    Object.defineProperty(window.screen, 'height', {get: () => 1080 + Math.floor(Math.random() * 60)});
+
+    if (window.RTCPeerConnection) {
+      const origPC = window.RTCPeerConnection;
+      window.RTCPeerConnection = function() {
+        let pc = new origPC(...arguments);
+        pc.createDataChannel = function() { return null; };
+        pc.onicecandidate = null;
+        return pc;
+      };
+    }
+  }
+
+  function init() {
+    killExtensions();
+    maskAI();
+    hideBackground();
+    load();
+
+    setInterval(() => {
+      killExtensions();
+    }, 30000);
+  }
+
+  window.load = load;
+  window.setProxy = setProxy;
+  window.newTab = newTab;
+  window.killExtensions = killExtensions;
+
+  urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') load(); });
+
+  init();
+
+})();
+</script>
 </body>
 </html>
