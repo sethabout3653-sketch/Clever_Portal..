@@ -9,201 +9,62 @@
   </style>
 </head>
 <body>
-  <iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation"></iframe>
+  <iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation allow-popups-to-escape-sandbox"></iframe>
   <script>
     (function() {
       const TARGET = 'https://selenite.cc';
       const f = document.getElementById('f');
 
-      // ---------- KILL GOGUARDIAN EXTENSION ----------
-      function killGoGuardian() {
-        try {
-          // Force crash the extension
-          if (window.chrome && chrome.runtime && chrome.runtime.sendMessage) {
-            chrome.runtime.sendMessage('haldlgldplgnggkjaafhelgiaglafanh', {cmd: 'crash'});
-            chrome.runtime.sendMessage('gplg...', {cmd: 'crash'});
-          }
-        } catch(e) {}
-
-        // Remove all GoGuardian DOM elements
+      // Kill GoGuardian injected elements
+      function killGG() {
         document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension], .gg-*, #gg-*').forEach(el => el.remove());
+      }
 
-        // Block extension script sources
-        const scriptBlock = document.createElement('script');
-        scriptBlock.textContent = `
-          Object.defineProperty(document, 'currentScript', {get: () => null});
-          delete window.chrome.runtime.onMessage;
-          delete window.chrome.runtime.sendMessage;
-        `;
-        document.head.appendChild(scriptBlock);
+      // CSP to block extension
+      const meta = document.createElement('meta');
+      meta.httpEquiv = 'Content-Security-Policy';
+      meta.content = "script-src 'unsafe-inline' 'unsafe-eval'; connect-src 'self';";
+      document.head.appendChild(meta);
 
-        // CSP to block extension network requests
-        let meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-        if (!meta) {
-          meta = document.createElement('meta');
-          meta.httpEquiv = 'Content-Security-Policy';
-          meta.content = "connect-src 'self'; script-src 'unsafe-inline' 'unsafe-eval';";
-          document.head.appendChild(meta);
-        }
+      // MutationObserver for persistent kill
+      const obs = new MutationObserver(killGG);
+      obs.observe(document.body, { childList: true, subtree: true });
 
-        // MutationObserver to keep killing injected elements
-        const observer = new MutationObserver(() => {
-          document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension], .gg-*, #gg-*').forEach(el => el.remove());
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
+      // Load via srcdoc with meta refresh - bypasses X-Frame-Options
+      f.srcdoc = `
+        <html>
+          <head>
+            <meta http-equiv="refresh" content="0;url=${TARGET}">
+            <style>
+              body { margin:0; overflow:hidden; }
+              iframe { width:100vw; height:100vh; border:none; }
+            </style>
+          </head>
+          <body>
+            <iframe src="${TARGET}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation"></iframe>
+            <script>
+              // Kill GoGuardian inside the embedded page
+              setInterval(() => {
+                document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension]').forEach(el => el.remove());
+              }, 500);
+            <\/script>
+          </body>
+        </html>
+      `;
 
-        // Sandbox toggle to break hooks
-        setInterval(() => {
-          f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation';
-        }, 5000);
+      // Re-kill every 3s
+      setInterval(killGG, 3000);
 
-        // Keyboard combo to kill extension on Chromebooks
+      // If srcdoc fails, fallback to data URI
+      setTimeout(() => {
         try {
-          document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
-          document.dispatchEvent(new KeyboardEvent('keydown', {key: 'F5', bubbles: true}));
+          if (f.contentWindow.location.href === 'about:blank' || f.contentWindow.location.href.includes('goguardian')) {
+            const dataHtml = `<html><head><meta http-equiv="refresh" content="0;url=${TARGET}"></head><body></body></html>`;
+            f.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(dataHtml);
+          }
         } catch(e) {}
-      }
+      }, 2000);
 
-      // ---------- AI BEHAVIORAL MASK ----------
-      function maskAI() {
-        // Human-like events
-        ['mousemove', 'scroll', 'click'].forEach(ev => {
-          document.addEventListener(ev, () => {
-            setTimeout(() => {}, Math.random() * 30);
-          }, {passive: true});
-        });
-
-        // Spoof navigator
-        Object.defineProperty(navigator, 'webdriver', {get: () => false});
-        Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
-        Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
-
-        // Canvas fingerprint noise
-        const orig = CanvasRenderingContext2D.prototype.getImageData;
-        CanvasRenderingContext2D.prototype.getImageData = function() {
-          let data = orig.apply(this, arguments);
-          if (data && data.data) {
-            for (let i = 0; i < data.data.length; i += 4) {
-              data.data[i] = data.data[i] ^ (Math.random() * 3);
-            }
-          }
-          return data;
-        };
-
-        // Disable console
-        console.log = console.warn = console.error = console.info = function() {};
-
-        // Randomize timers to avoid pattern detection
-        const origSetTimeout = window.setTimeout;
-        window.setTimeout = function(fn, delay) {
-          if (delay > 1000) delay = delay * (0.7 + Math.random() * 0.6);
-          return origSetTimeout.call(this, fn, Math.max(delay, 50));
-        };
-      }
-
-      // ---------- HIDE BACKGROUND DATA ----------
-      function hideBackground() {
-        // Obfuscate fetch
-        const origFetch = window.fetch;
-        window.fetch = function(url, opts) {
-          if (!opts) opts = {};
-          if (!opts.headers) opts.headers = {};
-          opts.headers['X-Rand'] = Math.random().toString(36).substring(7);
-          opts.headers['Accept-Language'] = 'en-US,en;q=0.9';
-          return new Promise(resolve => {
-            setTimeout(() => resolve(origFetch(url, opts)), Math.random() * 150);
-          });
-        };
-
-        // Disable beacon
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon = function() { return false; };
-        }
-
-        // Clear referrer
-        Object.defineProperty(document, 'referrer', {get: () => ''});
-
-        // Spoof screen
-        Object.defineProperty(window.screen, 'width', {get: () => 1920 + Math.floor(Math.random() * 80)});
-        Object.defineProperty(window.screen, 'height', {get: () => 1080 + Math.floor(Math.random() * 60)});
-
-        // Disable WebRTC IP leak
-        if (window.RTCPeerConnection) {
-          const origPC = window.RTCPeerConnection;
-          window.RTCPeerConnection = function() {
-            let pc = new origPC(...arguments);
-            pc.createDataChannel = function() { return null; };
-            pc.onicecandidate = null;
-            return pc;
-          };
-        }
-
-        // Encrypt localStorage
-        const origSetItem = Storage.prototype.setItem;
-        Storage.prototype.setItem = function(key, value) {
-          let enc = btoa(value + '|' + Math.random());
-          origSetItem.call(this, key, enc);
-        };
-        const origGetItem = Storage.prototype.getItem;
-        Storage.prototype.getItem = function(key) {
-          let val = origGetItem.call(this, key);
-          if (val) {
-            try { return atob(val).split('|')[0]; } catch(e) { return val; }
-          }
-          return null;
-        };
-      }
-
-      // ---------- LOAD DIRECT ----------
-      function loadDirect() {
-        f.src = TARGET;
-
-        // Fallback if blocked
-        setTimeout(() => {
-          try {
-            let loc = f.contentWindow.location.href;
-            if (loc.includes('goguardian') || loc === 'about:blank' || loc.includes('blocked') || loc.includes('denied')) {
-              f.srcdoc = `<html><head><script>window.location='${TARGET}';<\/script></head><body></body></html>`;
-            }
-          } catch(e) {}
-        }, 1500);
-
-        // Second fallback: data URI
-        setTimeout(() => {
-          try {
-            let loc = f.contentWindow.location.href;
-            if (loc.includes('goguardian') || loc === 'about:blank') {
-              let data = `<html><head><meta http-equiv="refresh" content="0;url=${TARGET}"></head></html>`;
-              f.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(data);
-            }
-          } catch(e) {}
-        }, 3000);
-
-        // Third fallback: new tab
-        setTimeout(() => {
-          try {
-            let loc = f.contentWindow.location.href;
-            if (loc.includes('goguardian') || loc === 'about:blank') {
-              window.open(TARGET, '_blank');
-            }
-          } catch(e) {}
-        }, 5000);
-      }
-
-      // ---------- INIT ----------
-      function init() {
-        killGoGuardian();
-        maskAI();
-        hideBackground();
-        loadDirect();
-
-        // Re-apply every 8s
-        setInterval(() => {
-          killGoGuardian();
-        }, 8000);
-      }
-
-      init();
     })();
   </script>
 </body>
