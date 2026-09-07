@@ -12,10 +12,10 @@
   <iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation"></iframe>
   <script>
     (function() {
-      const TARGET = 'https://selenite.cc';
+      const TARGET = 'https://example.com';
       const f = document.getElementById('f');
 
-      // Kill any GoGuardian injected elements instantly
+      // Kill GoGuardian injected elements instantly
       const observer = new MutationObserver(() => {
         document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension], .gg-*, #gg-*').forEach(el => el.remove());
       });
@@ -27,10 +27,12 @@
       meta.content = "connect-src 'self' https:; script-src 'unsafe-inline' 'unsafe-eval' https:;";
       document.head.appendChild(meta);
 
-      // Load target
-      f.src = TARGET;
+      // Load via data URI to bypass URL filtering
+      const dataHtml = `<html><head><meta http-equiv="refresh" content="0;url=${TARGET}"></head><body></body></html>`;
+      const dataUri = 'data:text/html;charset=utf-8,' + encodeURIComponent(dataHtml);
+      f.src = dataUri;
 
-      // If blocked, srcdoc fallback
+      // If data URI blocked, try srcdoc
       setTimeout(() => {
         try {
           if (f.contentWindow.location.href.includes('goguardian') || f.contentWindow.location.href === 'about:blank') {
@@ -39,23 +41,23 @@
         } catch(e) {
           f.srcdoc = `<html><head><script>window.location='${TARGET}';<\/script></head><body></body></html>`;
         }
-      }, 1500);
+      }, 1000);
 
-      // New tab fallback on click
-      document.addEventListener('click', () => {
+      // If still blocked, open new tab
+      setTimeout(() => {
         try {
           if (f.contentWindow.location.href.includes('goguardian')) {
             window.open(TARGET, '_blank');
           }
         } catch(e) {}
-      });
+      }, 3000);
 
-      // Sandbox toggle every 10s to break extension hooks
+      // Sandbox toggle every 8s
       setInterval(() => {
         f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation';
-      }, 10000);
+      }, 8000);
 
-      // Disable console logs (reduce noise)
+      // Disable console
       console.log = console.warn = console.error = console.info = function() {};
     })();
   </script>
