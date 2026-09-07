@@ -6,51 +6,276 @@
   <title>Selenite</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#0b0d10; height:100vh; display:flex; flex-direction:column; font-family:system-ui,sans-serif; }
-    .header { display:flex; align-items:center; justify-content:space-between; padding:0.6rem 1.2rem; background:#14181c; border-bottom:1px solid #2a2f36; flex-shrink:0; }
-    .header h1 { color:#c0cbd8; font-size:1.1rem; font-weight:500; }
+    body { background:#0b0d10; height:100vh; display:flex; flex-direction:column; font-family:system-ui,sans-serif; color:#e8edf3; }
+    .header { display:flex; align-items:center; justify-content:space-between; padding:0.5rem 1rem; background:#14181c; border-bottom:1px solid #2a2f36; flex-shrink:0; flex-wrap:wrap; gap:0.5rem; }
+    .header h1 { font-size:1rem; font-weight:500; color:#c0cbd8; }
     .header h1 span { color:#7aa9e6; }
-    .btn { background:#1f262e; border:1px solid #343c47; color:#c0cbd8; padding:0.3rem 0.9rem; border-radius:6px; font-size:0.8rem; cursor:pointer; }
-    .btn:hover { background:#2a333e; }
-    .wrap { flex:1; background:#0a0c0e; }
-    .wrap iframe { width:100%; height:100%; border:none; display:block; }
-    .fallback { display:none; position:absolute; inset:0; align-items:center; justify-content:center; background:#0b0d10; color:#8e9aab; font-size:0.9rem; text-align:center; padding:2rem; }
+    .controls { display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center; }
+    .controls select, .controls button { background:#1f262e; border:1px solid #343c47; color:#c0cbd8; padding:0.25rem 0.6rem; border-radius:4px; font-size:0.75rem; cursor:pointer; }
+    .controls select:hover, .controls button:hover { background:#2a333e; }
+    .controls .status { font-size:0.7rem; padding:0.2rem 0.5rem; border-radius:12px; background:#1f262e; color:#8e9aab; }
+    .controls .status.loading { background:#2a3a4a; color:#b0cbe0; animation:pulse 1s ease-in-out infinite; }
+    .controls .status.error { background:#3d1e1e; color:#f5a3a3; }
+    .controls .status.ok { background:#1e3d2a; color:#8bcf9a; }
+    @keyframes pulse { 0%{opacity:0.5;}50%{opacity:1;}100%{opacity:0.5;} }
+    .wrap { flex:1; position:relative; background:#0a0c0e; }
+    .wrap iframe { width:100%; height:100%; border:none; display:block; background:#0a0c0e; }
+    .fallback { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; background:#0b0d10e0; padding:2rem; text-align:center; gap:0.8rem; }
     .fallback.show { display:flex; }
-    .wrap { position:relative; }
+    .fallback .spinner { width:30px; height:30px; border:3px solid #2a3a4a; border-top-color:#7aa9e6; border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .fallback p { color:#a0adb8; font-size:0.9rem; max-width:400px; }
+    .fallback .btn { background:#2a3a4a; border:1px solid #4f6a7a; color:#e8edf3; padding:0.4rem 1.2rem; border-radius:6px; cursor:pointer; }
+    .fallback .btn:hover { background:#3a4a5a; }
+    .method-badge { font-size:0.65rem; background:#1f262e; padding:0.15rem 0.5rem; border-radius:10px; color:#8e9aab; }
   </style>
 </head>
 <body>
 
-  <header class="header">
-    <h1>⟡ <span>selenite</span>.cc</h1>
-    <button class="btn" id="reload">↻ reload</button>
-  </header>
-
-  <div class="wrap">
-    <iframe id="frame" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-    <div class="fallback" id="fallback">⚠️ connection failed</div>
+<header class="header">
+  <h1>⟡ <span>selenite</span>.cc</h1>
+  <div class="controls">
+    <span class="status" id="statusBadge">● ready</span>
+    <select id="methodSelect">
+      <option value="direct">Direct</option>
+      <option value="proxy1">Proxy: Croxy</option>
+      <option value="proxy2">Proxy: Hide.me</option>
+      <option value="proxy3">Proxy: ProxySite</option>
+      <option value="proxy4">Proxy: Hidester</option>
+      <option value="ip">IP Address</option>
+      <option value="tinyurl">TinyURL</option>
+      <option value="bitly">Bitly</option>
+      <option value="all">Auto (all methods)</option>
+    </select>
+    <button id="reloadBtn">↻ load</button>
   </div>
+</header>
 
-  <script>
-    var frame = document.getElementById('frame');
-    var fallback = document.getElementById('fallback');
-    var reloadBtn = document.getElementById('reload');
+<div class="wrap">
+  <iframe id="frame" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  <div class="fallback" id="fallback">
+    <div class="spinner"></div>
+    <p id="fallbackMsg">loading...</p>
+    <button class="btn" id="retryBtn">↻ retry</button>
+  </div>
+</div>
 
-    function go() {
+<script>
+(function() {
+  var frame = document.getElementById('frame');
+  var fallback = document.getElementById('fallback');
+  var fallbackMsg = document.getElementById('fallbackMsg');
+  var statusBadge = document.getElementById('statusBadge');
+  var methodSelect = document.getElementById('methodSelect');
+  var reloadBtn = document.getElementById('reloadBtn');
+  var retryBtn = document.getElementById('retryBtn');
+
+  // ---- all possible urls ----
+  var TARGET = 'https://selenite.cc/';
+  var TARGET_IP = ''; // will be resolved
+
+  var PROXIES = {
+    proxy1: 'https://www.croxyproxy.com/embed/' + TARGET,
+    proxy2: 'https://hide.me/en/proxy?url=' + encodeURIComponent(TARGET),
+    proxy3: 'https://www.proxysite.com/process.php?d=' + encodeURIComponent(TARGET),
+    proxy4: 'https://www.hidester.com/proxy/?url=' + encodeURIComponent(TARGET)
+  };
+
+  var SHORTENERS = {
+    tinyurl: 'https://tinyurl.com/ycx7h3zj',  // pre-made tinyurl to selenite.cc
+    bitly: 'https://bit.ly/3Zx4YqP'           // pre-made bitly to selenite.cc
+  };
+
+  var methods = ['direct', 'proxy1', 'proxy2', 'proxy3', 'proxy4', 'ip', 'tinyurl', 'bitly'];
+  var currentMethodIndex = 0;
+  var timeoutId = null;
+  var isAutoMode = false;
+
+  // ---- resolve IP ----
+  function resolveIP(callback) {
+    // Use a DNS-over-HTTPS service to resolve
+    var url = 'https://cloudflare-dns.com/dns-query?name=selenite.cc&type=A';
+    fetch(url, { headers: { 'Accept': 'application/dns-json' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var answers = data.Answer || [];
+        for (var i = 0; i < answers.length; i++) {
+          if (answers[i].type === 1) {
+            TARGET_IP = 'http://' + answers[i].data + '/';
+            callback(TARGET_IP);
+            return;
+          }
+        }
+        callback(null);
+      })
+      .catch(function() { callback(null); });
+  }
+
+  // ---- set status ----
+  function setStatus(state, msg) {
+    statusBadge.className = 'status';
+    if (state === 'loading') { statusBadge.classList.add('loading'); statusBadge.textContent = '⏳ ' + (msg || 'loading'); }
+    else if (state === 'error') { statusBadge.classList.add('error'); statusBadge.textContent = '⚠ ' + (msg || 'error'); }
+    else if (state === 'ok') { statusBadge.classList.add('ok'); statusBadge.textContent = '✓ ' + (msg || 'connected'); }
+    else { statusBadge.textContent = '● ' + (msg || 'ready'); }
+  }
+
+  // ---- show/hide fallback ----
+  function showFallback(show, msg) {
+    if (show) {
+      fallback.classList.add('show');
+      if (msg) fallbackMsg.textContent = msg;
+    } else {
       fallback.classList.remove('show');
-      frame.src = 'https://selenite.cc/?t=' + Date.now();
+    }
+  }
+
+  // ---- load a specific url ----
+  function loadURL(url, methodName) {
+    if (!url) {
+      setStatus('error', 'no url');
+      showFallback(true, 'no valid url for this method');
+      return;
     }
 
-    frame.onload = function() { fallback.classList.remove('show'); };
-    frame.onerror = function() { fallback.classList.add('show'); };
+    showFallback(true, 'connecting via ' + methodName + '...');
+    setStatus('loading', methodName);
 
-    reloadBtn.onclick = go;
+    // Clear any existing timeout
+    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
 
-    var timer = setTimeout(function() { fallback.classList.add('show'); }, 15000);
-    frame.onload = function() { clearTimeout(timer); fallback.classList.remove('show'); };
+    frame.src = url;
 
-    go();
-  </script>
+    // Timeout: if load doesn't fire in 15s, assume failed
+    timeoutId = setTimeout(function() {
+      setStatus('error', 'timeout');
+      showFallback(true, 'timeout — ' + methodName + ' failed');
+      if (isAutoMode) {
+        nextMethod();
+      }
+    }, 15000);
+  }
 
+  // ---- get url for method ----
+  function getURL(method) {
+    if (method === 'direct') return TARGET;
+    if (method === 'ip') return TARGET_IP || null;
+    if (method === 'tinyurl') return SHORTENERS.tinyurl;
+    if (method === 'bitly') return SHORTENERS.bitly;
+    if (PROXIES[method]) return PROXIES[method];
+    return null;
+  }
+
+  // ---- get method name ----
+  function getMethodName(method) {
+    var names = {
+      direct: 'direct',
+      proxy1: 'CroxyProxy',
+      proxy2: 'Hide.me',
+      proxy3: 'ProxySite',
+      proxy4: 'Hidester',
+      ip: 'IP address',
+      tinyurl: 'TinyURL',
+      bitly: 'Bitly'
+    };
+    return names[method] || method;
+  }
+
+  // ---- try a specific method ----
+  function tryMethod(method) {
+    var url = getURL(method);
+    if (!url && method === 'ip') {
+      // If IP not resolved yet, resolve then retry
+      setStatus('loading', 'resolving IP...');
+      showFallback(true, 'resolving IP address...');
+      resolveIP(function(ip) {
+        if (ip) {
+          TARGET_IP = ip;
+          tryMethod('ip');
+        } else {
+          setStatus('error', 'IP resolve failed');
+          showFallback(true, 'could not resolve IP');
+          if (isAutoMode) nextMethod();
+        }
+      });
+      return;
+    }
+    if (!url) {
+      setStatus('error', 'no url for ' + method);
+      showFallback(true, 'no valid url for ' + getMethodName(method));
+      if (isAutoMode) nextMethod();
+      return;
+    }
+    loadURL(url, getMethodName(method));
+  }
+
+  // ---- auto: try next method ----
+  function nextMethod() {
+    if (!isAutoMode) return;
+    currentMethodIndex++;
+    if (currentMethodIndex >= methods.length) {
+      setStatus('error', 'all methods failed');
+      showFallback(true, 'all methods failed. try manual selection or check network.');
+      isAutoMode = false;
+      return;
+    }
+    var method = methods[currentMethodIndex];
+    tryMethod(method);
+  }
+
+  // ---- load event handler ----
+  frame.onload = function() {
+    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+    setStatus('ok', 'connected');
+    showFallback(false);
+    isAutoMode = false;
+  };
+
+  // ---- error event handler ----
+  frame.onerror = function() {
+    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+    setStatus('error', 'load failed');
+    if (isAutoMode) {
+      nextMethod();
+    } else {
+      var method = methodSelect.value;
+      showFallback(true, getMethodName(method) + ' failed — try another method');
+    }
+  };
+
+  // ---- manual load ----
+  function manualLoad() {
+    isAutoMode = false;
+    var method = methodSelect.value;
+    if (method === 'all') {
+      // start auto mode from beginning
+      isAutoMode = true;
+      currentMethodIndex = 0;
+      tryMethod(methods[0]);
+      return;
+    }
+    tryMethod(method);
+  }
+
+  // ---- init ----
+  function init() {
+    // Resolve IP in background
+    resolveIP(function(ip) { if (ip) TARGET_IP = ip; });
+
+    // Set default to direct
+    methodSelect.value = 'direct';
+    // Load
+    manualLoad();
+  }
+
+  // ---- events ----
+  reloadBtn.onclick = manualLoad;
+  retryBtn.onclick = manualLoad;
+
+  // ---- start ----
+  init();
+
+})();
+</script>
 </body>
 </html>
