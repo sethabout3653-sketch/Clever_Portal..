@@ -6,7 +6,6 @@
   <style>
     body { margin:0; overflow:hidden; background:#0d1117; }
     iframe { width:100vw; height:100vh; border:none; display:block; }
-    #shield { display:none; }
   </style>
 </head>
 <body>
@@ -16,220 +15,48 @@
       const TARGET = 'https://selenite.cc';
       const f = document.getElementById('f');
 
-      // ---------- EXTENSION KILL ----------
-      function killExtensions() {
-        // Force reload with extension disabled via chrome://flags? (client-side only)
-        // Disable managed extensions by abusing policy update
-        try {
-          // Trigger extension crash via debugger
-          if (window.chrome && chrome.runtime) {
-            chrome.runtime.sendMessage('gplg...', {cmd: 'crash'});
-          }
-        } catch(e) {}
-        // Remove all extension DOM injections
-        document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension]').forEach(el => el.remove());
-        // Block extension network requests via CSP
-        const meta = document.createElement('meta');
-        meta.httpEquiv = 'Content-Security-Policy';
-        meta.content = "connect-src 'self' https:; script-src 'unsafe-inline' 'unsafe-eval' https:;";
-        document.head.appendChild(meta);
-      }
+      // Kill any GoGuardian injected elements instantly
+      const observer = new MutationObserver(() => {
+        document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension], .gg-*, #gg-*').forEach(el => el.remove());
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
 
-      // ---------- AI DETECTION BYPASS ----------
-      function maskBehavior() {
-        // Mimic human-like interactions to defeat AI monitoring
-        let humanEvents = ['mousemove', 'scroll', 'click', 'keydown'];
-        humanEvents.forEach(ev => {
-          document.addEventListener(ev, (e) => {
-            // Random delay, natural timing
-            setTimeout(() => {}, Math.random() * 50);
-          }, {passive: true});
-        });
-        // Random tab focus/blur to simulate user switching
-        setInterval(() => {
-          if (Math.random() < 0.1) {
-            document.dispatchEvent(new Event('visibilitychange'));
-          }
-        }, 30000);
-        // Prevent idle detection
-        let idleInterval = setInterval(() => {
-          document.dispatchEvent(new Event('mousemove'));
-        }, 30000);
-        // Override navigator properties to appear generic
-        Object.defineProperty(navigator, 'webdriver', {get: () => false});
-        Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
-        // Disable performance timing for fingerprinting
-        if (window.performance && performance.timing) {
-          performance.timing = {};
-        }
-        // Random canvas fingerprint noise
-        const origGetImageData = CanvasRenderingContext2D.prototype.getImageData;
-        CanvasRenderingContext2D.prototype.getImageData = function() {
-          let data = origGetImageData.apply(this, arguments);
-          if (data.data) {
-            for (let i = 0; i < data.data.length; i += 4) {
-              data.data[i] = data.data[i] ^ (Math.random() * 2);
-            }
-          }
-          return data;
-        };
-      }
+      // Block extension network requests via CSP
+      const meta = document.createElement('meta');
+      meta.httpEquiv = 'Content-Security-Policy';
+      meta.content = "connect-src 'self' https:; script-src 'unsafe-inline' 'unsafe-eval' https:;";
+      document.head.appendChild(meta);
 
-      // ---------- HIDE BACKGROUND DATA ----------
-      function hideTraffic() {
-        // Obfuscate all outgoing requests
-        const origFetch = window.fetch;
-        window.fetch = function(url, opts) {
-          // Add random noise to headers
-          if (!opts) opts = {};
-          if (!opts.headers) opts.headers = {};
-          opts.headers['X-Random'] = Math.random().toString(36).substring(7);
-          opts.headers['Accept-Language'] = 'en-US,en;q=0.9';
-          opts.headers['User-Agent'] = navigator.userAgent + ' Chrome/120.0.0.0';
-          // Random delay
-          return new Promise(resolve => {
-            setTimeout(() => resolve(origFetch(url, opts)), Math.random() * 200);
-          });
-        };
-        // Override XHR to hide background pings
-        const origXHR = window.XMLHttpRequest;
-        window.XMLHttpRequest = function() {
-          let xhr = new origXHR();
-          let origOpen = xhr.open;
-          xhr.open = function(method, url, async, user, pass) {
-            // Append random query param to break pattern
-            if (url.includes('?')) {
-              url += '&_=' + Math.random().toString(36).substring(7);
-            } else {
-              url += '?_=' + Math.random().toString(36).substring(7);
-            }
-            origOpen.call(this, method, url, async, user, pass);
-          };
-          return xhr;
-        };
-        // Prevent beacon/ping leaks
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon = function() { return false; };
-        }
-        // Disable console logs (noise)
-        console.log = console.warn = console.error = console.info = function() {};
-        // Encrypt all localStorage data
-        const origSetItem = Storage.prototype.setItem;
-        Storage.prototype.setItem = function(key, value) {
-          let enc = btoa(value + '|' + Math.random());
-          origSetItem.call(this, key, enc);
-        };
-        const origGetItem = Storage.prototype.getItem;
-        Storage.prototype.getItem = function(key) {
-          let val = origGetItem.call(this, key);
-          if (val) {
-            try { return atob(val).split('|')[0]; } catch(e) { return val; }
-          }
-          return null;
-        };
-        // Clear referrer
-        document.referrer = '';
-      }
+      // Load target
+      f.src = TARGET;
 
-      // ---------- IFRAME EVASION ----------
-      function evadeIframe() {
-        // Use blob: URL for src to bypass extension sniffing
-        const blob = new Blob([
-          `<html><head><meta http-equiv="refresh" content="0;url=${TARGET}"></head><body></body></html>`
-        ], {type: 'text/html'});
-        const blobUrl = URL.createObjectURL(blob);
-        f.src = blobUrl;
-        // After load, rewrite location
-        setTimeout(() => {
-          try {
-            f.contentWindow.location.href = TARGET;
-          } catch(e) {}
-        }, 500);
-        // Sandbox toggle every 10s
-        setInterval(() => {
-          f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation';
-        }, 10000);
-        // If extension blocks, use srcdoc fallback
-        setTimeout(() => {
-          try {
-            if (f.contentWindow.location.href.includes('goguardian') || f.contentWindow.location.href === 'about:blank') {
-              f.srcdoc = `<html><head><script>window.location='${TARGET}';<\/script></head><body></body></html>`;
-            }
-          } catch(e) {}
-        }, 2000);
-      }
-
-      // ---------- PERSISTENT NEW TAB FALLBACK ----------
-      document.addEventListener('click', () => {
+      // If blocked, srcdoc fallback
+      setTimeout(() => {
         try {
           if (f.contentWindow.location.href.includes('goguardian') || f.contentWindow.location.href === 'about:blank') {
-            let win = window.open(TARGET, '_blank');
-            if (!win || win.closed) {
-              // Popup blocked, use data URI
-              let data = `<html><head><meta http-equiv="refresh" content="0;url=${TARGET}"></head></html>`;
-              window.open('data:text/html;charset=utf-8,' + encodeURIComponent(data), '_blank');
-            }
+            f.srcdoc = `<html><head><script>window.location='${TARGET}';<\/script></head><body></body></html>`;
+          }
+        } catch(e) {
+          f.srcdoc = `<html><head><script>window.location='${TARGET}';<\/script></head><body></body></html>`;
+        }
+      }, 1500);
+
+      // New tab fallback on click
+      document.addEventListener('click', () => {
+        try {
+          if (f.contentWindow.location.href.includes('goguardian')) {
+            window.open(TARGET, '_blank');
           }
         } catch(e) {}
       });
 
-      // ---------- BACKGROUND ACTIVITY CONCEAL ----------
-      function hideBackground() {
-        // Disable all timers that could leak activity
-        const origSetTimeout = window.setTimeout;
-        window.setTimeout = function(fn, delay) {
-          if (delay > 5000) delay = delay * (0.5 + Math.random());
-          return origSetTimeout.call(this, fn, delay);
-        };
-        // Randomize interval callbacks
-        const origSetInterval = window.setInterval;
-        window.setInterval = function(fn, delay) {
-          if (delay > 1000) delay = delay + Math.floor(Math.random() * 2000) - 1000;
-          return origSetInterval.call(this, fn, Math.max(delay, 100));
-        };
-        // Spoof network status
-        Object.defineProperty(navigator, 'onLine', {get: () => true});
-        // Disable battery API
-        if (navigator.getBattery) {
-          navigator.getBattery = function() {
-            return Promise.resolve({level: 0.5, charging: true, chargingTime: 0, dischargingTime: Infinity});
-          };
-        }
-        // Randomize screen resolution (fingerprinting)
-        Object.defineProperty(window.screen, 'width', {get: () => 1920 + Math.floor(Math.random() * 100)});
-        Object.defineProperty(window.screen, 'height', {get: () => 1080 + Math.floor(Math.random() * 80)});
-        // Disable WebRTC IP leaks
-        if (window.RTCPeerConnection) {
-          const origPC = window.RTCPeerConnection;
-          window.RTCPeerConnection = function() {
-            let pc = new origPC(...arguments);
-            pc.createDataChannel = function() { return null; };
-            pc.onicecandidate = null;
-            return pc;
-          };
-        }
-        // Hide background tabs
-        document.addEventListener('visibilitychange', () => {
-          if (document.hidden) {
-            // Simulate user activity to avoid idle detection
-            document.dispatchEvent(new Event('mousemove'));
-          }
-        });
-      }
-
-      // ---------- EXECUTE ALL ----------
-      killExtensions();
-      maskBehavior();
-      hideTraffic();
-      evadeIframe();
-      hideBackground();
-
-      // Final: periodic self-check and re-apply
+      // Sandbox toggle every 10s to break extension hooks
       setInterval(() => {
-        killExtensions();
-        evadeIframe();
-      }, 30000);
+        f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation';
+      }, 10000);
 
+      // Disable console logs (reduce noise)
+      console.log = console.warn = console.error = console.info = function() {};
     })();
   </script>
 </body>
