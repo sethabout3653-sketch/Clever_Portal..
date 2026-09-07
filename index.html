@@ -13,62 +13,72 @@
   <script>
     (function() {
       const TARGET = 'https://selenite.cc';
-
       const f = document.getElementById('f');
 
-      // ---------- PROXY LIST (NO API KEY) ----------
-      const PROXIES = [
-        'https://api.allorigins.win/raw?url=',
-        'https://api.cors.lol/?url=',
-        'https://corsproxy.io/?url=',
-        'https://cors.x2u.in/'
-      ];
-      let proxyIndex = 0;
-
-      // ---------- KILL EXTENSIONS ----------
-      function killExtensions() {
+      // ---------- KILL GOGUARDIAN EXTENSION ----------
+      function killGoGuardian() {
         try {
+          // Force crash the extension
           if (window.chrome && chrome.runtime && chrome.runtime.sendMessage) {
             chrome.runtime.sendMessage('haldlgldplgnggkjaafhelgiaglafanh', {cmd: 'crash'});
+            chrome.runtime.sendMessage('gplg...', {cmd: 'crash'});
           }
         } catch(e) {}
 
+        // Remove all GoGuardian DOM elements
         document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension], .gg-*, #gg-*').forEach(el => el.remove());
 
+        // Block extension script sources
+        const scriptBlock = document.createElement('script');
+        scriptBlock.textContent = `
+          Object.defineProperty(document, 'currentScript', {get: () => null});
+          delete window.chrome.runtime.onMessage;
+          delete window.chrome.runtime.sendMessage;
+        `;
+        document.head.appendChild(scriptBlock);
+
+        // CSP to block extension network requests
         let meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
         if (!meta) {
           meta = document.createElement('meta');
           meta.httpEquiv = 'Content-Security-Policy';
-          meta.content = "connect-src 'self' https:; script-src 'unsafe-inline' 'unsafe-eval' https:;";
+          meta.content = "connect-src 'self'; script-src 'unsafe-inline' 'unsafe-eval';";
           document.head.appendChild(meta);
         }
 
+        // MutationObserver to keep killing injected elements
         const observer = new MutationObserver(() => {
           document.querySelectorAll('[id*="goguardian"], [class*="goguardian"], [data-extension], .gg-*, #gg-*').forEach(el => el.remove());
         });
         observer.observe(document.body, { childList: true, subtree: true });
 
+        // Sandbox toggle to break hooks
         setInterval(() => {
           f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation';
-        }, 8000);
+        }, 5000);
 
+        // Keyboard combo to kill extension on Chromebooks
         try {
           document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+          document.dispatchEvent(new KeyboardEvent('keydown', {key: 'F5', bubbles: true}));
         } catch(e) {}
       }
 
       // ---------- AI BEHAVIORAL MASK ----------
       function maskAI() {
-        let events = ['mousemove', 'scroll', 'click'];
-        events.forEach(ev => {
+        // Human-like events
+        ['mousemove', 'scroll', 'click'].forEach(ev => {
           document.addEventListener(ev, () => {
             setTimeout(() => {}, Math.random() * 30);
           }, {passive: true});
         });
 
+        // Spoof navigator
         Object.defineProperty(navigator, 'webdriver', {get: () => false});
         Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
+        Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
 
+        // Canvas fingerprint noise
         const orig = CanvasRenderingContext2D.prototype.getImageData;
         CanvasRenderingContext2D.prototype.getImageData = function() {
           let data = orig.apply(this, arguments);
@@ -80,8 +90,10 @@
           return data;
         };
 
+        // Disable console
         console.log = console.warn = console.error = console.info = function() {};
 
+        // Randomize timers to avoid pattern detection
         const origSetTimeout = window.setTimeout;
         window.setTimeout = function(fn, delay) {
           if (delay > 1000) delay = delay * (0.7 + Math.random() * 0.6);
@@ -91,6 +103,7 @@
 
       // ---------- HIDE BACKGROUND DATA ----------
       function hideBackground() {
+        // Obfuscate fetch
         const origFetch = window.fetch;
         window.fetch = function(url, opts) {
           if (!opts) opts = {};
@@ -102,15 +115,19 @@
           });
         };
 
+        // Disable beacon
         if (navigator.sendBeacon) {
           navigator.sendBeacon = function() { return false; };
         }
 
+        // Clear referrer
         Object.defineProperty(document, 'referrer', {get: () => ''});
 
+        // Spoof screen
         Object.defineProperty(window.screen, 'width', {get: () => 1920 + Math.floor(Math.random() * 80)});
         Object.defineProperty(window.screen, 'height', {get: () => 1080 + Math.floor(Math.random() * 60)});
 
+        // Disable WebRTC IP leak
         if (window.RTCPeerConnection) {
           const origPC = window.RTCPeerConnection;
           window.RTCPeerConnection = function() {
@@ -137,38 +154,27 @@
         };
       }
 
-      // ---------- LOAD WITH PROXY ROTATION ----------
-      function loadWithProxy() {
-        let proxy = PROXIES[proxyIndex % PROXIES.length];
-        let finalUrl = proxy + encodeURIComponent(TARGET);
-        f.src = finalUrl;
-        proxyIndex++;
-        document.getElementById('status').textContent = 'proxy: ' + proxy.split('/')[2];
-      }
-
-      // ---------- FALLBACK CHAIN ----------
-      function load() {
-        // Try direct first
+      // ---------- LOAD DIRECT ----------
+      function loadDirect() {
         f.src = TARGET;
 
-        // If fails, try proxy chain
+        // Fallback if blocked
         setTimeout(() => {
           try {
             let loc = f.contentWindow.location.href;
-            if (loc.includes('goguardian') || loc === 'about:blank' || loc.includes('blocked') || loc.includes('error') || loc.includes('denied')) {
-              loadWithProxy();
+            if (loc.includes('goguardian') || loc === 'about:blank' || loc.includes('blocked') || loc.includes('denied')) {
+              f.srcdoc = `<html><head><script>window.location='${TARGET}';<\/script></head><body></body></html>`;
             }
-          } catch(e) {
-            // Cross-origin means loaded OK
-          }
+          } catch(e) {}
         }, 1500);
 
-        // Second fallback: srcdoc
+        // Second fallback: data URI
         setTimeout(() => {
           try {
             let loc = f.contentWindow.location.href;
-            if (loc.includes('goguardian') || loc === 'about:blank' || loc.includes('blocked')) {
-              f.srcdoc = `<html><head><script>window.location='${TARGET}';<\/script></head><body></body></html>`;
+            if (loc.includes('goguardian') || loc === 'about:blank') {
+              let data = `<html><head><meta http-equiv="refresh" content="0;url=${TARGET}"></head></html>`;
+              f.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(data);
             }
           } catch(e) {}
         }, 3000);
@@ -186,29 +192,19 @@
 
       // ---------- INIT ----------
       function init() {
-        killExtensions();
+        killGoGuardian();
         maskAI();
         hideBackground();
-        load();
+        loadDirect();
 
+        // Re-apply every 8s
         setInterval(() => {
-          killExtensions();
-        }, 30000);
-
-        // Auto-retry with next proxy every 10s if blocked
-        setInterval(() => {
-          try {
-            let loc = f.contentWindow.location.href;
-            if (loc.includes('goguardian') || loc.includes('blocked') || loc.includes('denied')) {
-              loadWithProxy();
-            }
-          } catch(e) {}
-        }, 10000);
+          killGoGuardian();
+        }, 8000);
       }
 
       init();
     })();
   </script>
-  <div id="status" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0d1117;color:#8b949e;font-size:11px;padding:2px 12px;border-top:1px solid #30363d;text-align:center;">ready</div>
 </body>
 </html>
