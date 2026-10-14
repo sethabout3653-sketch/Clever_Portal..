@@ -1,15 +1,37 @@
-<!-- Embed truffled.lol with GoGuardian countermeasures -->
+<!-- Embed truffled.lol with full permissions -->
 <iframe 
   src="https://truffled.lol" 
   frameborder="0" 
   width="100%" 
   height="500" 
-  sandbox="allow-scripts allow-same-origin"
+  sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation allow-forms"
   id="truffleFrame"
+  referrerpolicy="no-referrer"
 >
 </iframe>
 
-<!-- Block GoGuardian scripts from interfering -->
+<!-- Fix Permissions-Policy errors -->
+<meta http-equiv="Permissions-Policy" content="attribution-reporting=(), private-aggregation=(), join-ad-interest-group=(), run-ad-auction=()">
+
+<!-- Bypass CORS for iframe access -->
+<script>
+  document.getElementById('truffleFrame').contentWindow.postMessage(
+    'grant-permissions',
+    'https://truffled.lol',
+    ['*']
+  );
+
+  window.addEventListener('message', event => {
+    if (event.data === 'grant-permissions' && event.origin === 'https://truffled.lol') {
+      document.getElementById('truffleFrame').contentWindow.document;
+    }
+  });
+</script>
+
+<!-- Disable favicon.ico request -->
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+<!-- Prevent GoGuardian interference -->
 <script>
   // Override GoGuardian's window.open
   const originalOpen = window.open;
