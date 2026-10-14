@@ -1,64 +1,70 @@
-<!-- Embed truffled.lol with full permissions -->
-<iframe 
-  src="https://truffled.lol" 
-  frameborder="0" 
-  width="100%" 
-  height="500" 
-  sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation allow-forms"
-  id="truffleFrame"
-  referrerpolicy="no-referrer"
->
-</iframe>
-
-<!-- Fix Permissions-Policy errors -->
-<meta http-equiv="Permissions-Policy" content="attribution-reporting=(), private-aggregation=(), join-ad-interest-group=(), run-ad-auction=()">
-
-<!-- Bypass CORS for iframe access -->
-<script>
-  document.getElementById('truffleFrame').contentWindow.postMessage(
-    'grant-permissions',
-    'https://truffled.lol',
-    ['*']
-  );
-
-  window.addEventListener('message', event => {
-    if (event.data === 'grant-permissions' && event.origin === 'https://truffled.lol') {
-      document.getElementById('truffleFrame').contentWindow.document;
+<!-- Embed truffled.lol with full permissions and GoGuardian bypass -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truffled.lol Embed</title>
+  <meta http-equiv="Permissions-Policy" content="attribution-reporting=(), private-aggregation=(), join-ad-interest-group=(), run-ad-auction=()">
+  <style>
+    iframe {
+      width: 100%;
+      height: 100vh;
+      border: none;
     }
-  });
-</script>
+  </style>
+</head>
+<body>
+  <iframe 
+    src="https://truffled.lol" 
+    frameborder="0" 
+    id="truffleFrame"
+    sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation allow-forms"
+    referrerpolicy="no-referrer"
+  >
+  </iframe>
 
-<!-- Disable favicon.ico request -->
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <script>
+    // Override GoGuardian's window.open
+    const originalOpen = window.open;
+    window.open = function(url, target) {
+      if (target !== '_blank') {
+        console.log('GoGuardian redirect blocked:', url);
+        return;
+      }
+      originalOpen.apply(this, arguments);
+    };
 
-<!-- Prevent GoGuardian interference -->
-<script>
-  // Override GoGuardian's window.open
-  const originalOpen = window.open;
-  window.open = function(url, target) {
-    if (target !== '_blank') {
-      console.log('GoGuardian redirect blocked:', url);
-      return;
-    }
-    originalOpen.apply(this, arguments);
-  };
-
-  // Kill GoGuardian scripts loading dynamically
-  document.addEventListener('DOMContentLoaded', () => {
-    const observer = new MutationObserver(() => {
-      const goguardianScripts = document.querySelectorAll('script[src*="goguardian"]');
-      goguardianScripts.forEach(script => script.remove());
+    // Kill GoGuardian scripts loading dynamically
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new MutationObserver(() => {
+        const goguardianScripts = document.querySelectorAll('script[src*="goguardian"]');
+        goguardianScripts.forEach(script => script.remove());
+      });
+      observer.observe(document.head, { childList: true });
     });
-    observer.observe(document.head, { childList: true });
-  });
 
-  // Prevent frame busting
-  const truffleFrame = document.getElementById('truffleFrame');
-  truffleFrame.addEventListener('load', () => {
-    const frameContent = truffleFrame.contentWindow.document;
-    if (frameContent.querySelector('meta[property="goguardian-redirect"]')) {
-      console.log('GoGuardian redirect meta tag detected and blocked');
-      truffleFrame.contentWindow.location.replace('https://truffled.lol');
-    }
-  });
-</script>
+    // Prevent frame busting
+    const truffleFrame = document.getElementById('truffleFrame');
+    truffleFrame.addEventListener('load', () => {
+      try {
+        const frameContent = truffleFrame.contentWindow.document;
+        if (frameContent.querySelector('meta[property="goguardian-redirect"]')) {
+          console.log('GoGuardian redirect meta tag detected and blocked');
+          truffleFrame.contentWindow.location.replace('https://truffled.lol');
+        }
+      } catch (error) {
+        console.error('Failed to access iframe content:', error);
+      }
+    });
+
+    // Disable favicon.ico request
+    document.addEventListener('DOMContentLoaded', () => {
+      const faviconLink = document.createElement('link');
+      faviconLink.rel = 'icon';
+      faviconLink.href = 'data:;base64,iVBORw0KGgo=';
+      document.head.appendChild(faviconLink);
+    });
+  </script>
+</body>
+</html>
